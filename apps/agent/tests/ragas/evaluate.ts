@@ -384,15 +384,21 @@ class DkgNodeRagasEvaluator {
     const scores = results.scores;
     const summary = this.generateSummary(scores);
     const recommendations = this.generateRecommendations(scores);
-    const failures = this.analyzeFailures(results.dataset, scores);
+    const detailedResults = results.detailedResults;
+
+    const timestamp = new Date().toISOString();
+    const timestampFormatted = timestamp.replace(/[:.]/g, "-");
 
     const report = {
+      timestamp: timestamp,
       scores,
       summary,
       recommendations,
-      failures,
-      thresholds: this.config.thresholds,
-      timestamp: new Date().toISOString(),
+      detailedResults: detailedResults,
+      config: {
+        thresholds: this.config.thresholds,
+        metrics: this.config.metrics,
+      },
     };
 
     // Generate different report formats
@@ -401,24 +407,29 @@ class DkgNodeRagasEvaluator {
     const dbJson = this.generateDatabaseJSON(scores);
 
     // Save reports to files
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const reportsDir = path.join(__dirname, "reports");
+    const evaluationDir = path.join(reportsDir, `evaluation-${timestampFormatted}`);
 
-    // Create reports directory if it doesn't exist
-    if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, { recursive: true });
+    // Create evaluation directory
+    if (!fs.existsSync(evaluationDir)) {
+      fs.mkdirSync(evaluationDir, { recursive: true });
     }
 
-    // Save reports
-    const csvPath = path.join(reportsDir, `ragas-report-${timestamp}.csv`);
+    // Save main JSON report for dashboard
+    const jsonReportPath = path.join(evaluationDir, "evaluation-report.json");
+    fs.writeFileSync(jsonReportPath, JSON.stringify(report, null, 2));
+
+    // Save additional formats
+    const csvPath = path.join(evaluationDir, `ragas-report-${timestampFormatted}.csv`);
     fs.writeFileSync(csvPath, csvReport);
     
-    const htmlPath = path.join(reportsDir, `ragas-report-${timestamp}.html`);
+    const htmlPath = path.join(evaluationDir, `ragas-report-${timestampFormatted}.html`);
     fs.writeFileSync(htmlPath, htmlReport);
     
     const dbJsonPath = path.join(__dirname, "ragas-results.json");
     fs.writeFileSync(dbJsonPath, JSON.stringify(dbJson, null, 2));
 
+    console.log(`\n📁 Reports saved to: ${evaluationDir}`);
     console.log(`\n🎯 RAGAS Evaluation Summary:`);
     console.log(
       `Overall Score: ${(summary.overall.averageScore * 100).toFixed(1)}%`,

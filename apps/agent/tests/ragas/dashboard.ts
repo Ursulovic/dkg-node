@@ -38,9 +38,8 @@ interface EvaluationReport {
 }
 
 function getReportsDirectory(): string {
-  // Use absolute path to project root tests directory
-  const projectRoot = path.resolve(__dirname, "../../../../"); // Go to project root
-  return path.join(projectRoot, "tests/ragas/reports");
+  // Reports are in the same directory structure as dashboard
+  return path.join(__dirname, "reports");
 }
 
 function getAllReports(): any[] {

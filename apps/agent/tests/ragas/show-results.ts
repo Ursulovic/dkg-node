@@ -34,9 +34,8 @@ interface EvaluationReport {
 }
 
 function findLatestReport(): string | null {
-  // Use absolute path to project root tests directory
-  const projectRoot = path.resolve(__dirname, "../../../../"); // Go to project root
-  const reportsDir = path.join(projectRoot, "tests/ragas/reports");
+  // Reports are in the same directory structure
+  const reportsDir = path.join(__dirname, "reports");
 
   if (!fs.existsSync(reportsDir)) {
     console.log("📁 No reports directory found");
