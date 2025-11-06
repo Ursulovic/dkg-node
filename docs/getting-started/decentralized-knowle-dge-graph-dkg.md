@@ -98,7 +98,7 @@ The installation can take a few minutes. It installs the DKG Node in the same di
 Run the agent setup script to enable LLM features. You'll be prompted for your LLM provider, API key, model name, and DKG environment (must match your setup-config choice: testnet or mainnet). The agent supports multiple providers; examples listed below.
 
 ```sh
-cd /dkg-node/apps/agent
+cd dkg-node/apps/agent
 npm run build:scripts
 npm run script:setup
 ```
@@ -191,7 +191,7 @@ All commands work from any directory and automatically detect your operating sys
 A `createUser` script is also included to simplify the creation of additional user accounts.
 
 ```sh
-cd /dkg-node/apps/agent
+cd dkg-node/apps/agent
 npm run script:createUser
 # Enter: email, password, permissions (e.g., `mcp llm blob scope123`)
 ```
