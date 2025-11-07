@@ -99,8 +99,7 @@ Run the agent setup script to enable LLM features. You'll be prompted for your L
 
 ```sh
 cd dkg-node/apps/agent
-npm run build:scripts
-npm run script:setup
+dkg-cli agent-setup
 ```
 
 DKG Node supports various LLM providers. Some examples include:
@@ -120,7 +119,7 @@ Once all services are up and running, you can start the **DKG Agent (MCP Server)
 To do so, navigate to the `dkg-node` directory and execute the following command:
 
 ```sh
-npm run dev
+dkg-cli run-dev
 ```
 
 This starts the DKG Agent (MCP server) in **developmen**t mode and exposes the Web UI.
@@ -188,11 +187,11 @@ All commands work from any directory and automatically detect your operating sys
 
 #### 8.2 Creating new users <a href="#id-7-access--use" id="id-7-access--use"></a>
 
-A `createUser` script is also included to simplify the creation of additional user accounts.
+A `createUser` is also possible via the `dkg-cli` included to simplify the creation of additional user accounts.
 
 ```sh
 cd dkg-node/apps/agent
-npm run script:createUser
+dkg-cli create-user
 # Enter: email, password, permissions (e.g., `mcp llm blob scope123`)
 ```
 
