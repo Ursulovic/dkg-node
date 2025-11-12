@@ -9,6 +9,6 @@ description: >-
 #### Pages in this section
 
 * [**Test token faucet**](test-token-faucet.md) – How to obtain free testnet tokens for publishing and running a node.
-* [**Community-created resources**](https://app.gitbook.com/o/-McnF-Jcg4utndKcdeko/s/-McnEkhdd7JlySeckfHM/~/changes/408/dkg-knowledge-hub/useful-resources/community-resources) – Explore open-source tools, libraries, and projects built by the OriginTrail community.
-* [**Available networks & RPCs**](https://app.gitbook.com/o/-McnF-Jcg4utndKcdeko/s/-McnEkhdd7JlySeckfHM/~/changes/408/dkg-knowledge-hub/useful-resources/networks) – Full details on supported networks, endpoints, and RPC configurations.
+* [**Community-created resources**](community-resources.md) – Explore open-source tools, libraries, and projects built by the OriginTrail community.
+* [**Available networks & RPCs**](networks.md) – Full details on supported networks, endpoints, and RPC configurations.
 
