@@ -98,7 +98,7 @@ The installation can take a few minutes. It installs the DKG Node in the same di
 Run the agent setup script to enable LLM features. You'll be prompted for your LLM provider, API key, model name, and DKG environment (must match your setup-config choice: testnet or mainnet). The agent supports multiple providers; examples are listed below.
 
 ```sh
-cd dkg-node/apps/agent
+cd dkg-node
 dkg-cli agent-setup
 ```
 
