@@ -4,10 +4,16 @@ import { Document } from "@langchain/core/documents";
 
 dotenv.config();
 
+interface WikipediaMetadata {
+  source: string;
+}
+
+type WikipediaDocument = Document<WikipediaMetadata> & { id: string };
+
 export class WikipediaLoader {
   static baseUrl = "https://en.wikipedia.org";
 
-  async query(q: string) {
+  async query(q: string): Promise<WikipediaDocument[]> {
     const url = new URL(`${WikipediaLoader.baseUrl}/w/index.php?search=${q}`);
 
     const response = await fetch(`https://r.jina.ai/${url.toString()}`, {
@@ -25,6 +31,6 @@ export class WikipediaLoader {
         },
         pageContent: result,
       },
-    ] as Document<Record<string, any>>[];
+    ];
   }
 }
