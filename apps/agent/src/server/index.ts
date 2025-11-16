@@ -23,6 +23,8 @@ import {
 import mailer from "./mailer";
 import { getTestMessageUrl } from "nodemailer";
 
+import biasLensPlugin from "@dkg/plugin-bias-lens";
+
 configEnv();
 const db = configDatabase();
 
@@ -124,6 +126,7 @@ const app = createPluginServer({
       ],
     }),
     webInterfacePlugin(path.join(__dirname, "./app")),
+    biasLensPlugin,
   ],
 });
 
