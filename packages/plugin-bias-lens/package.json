@@ -10,11 +10,15 @@
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "test": "mocha --loader ../../node_modules/tsx/dist/loader.mjs 'tests/**/*.spec.ts'"
+    "test": "mocha --import=tsx 'tests/**/*.spec.ts'"
   },
   "dependencies": {
     "@dkg/plugin-swagger": "^0.0.2",
-    "@dkg/plugins": "^0.0.2"
+    "@dkg/plugins": "^0.0.2",
+    "@langchain/community": "^1.0.3",
+    "@langchain/core": "^1.0.5",
+    "cheerio": "^1.1.2",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",

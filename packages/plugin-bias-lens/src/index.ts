@@ -1,8 +1,13 @@
 import { defineDkgPlugin } from "@dkg/plugins";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
+import { GrokipediaLoader } from "./loaders/grokipedia";
 
-function findBiasesInGrokipediaPage(url: string): string {
-  return `Biases found on ${url}: 0`;
+const grokipedia = new GrokipediaLoader();
+
+async function findBiasesInGrokipediaPage(url: string) {
+  const docs = await grokipedia.loadPage(url);
+
+  return `Biases found on ${url}: 0\n\n Documents loaded: ${JSON.stringify(docs, null, 2)}`;
 }
 
 export default defineDkgPlugin((ctx, mcp, api) => {
@@ -14,8 +19,9 @@ export default defineDkgPlugin((ctx, mcp, api) => {
       inputSchema: { url: z.string().url() },
     },
     async ({ url }) => {
+      const result = await findBiasesInGrokipediaPage(url);
       return {
-        content: [{ type: "text", text: findBiasesInGrokipediaPage(url) }],
+        content: [{ type: "text", text: result }],
       };
     },
   );
@@ -40,9 +46,10 @@ export default defineDkgPlugin((ctx, mcp, api) => {
           }),
         },
       },
-      (req, res) => {
+      async (req, res) => {
         const { url } = req.query;
-        res.json({ result: findBiasesInGrokipediaPage(url) });
+        const result = await findBiasesInGrokipediaPage(url);
+        res.json({ result });
       },
     ),
   );
