@@ -87,15 +87,15 @@ export async function createUser(
       throw new Error(`Invalid email address: ${email}`);
     });
 
-  await db
+  const [existingUser] = await db
     .select()
     .from(users)
     .where(eq(users.email, email))
-    .then((r) => {
-      if (r.length > 0) {
-        throw new Error(`User with email ${email} already exists.`);
-      }
-    });
+    .limit(1);
+
+  if (existingUser) {
+    return existingUser;
+  }
 
   const hashedPassword = await hash(password);
   await db.insert(users).values({
