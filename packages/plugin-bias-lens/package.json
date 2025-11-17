@@ -6,11 +6,11 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
-    "build": "tsup src/*.ts --format cjs,esm --dts",
+    "dev": "tsup src/*.ts src/**/*.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/*.ts src/**/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "test": "mocha --import=tsx 'tests/**/*.spec.ts'"
+    "test": "JINA_AI_API_KEY=jina_a270a157a578430886f95a1e73e3999baMp4IuiUvKH1DhY4YQ_lBGCGlo99 npx mocha --import=tsx 'tests/**/*.spec.ts'"
   },
   "dependencies": {
     "@dkg/plugin-swagger": "^0.0.2",
