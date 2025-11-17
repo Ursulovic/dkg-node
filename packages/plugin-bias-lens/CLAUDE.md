@@ -142,6 +142,21 @@ The plugin automatically supports **LangSmith observability** for tracing and mo
 - OpenAI embedding API calls
 - Pinecone vector database operations
 
+**Trace Tags and Metadata:**
+
+All `upsert()` operations are automatically tagged for easy filtering in LangSmith:
+- **Tag: `indexing`** - Identifies all indexing operations
+- **Tag: Document source URLs** - Each trace tagged with the source URLs being processed
+- **Metadata:**
+  - `documentCount` - Total documents in the batch
+  - `cachedCount` - Documents already indexed (skipped)
+  - `indexedCount` - New documents indexed
+  - `documentTypes` - Types of documents processed (grokipedia, wikipedia)
+
+Example LangSmith UI filtering:
+- Filter by tag `"indexing"` to see all RAG indexing operations
+- Filter by tag `"https://grokipedia.com/page/Climate_change"` to see traces for that specific page
+
 **Setup (Optional):**
 
 Add these environment variables to enable tracing:
