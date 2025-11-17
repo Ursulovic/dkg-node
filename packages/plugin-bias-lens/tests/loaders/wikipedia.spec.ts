@@ -7,6 +7,7 @@ describe("WikipediaLoader", () => {
 
   describe("query", () => {
     it("should return results for a valid query", async function () {
+      this.timeout(20_000);
       const result = await loader.query("Global warming potential");
 
       expect(result).to.be.an("array");

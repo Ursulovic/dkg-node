@@ -1,5 +1,8 @@
 export type LinkType =
   | "wiki-page"
+  | "grok-page"
+  | "academic-source"
+  | "archive-source"
   | "image"
   | "video"
   | "audio"
