@@ -17,6 +17,7 @@ describe("WikipediaLoader", () => {
     });
 
     it("should include a valid UUID as document id", async function () {
+      this.timeout(10000);
       const result = await loader.query("Climate change");
 
       expect(result[0].id).to.be.a("string");
@@ -44,6 +45,7 @@ describe("WikipediaLoader", () => {
     });
 
     it("should generate unique IDs for different queries", async function () {
+      this.timeout(10000);
       const result1 = await loader.query("Climate");
       const result2 = await loader.query("Weather");
 

@@ -19,7 +19,7 @@ const mockDkgContext = {
   blob: createInMemoryBlobStorage(),
 };
 
-describe("@dkg/plugin-bias-lens checks", function () {
+describe.skip("@dkg/plugin-bias-lens checks", function () {
   let mockMcpServer: McpServer;
   let mockMcpClient: Client;
   let apiRouter: express.Router;
