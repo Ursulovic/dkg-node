@@ -12,7 +12,7 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { PineconeRAG } from "../../src/vectordb/pinecone";
 
-describe.only("PineconeRAG", () => {
+describe("PineconeRAG", () => {
   let sandbox: sinon.SinonSandbox;
   let pineconeStub: sinon.SinonStub;
   let pineconeStoreStub: sinon.SinonStub;

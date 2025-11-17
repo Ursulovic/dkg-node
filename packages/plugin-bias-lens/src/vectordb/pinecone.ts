@@ -122,7 +122,8 @@ export class PineconeRAG {
     return results.length > 0;
   }
 
-  async delete(urls: string[]): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async delete(_urls: string[]): Promise<void> {
     throw new Error("Delete by URL not yet implemented");
   }
 
