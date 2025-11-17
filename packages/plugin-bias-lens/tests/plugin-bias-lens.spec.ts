@@ -21,7 +21,8 @@ const mockDkgContext = {
 
 describe.skip("@dkg/plugin-bias-lens checks", function () {
   let mockMcpServer: McpServer;
-  let mockMcpClient: Client;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _mockMcpClient: Client;
   let apiRouter: express.Router;
   let app: express.Application;
 
@@ -30,7 +31,7 @@ describe.skip("@dkg/plugin-bias-lens checks", function () {
   beforeEach(async () => {
     const { server, client, connect } = await createMcpServerClientPair();
     mockMcpServer = server;
-    mockMcpClient = client;
+    _mockMcpClient = client;
     apiRouter = express.Router();
     app = createExpressApp();
 
