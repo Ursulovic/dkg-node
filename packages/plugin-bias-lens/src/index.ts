@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { defineDkgPlugin } from "@dkg/plugins";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
 import { GrokipediaLoader } from "./loaders/grokipedia";
