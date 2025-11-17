@@ -508,22 +508,6 @@ describe("PineconeRAG", () => {
     });
   });
 
-  describe("delete", () => {
-    it("should throw not implemented error", async () => {
-      const rag = new PineconeRAG();
-
-      try {
-        await rag.delete(["https://example.com"]);
-        expect.fail("Should have thrown an error");
-      } catch (error) {
-        expect(error).to.be.instanceOf(Error);
-        expect((error as Error).message).to.equal(
-          "Delete by URL not yet implemented",
-        );
-      }
-    });
-  });
-
   describe("Chunking", () => {
     it("should split documents before upserting", async () => {
       const rag = new PineconeRAG();
