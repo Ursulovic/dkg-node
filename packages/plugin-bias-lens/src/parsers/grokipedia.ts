@@ -187,7 +187,7 @@ export function extractLinks(content: string): Link[] {
     }
   }
 
-  const linkRegex = /(?<!\!)\[([^\]]+)\]\(([^\s)"]+)/g;
+  const linkRegex = /(?<!!)\[([^\]]+)\]\(([^\s)"]+)/g;
 
   while ((match = linkRegex.exec(content)) !== null) {
     const text = match[1] || "";
