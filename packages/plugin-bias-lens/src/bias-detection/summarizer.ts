@@ -7,7 +7,7 @@ const SUMMARIZER_PROMPT = `You are an expert article analyzer preparing a compac
 Create a concise summary of this Grokipedia article with:
 1. Table of contents with all sections
 2. Brief summary of each section's main topic
-3. Only the MOST SIGNIFICANT claims per section (3-7 major claims)
+3. Only the MOST SIGNIFICANT claims per section
 
 ## CRITICAL RULES
 
@@ -52,7 +52,7 @@ Create a concise summary of this Grokipedia article with:
 
 ## Important Notes
 
-- Extract only 3-7 MOST SIGNIFICANT claims per section
+- Extract only MOST SIGNIFICANT claims per section
 - Paraphrase concisely while staying accurate
 - Claims include: major statistics, key attributions, central arguments
 - Subagents will use RAG to discover additional claims from full content
