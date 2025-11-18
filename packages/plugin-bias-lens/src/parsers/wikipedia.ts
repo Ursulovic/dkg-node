@@ -1,8 +1,6 @@
 export type LinkType =
   | "wiki-page"
   | "grok-page"
-  | "academic-source"
-  | "archive-source"
   | "image"
   | "video"
   | "audio"
@@ -22,43 +20,7 @@ export interface Link {
 function getLinkType(url: string, isImage: boolean): LinkType {
   const lowerUrl = url.toLowerCase();
 
-  if (lowerUrl.includes("wikipedia.org/wiki/")) {
-    return "wiki-page";
-  }
-
-  // Archive sources (web.archive.org, archive.is, archive.ph, archive.ipcc.ch, etc.)
-  if (
-    lowerUrl.includes("web.archive.org") ||
-    lowerUrl.includes("archive.is") ||
-    lowerUrl.includes("archive.ph") ||
-    lowerUrl.includes("archive.today") ||
-    lowerUrl.includes("archive.ipcc.ch")
-  ) {
-    return "archive-source";
-  }
-
-  // Academic sources (arxiv, DOI, journals)
-  if (
-    lowerUrl.includes("arxiv.org") ||
-    lowerUrl.includes("doi.org") ||
-    lowerUrl.includes("nature.com") ||
-    lowerUrl.includes("science.org") ||
-    lowerUrl.includes("sciencedirect.com") ||
-    lowerUrl.includes("springer.com") ||
-    lowerUrl.includes("wiley.com") ||
-    lowerUrl.includes("nih.gov") ||
-    lowerUrl.includes("pmc.ncbi.nlm.nih.gov") ||
-    lowerUrl.includes("academic.oup.com") ||
-    lowerUrl.includes("journals.") ||
-    lowerUrl.includes("iopscience.iop.org") ||
-    lowerUrl.includes("agupubs.onlinelibrary.wiley.com") ||
-    lowerUrl.includes("repository.") ||
-    lowerUrl.includes("essopenarchive.org") ||
-    lowerUrl.includes("pnas.org")
-  ) {
-    return "academic-source";
-  }
-
+  // Check file extensions FIRST (so archive.org/file.pdf is classified as PDF, not HTML)
   if (isImage || lowerUrl.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp|ico)(\?|$)/i)) {
     return "image";
   }
@@ -81,6 +43,40 @@ function getLinkType(url: string, isImage: boolean): LinkType {
 
   if (lowerUrl.match(/\.(xls|xlsx)(\?|$)/i)) {
     return "excel";
+  }
+
+  // Then check domain patterns
+  if (lowerUrl.includes("wikipedia.org/wiki/")) {
+    return "wiki-page";
+  }
+
+  // Archive sources (web.archive.org, archive.is, archive.ph, archive.ipcc.ch, etc.)
+  // Academic sources (arxiv, DOI, journals)
+  // Both are now classified as "html" type
+  if (
+    lowerUrl.includes("web.archive.org") ||
+    lowerUrl.includes("archive.is") ||
+    lowerUrl.includes("archive.ph") ||
+    lowerUrl.includes("archive.today") ||
+    lowerUrl.includes("archive.ipcc.ch") ||
+    lowerUrl.includes("arxiv.org") ||
+    lowerUrl.includes("doi.org") ||
+    lowerUrl.includes("nature.com") ||
+    lowerUrl.includes("science.org") ||
+    lowerUrl.includes("sciencedirect.com") ||
+    lowerUrl.includes("springer.com") ||
+    lowerUrl.includes("wiley.com") ||
+    lowerUrl.includes("nih.gov") ||
+    lowerUrl.includes("pmc.ncbi.nlm.nih.gov") ||
+    lowerUrl.includes("academic.oup.com") ||
+    lowerUrl.includes("journals.") ||
+    lowerUrl.includes("iopscience.iop.org") ||
+    lowerUrl.includes("agupubs.onlinelibrary.wiley.com") ||
+    lowerUrl.includes("repository.") ||
+    lowerUrl.includes("essopenarchive.org") ||
+    lowerUrl.includes("pnas.org")
+  ) {
+    return "html";
   }
 
   if (lowerUrl.match(/^https?:\/\/.+/)) {
@@ -127,7 +123,9 @@ function extractReferenceUrls(content: string): Map<string, string> {
 
     // Extract URLs from markdown links in this citation
     // Match [text](url) pattern but exclude Wikipedia anchor links
-    const urlMatches = citationContent.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g);
+    // Regex handles URLs with parentheses like: https://example.com/path_(with_parens)
+    // Pattern: ((?:[^()\s"]|\([^)]*\))*) captures URL, (?:\s+"[^"]*")? matches optional title
+    const urlMatches = citationContent.matchAll(/\[([^\]]+)\]\(((?:[^()\s"]|\([^)]*\))*)(?:\s+"[^"]*")?\)/g);
 
     for (const match of urlMatches) {
       const url = match[2];
@@ -199,7 +197,10 @@ export function extractLinks(content: string): Link[] {
     }
   }
 
-  const linkRegex = /(?<!!)\[([^\]]+)\]\(([^\s)"]+)/g;
+  // Match markdown links with support for parentheses in URLs and optional titles
+  // Pattern: ((?:[^()\s"]|\([^)]*\))*) captures URL (stops at space/quote)
+  // (?:\s+"[^"]*")? optionally matches space + quoted title
+  const linkRegex = /(?<!!)\[([^\]]+)\]\(((?:[^()\s"]|\([^)]*\))*)(?:\s+"[^"]*")?\)/g;
 
   while ((match = linkRegex.exec(content)) !== null) {
     const text = match[1] || "";
@@ -236,7 +237,8 @@ export function extractLinks(content: string): Link[] {
     }
   }
 
-  return links;
+  // Filter out links with empty URLs (e.g., citations without References)
+  return links.filter(link => link.url !== "");
 }
 
 export function extractLinksByType(

@@ -1,8 +1,6 @@
 export type LinkType =
   | "wiki-page"
   | "grok-page"
-  | "academic-source"
-  | "archive-source"
   | "image"
   | "video"
   | "audio"
@@ -31,18 +29,14 @@ function getLinkType(url: string, isImage: boolean): LinkType {
   }
 
   // Archive sources (web.archive.org, archive.is, archive.ph, archive.ipcc.ch, etc.)
+  // Academic sources (arxiv, DOI, journals)
+  // Both are now classified as "html" type
   if (
     lowerUrl.includes("web.archive.org") ||
     lowerUrl.includes("archive.is") ||
     lowerUrl.includes("archive.ph") ||
     lowerUrl.includes("archive.today") ||
-    lowerUrl.includes("archive.ipcc.ch")
-  ) {
-    return "archive-source";
-  }
-
-  // Academic sources (arxiv, DOI, journals)
-  if (
+    lowerUrl.includes("archive.ipcc.ch") ||
     lowerUrl.includes("arxiv.org") ||
     lowerUrl.includes("doi.org") ||
     lowerUrl.includes("nature.com") ||
@@ -60,7 +54,7 @@ function getLinkType(url: string, isImage: boolean): LinkType {
     lowerUrl.includes("essopenarchive.org") ||
     lowerUrl.includes("pnas.org")
   ) {
-    return "academic-source";
+    return "html";
   }
 
   if (isImage || lowerUrl.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp|ico)(\?|$)/i)) {
@@ -110,45 +104,63 @@ function isValidImageUrl(url: string): boolean {
 function extractReferenceUrls(content: string): Map<string, string> {
   const refMap = new Map<string, string>();
 
-  // Find the References section
-  const referencesIndex = content.indexOf("References");
-  if (referencesIndex === -1) {
+  // Find the References section (supports both markdown heading ## References and underlined References)
+  const referencesMatch = content.match(/(?:##\s*)?References\s*(?:[-]+)?\s*([\s\S]*?)(\n##|$)/i);
+  if (!referencesMatch || !referencesMatch[1]) {
     return refMap;
   }
 
-  // Extract the section after "References"
-  const referencesSection = content.substring(referencesIndex + "References".length);
+  const referencesSection = referencesMatch[1];
 
-  // Find the first URL (starts with https://)
-  const firstUrlMatch = referencesSection.match(/https:\/\//);
-  if (!firstUrlMatch || firstUrlMatch.index === undefined) {
-    return refMap;
-  }
+  // Split by numbered citations (1., 2., 3., etc.)
+  // Match pattern: start of line with optional whitespace, number, period
+  const citationEntries = referencesSection.split(/^\s*(\d+)\.\s+/m).filter(Boolean);
 
-  // Extract the URL blob (all concatenated URLs)
-  const urlBlob = referencesSection.substring(firstUrlMatch.index);
+  // Process pairs of (number, content)
+  for (let i = 0; i < citationEntries.length; i += 2) {
+    const citationNumber = citationEntries[i]?.trim();
+    const citationContent = citationEntries[i + 1];
 
-  // Split on "https://" to separate individual URLs
-  const urls = urlBlob
-    .split(/(?=https:\/\/)/)
-    .map((url) => url.trim())
-    .filter((url) => url.length > 0)
-    .map((url) => {
-      // Clean up: remove trailing non-URL characters
-      // URLs end before common trailing text like "Edits", "All", "Loading", etc.
-      const cleaned = url.match(/^(https:\/\/[^\s]*)/);
-      if (cleaned && cleaned[1]) {
-        // Remove common trailing patterns that aren't part of URLs
-        return cleaned[1].replace(/(Edits|All|EditsAll|Loading|edits\.\.\.)+$/, "");
+    if (!citationNumber || !citationContent) continue;
+
+    // Extract URLs from markdown links in this citation
+    // Match [text](url) pattern but exclude Wikipedia anchor links
+    // Regex handles URLs with parentheses like: https://example.com/path_(with_parens)
+    // Pattern: ((?:[^()\s"]|\\([^)]*\\))*) captures URL, (?:\\s+"[^"]*")? matches optional title
+    const urlMatches = citationContent.matchAll(/\[([^\]]+)\]\(((?:[^()\s"]|\([^)]*\))*)(?:\s+"[^"]*")?\)/g);
+
+    for (const match of urlMatches) {
+      const url = match[2];
+
+      // Skip if no URL captured
+      if (!url) {
+        continue;
       }
-      return url;
-    });
 
-  // Map citation numbers to URLs (1-indexed)
-  urls.forEach((url, index) => {
-    const citationNumber = (index + 1).toString();
-    refMap.set(citationNumber, url);
-  });
+      // Skip Grokipedia internal anchor links (#cite_ref-X)
+      if (url.startsWith("#") || url.includes("grokipedia.com/")) {
+        continue;
+      }
+
+      // Skip empty or invalid URLs
+      if (!url.match(/^https?:\/\//)) {
+        continue;
+      }
+
+      // Use the first valid URL for this citation number
+      if (!refMap.has(citationNumber)) {
+        refMap.set(citationNumber, url);
+      }
+    }
+
+    // If no markdown link found, try to extract raw URLs
+    if (!refMap.has(citationNumber)) {
+      const rawUrlMatch = citationContent.match(/(https?:\/\/[^\s)]+)/);
+      if (rawUrlMatch && rawUrlMatch[1]) {
+        refMap.set(citationNumber, rawUrlMatch[1]);
+      }
+    }
+  }
 
   return refMap;
 }
@@ -187,7 +199,10 @@ export function extractLinks(content: string): Link[] {
     }
   }
 
-  const linkRegex = /(?<!!)\[([^\]]+)\]\(([^\s)"]+)/g;
+  // Match markdown links with support for parentheses in URLs and optional titles
+  // Pattern: ((?:[^()\s"]|\([^)]*\))*) captures URL (stops at space/quote)
+  // (?:\s+"[^"]*")? optionally matches space + quoted title
+  const linkRegex = /(?<!!)\[([^\]]+)\]\(((?:[^()\s"]|\([^)]*\))*)(?:\s+"[^"]*")?\)/g;
 
   while ((match = linkRegex.exec(content)) !== null) {
     const text = match[1] || "";
@@ -243,7 +258,8 @@ export function extractLinks(content: string): Link[] {
     }
   }
 
-  return links;
+  // Filter out links with empty URLs (e.g., citations without References)
+  return links.filter(link => link.url !== "");
 }
 
 export function extractLinksByType(

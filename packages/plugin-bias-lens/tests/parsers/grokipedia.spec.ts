@@ -20,6 +20,7 @@ describe("Grokipedia Parsers", () => {
   describe("extractLinks", () => {
     it("should extract all links from Grokipedia content", () => {
       const links = extractLinks(scrapedContent);
+
       expect(links).to.be.an("array");
       expect(links.length).to.be.greaterThan(0);
     });
@@ -42,16 +43,17 @@ describe("Grokipedia Parsers", () => {
       const types = new Set(links.map((l) => l.type));
 
       // Real Grokipedia content has citations linked to reference URLs
-      // Citations are typed based on their URL (archive-source, academic-source, pdf, html)
-      expect(types.has("archive-source")).to.be.true;
-      expect(types.has("academic-source")).to.be.true;
+      // Citations are typed based on their URL (html for archive/academic, pdf, etc.)
+      expect(types.has("html")).to.be.true;
       expect(types.has("pdf")).to.be.true;
 
-      // All links should be numbered citations
+      // With Turndown conversion, content now has both regular links and citations
       expect(links.length).to.be.greaterThan(60);
 
-      // Citations should have numbers as text and URLs
-      links.forEach((link) => {
+      // Filter for citations (numeric text) and verify they have URLs
+      const citations = links.filter((link) => /^\d+$/.test(link.text));
+      expect(citations.length).to.be.greaterThan(60);
+      citations.forEach((link) => {
         expect(link.text).to.match(/^\d+$/);
         expect(link.url).to.match(/^https:\/\//);
       });
@@ -87,40 +89,21 @@ describe("Grokipedia Parsers", () => {
       });
     });
 
-    it("should extract only academic-source links", () => {
-      const academicSources = extractLinksByType(
-        MARKDOWN_TEST_CONTENT,
-        "academic-source",
-      );
+    it("should extract academic/archive sources as html type", () => {
+      const htmlLinks = extractLinksByType(MARKDOWN_TEST_CONTENT, "html");
 
-      expect(academicSources).to.be.an("array");
-      expect(academicSources.length).to.be.greaterThan(0);
+      expect(htmlLinks).to.be.an("array");
+      expect(htmlLinks.length).to.be.greaterThan(0);
 
-      academicSources.forEach((link) => {
-        expect(link.type).to.equal("academic-source");
-        const hasAcademicDomain =
+      htmlLinks.forEach((link) => {
+        expect(link.type).to.equal("html");
+        const hasAcademicOrArchiveDomain =
           link.url.includes("nature.com") ||
           link.url.includes("arxiv.org") ||
-          link.url.includes("doi.org");
-        expect(hasAcademicDomain).to.be.true;
-      });
-    });
-
-    it("should extract only archive-source links", () => {
-      const archiveSources = extractLinksByType(
-        MARKDOWN_TEST_CONTENT,
-        "archive-source",
-      );
-
-      expect(archiveSources).to.be.an("array");
-      expect(archiveSources.length).to.be.greaterThan(0);
-
-      archiveSources.forEach((link) => {
-        expect(link.type).to.equal("archive-source");
-        const hasArchiveDomain =
+          link.url.includes("doi.org") ||
           link.url.includes("web.archive.org") ||
           link.url.includes("archive.ipcc.ch");
-        expect(hasArchiveDomain).to.be.true;
+        expect(hasAcademicOrArchiveDomain).to.be.true;
       });
     });
 
@@ -136,33 +119,36 @@ describe("Grokipedia Parsers", () => {
       });
     });
 
-    it("should extract archive sources from real Grokipedia content", () => {
-      const archiveSources = extractLinksByType(
-        scrapedContent,
-        "archive-source",
+    it("should extract archive sources from real Grokipedia content as html type", () => {
+      const htmlLinks = extractLinksByType(scrapedContent, "html");
+
+      // Filter for archive sources (should be citations with numeric text)
+      const archiveSources = htmlLinks.filter(
+        (link) =>
+          link.url.includes("archive.ipcc.ch") && /^\d+$/.test(link.text),
       );
 
       expect(archiveSources).to.be.an("array");
       expect(archiveSources.length).to.be.greaterThan(0);
 
       archiveSources.forEach((link) => {
-        expect(link.type).to.equal("archive-source");
+        expect(link.type).to.equal("html");
         expect(link.text).to.match(/^\d+$/); // Citation numbers
         expect(link.url).to.include("archive.ipcc.ch");
       });
     });
 
-    it("should extract academic sources from real Grokipedia content", () => {
-      const academicSources = extractLinksByType(
-        scrapedContent,
-        "academic-source",
-      );
+    it("should extract academic sources from real Grokipedia content as html type", () => {
+      const htmlLinks = extractLinksByType(scrapedContent, "html");
 
-      expect(academicSources).to.be.an("array");
-      expect(academicSources.length).to.be.greaterThan(0);
+      expect(htmlLinks).to.be.an("array");
+      expect(htmlLinks.length).to.be.greaterThan(0);
 
-      academicSources.forEach((link) => {
-        expect(link.type).to.equal("academic-source");
+      // Filter for citations (numeric text) and verify they're academic/archive sources
+      const citations = htmlLinks.filter((link) => /^\d+$/.test(link.text));
+      expect(citations.length).to.be.greaterThan(0);
+      citations.forEach((link) => {
+        expect(link.type).to.equal("html");
         expect(link.text).to.match(/^\d+$/); // Citation numbers
         expect(link.url).to.match(/^https:\/\//);
       });
@@ -195,15 +181,13 @@ describe("Grokipedia Parsers", () => {
     it("should extract multiple types at once", () => {
       const links = extractLinksByType(MARKDOWN_TEST_CONTENT, [
         "grok-page",
-        "academic-source",
-        "archive-source",
+        "html",
+        "pdf",
       ]);
 
       expect(links.length).to.be.greaterThan(0);
       links.forEach((link) => {
-        expect(["grok-page", "academic-source", "archive-source"]).to.include(
-          link.type,
-        );
+        expect(["grok-page", "html", "pdf"]).to.include(link.type);
       });
     });
   });
@@ -222,47 +206,47 @@ describe("Grokipedia Parsers", () => {
       expect(links[0].text).to.equal("Climate Change");
     });
 
-    it("should correctly identify arxiv.org as academic-source", () => {
+    it("should correctly identify arxiv.org as html", () => {
       const testContent = "[Paper](https://arxiv.org/abs/2103.12345)";
       const links = extractLinks(testContent);
 
       expect(links).to.have.lengthOf(1);
-      expect(links[0].type).to.equal("academic-source");
+      expect(links[0].type).to.equal("html");
     });
 
-    it("should correctly identify doi.org as academic-source", () => {
+    it("should correctly identify doi.org as html", () => {
       const testContent = "[DOI](https://doi.org/10.1088/1748-9326/ac4940)";
       const links = extractLinks(testContent);
 
       expect(links).to.have.lengthOf(1);
-      expect(links[0].type).to.equal("academic-source");
+      expect(links[0].type).to.equal("html");
     });
 
-    it("should correctly identify nature.com as academic-source", () => {
+    it("should correctly identify nature.com as html", () => {
       const testContent =
         "[Nature Article](https://www.nature.com/articles/s43247-023-00857-8)";
       const links = extractLinks(testContent);
 
       expect(links).to.have.lengthOf(1);
-      expect(links[0].type).to.equal("academic-source");
+      expect(links[0].type).to.equal("html");
     });
 
-    it("should correctly identify web.archive.org as archive-source", () => {
+    it("should correctly identify web.archive.org as html", () => {
       const testContent =
         "[Archived](https://web.archive.org/web/20230101/https://example.com)";
       const links = extractLinks(testContent);
 
       expect(links).to.have.lengthOf(1);
-      expect(links[0].type).to.equal("archive-source");
+      expect(links[0].type).to.equal("html");
     });
 
-    it("should correctly identify archive.ipcc.ch as archive-source", () => {
+    it("should correctly identify archive.ipcc.ch as html", () => {
       const testContent =
         "[IPCC Archive](https://archive.ipcc.ch/ipccreports/tar/wg1/247.htm)";
       const links = extractLinks(testContent);
 
       expect(links).to.have.lengthOf(1);
-      expect(links[0].type).to.equal("archive-source");
+      expect(links[0].type).to.equal("html");
     });
 
     it("should prioritize grok-page over other types", () => {
@@ -390,29 +374,54 @@ describe("Grokipedia Parsers", () => {
 
   describe("Citation Extraction", () => {
     it("should extract citations with proper format", () => {
-      const testContent = "Text with citation[[1]] and another[[2]][[3]]";
-      const citations = extractLinksByType(testContent, "citation");
+      const testContent = `Text with citation[[1]] and another[[2]][[3]]
+
+## References
+
+1. [https://example.com/ref1](https://example.com/ref1)
+2. [https://example.com/ref2](https://example.com/ref2)
+3. [https://example.com/ref3](https://example.com/ref3)`;
+
+      const allLinks = extractLinks(testContent);
+      const citations = allLinks.filter((link) => /^\d+$/.test(link.text));
 
       expect(citations).to.have.lengthOf(3);
       expect(citations[0].text).to.equal("1");
       expect(citations[1].text).to.equal("2");
       expect(citations[2].text).to.equal("3");
+      expect(citations[0].url).to.equal("https://example.com/ref1");
+      expect(citations[1].url).to.equal("https://example.com/ref2");
+      expect(citations[2].url).to.equal("https://example.com/ref3");
     });
 
     it("should deduplicate citations", () => {
-      const testContent = "Citation[[1]] appears twice[[1]]";
-      const citations = extractLinksByType(testContent, "citation");
+      const testContent = `Citation[[1]] appears twice[[1]]
+
+## References
+
+1. [https://example.com/ref1](https://example.com/ref1)`;
+
+      const allLinks = extractLinks(testContent);
+      const citations = allLinks.filter((link) => /^\d+$/.test(link.text));
 
       expect(citations).to.have.lengthOf(1);
       expect(citations[0].text).to.equal("1");
+      expect(citations[0].url).to.equal("https://example.com/ref1");
     });
 
     it("should handle multi-digit citations", () => {
-      const testContent = "Citation[[123]]";
-      const citations = extractLinksByType(testContent, "citation");
+      const testContent = `Citation[[123]]
+
+## References
+
+123. [https://example.com/ref123](https://example.com/ref123)`;
+
+      const allLinks = extractLinks(testContent);
+      const citations = allLinks.filter((link) => /^\d+$/.test(link.text));
 
       expect(citations).to.have.lengthOf(1);
       expect(citations[0].text).to.equal("123");
+      expect(citations[0].url).to.equal("https://example.com/ref123");
     });
   });
 });

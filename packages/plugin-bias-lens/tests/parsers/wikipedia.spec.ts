@@ -10,8 +10,11 @@ describe("Wikipedia Parsers", () => {
   let scrapedContent: string;
 
   before(async function () {
+    this.timeout(10000); // Allow more time for network request
     const loader = new WikipediaLoader();
-    const result = await loader.query("Global warming potential");
+    const result = await loader.loadPage(
+      "https://en.wikipedia.org/wiki/Global_warming_potential",
+    );
     scrapedContent = result[0].pageContent;
   });
 
@@ -43,7 +46,8 @@ describe("Wikipedia Parsers", () => {
 
       expect(types.has("wiki-page")).to.be.true;
       expect(types.has("pdf")).to.be.true;
-      expect(types.has("citation")).to.be.true;
+      // Note: Citations with empty URLs are filtered out, so "citation" type won't appear
+      // Citations WITH URLs from References section are classified by their URL type (pdf, html, etc.)
     });
   });
 
@@ -83,17 +87,9 @@ describe("Wikipedia Parsers", () => {
       });
     });
 
-    it("should extract only citations", () => {
-      const citations = extractLinksByType(scrapedContent, "citation");
-
-      expect(citations).to.be.an("array");
-      expect(citations.length).to.be.greaterThan(0);
-
-      citations.forEach((link) => {
-        expect(link.type).to.equal("citation");
-        expect(link.text).to.match(/^\d+$/);
-      });
-    });
+    // Note: Citations without URLs are filtered out as per user request
+    // Citations WITH URLs from References section are classified by their URL type (pdf, html, etc.)
+    // This test is commented out as "citation" type links with empty URLs are no longer returned
 
     it("should extract multiple types at once", () => {
       const links = extractLinksByType(scrapedContent, ["pdf", "excel"]);
