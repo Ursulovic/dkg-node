@@ -96,7 +96,7 @@ export class PineconeRAG {
       }
 
       // Batch deduplication checks to avoid excessive concurrent Pinecone API calls
-      const DEDUP_BATCH_SIZE = 50;
+      const DEDUP_BATCH_SIZE = 1000;
       const checkResults: Array<{
         doc: Document;
         source: string;
@@ -110,7 +110,12 @@ export class PineconeRAG {
         const batchResults = await Promise.all(
           batch.map(async (doc) => {
             const source = doc.metadata.source as string;
-            const exists = await this.isIndexed(source);
+            // External assets have assetSource - check by that instead of source
+            const isExternalAsset = !!doc.metadata.assetSource;
+            const dedupeKey = isExternalAsset
+              ? (doc.metadata.assetSource as string)
+              : source;
+            const exists = await this.isIndexed(dedupeKey, isExternalAsset);
             return { doc, source, exists };
           }),
         );
@@ -176,7 +181,7 @@ export class PineconeRAG {
         await this.invokeCallback(this.callbacks?.onChunkingStart, toIndex.length);
 
         // Batch documents before chunking to avoid memory issues
-        const DOC_BATCH_SIZE = 50; // Process 50 documents at a time
+        const DOC_BATCH_SIZE = 1000; // Process 1000 documents at a time
         let totalChunksCreated = 0;
         let totalChunksUploaded = 0;
 
@@ -208,8 +213,8 @@ export class PineconeRAG {
             await this.invokeCallback(this.callbacks?.onUploadStart, totalChunksCreated);
           }
 
-          // Upload chunks in sub-batches to handle cases where 50 docs create many chunks
-          const CHUNK_BATCH_SIZE = 100;
+          // Upload chunks in sub-batches to handle cases where 1000 docs create many chunks
+          const CHUNK_BATCH_SIZE = 1000;
           for (let j = 0; j < chunkedDocs.length; j += CHUNK_BATCH_SIZE) {
             const chunkBatch = chunkedDocs.slice(j, j + CHUNK_BATCH_SIZE);
             await this.vectorStore.addDocuments(chunkBatch);
@@ -255,10 +260,12 @@ export class PineconeRAG {
   );
 
   isIndexed = traceable(
-    async (url: string): Promise<boolean> => {
-      const results = await this.vectorStore.similaritySearch("", 1, {
-        source: url,
-      });
+    async (url: string, isAsset: boolean = false): Promise<boolean> => {
+      // External assets: check by assetSource
+      // Main pages: check by source
+      const filter = isAsset ? { assetSource: url } : { source: url };
+
+      const results = await this.vectorStore.similaritySearch("", 1, filter);
       return results.length > 0;
     },
     { name: "rag-is-indexed" },
