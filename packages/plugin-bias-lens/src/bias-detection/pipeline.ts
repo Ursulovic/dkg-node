@@ -9,6 +9,7 @@ import { WikipediaLoader } from "../loaders/wikipedia";
 import { PineconeRAG } from "../vectordb/pinecone";
 import { createBiasDetectionCoordinator } from "./create-coordinator";
 import type { BiasDetectionPromptVariables } from "./prompts/inject-variables";
+import { summarizeGrokipediaArticle } from "./summarizer";
 
 export interface BiasDetectionOptions {
   grokipediaUrl: string;
@@ -36,33 +37,47 @@ export async function detectBiasInGrokipediaPage(
 
   const rag = new PineconeRAG();
 
+  // Load Grokipedia article
+  const grokipediaLoader = new GrokipediaLoader();
+  const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
+  console.log(
+    chalk.gray(
+      `✓ Grokipedia: ${grokipediaDocuments.length} document(s) loaded`,
+    ),
+  );
+
+  // Load Wikipedia article
+  const wikipediaLoader = new WikipediaLoader();
+  const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
+  console.log(
+    chalk.gray(`✓ Wikipedia: ${wikipediaDocuments.length} document(s) loaded`),
+  );
+
+  // Index in Pinecone if not already indexed
   const isGrokipediaIndexed = await rag.isIndexed(grokipediaUrl);
-  if (!isGrokipediaIndexed) {
-    const grokipediaLoader = new GrokipediaLoader();
-    const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
-    console.log(
-      chalk.gray(
-        `✓ Grokipedia: ${grokipediaDocuments.length} document(s) loaded`,
-      ),
-    );
-    await rag.upsert(grokipediaDocuments);
+  const isWikipediaIndexed = await rag.isIndexed(wikipediaUrl);
+
+  const documentsToIndex = [
+    ...(isGrokipediaIndexed ? [] : grokipediaDocuments),
+    ...(isWikipediaIndexed ? [] : wikipediaDocuments),
+  ];
+
+  if (documentsToIndex.length > 0) {
+    await rag.upsert(documentsToIndex);
+    console.log(chalk.gray(`✓ Indexed ${documentsToIndex.length} document(s)`));
   } else {
-    console.log(chalk.gray(`✓ Grokipedia: cached (already indexed)`));
+    console.log(chalk.gray(`✓ All documents already indexed (cached)`));
   }
 
-  const isWikipediaIndexed = await rag.isIndexed(wikipediaUrl);
-  if (!isWikipediaIndexed) {
-    const wikipediaLoader = new WikipediaLoader();
-    const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
-    console.log(
-      chalk.gray(
-        `✓ Wikipedia: ${wikipediaDocuments.length} document(s) loaded\n`,
-      ),
-    );
-    await rag.upsert(wikipediaDocuments);
-  } else {
-    console.log(chalk.gray(`✓ Wikipedia: cached (already indexed)\n`));
+  // Generate Grokipedia summary
+  if (grokipediaDocuments.length === 0) {
+    throw new Error("No Grokipedia documents loaded");
   }
+  console.log(chalk.gray("\nGenerating article summary with Gemini..."));
+  const summary = await summarizeGrokipediaArticle(
+    grokipediaDocuments[0]!.pageContent,
+  );
+  console.log(chalk.gray("✓ Summary generated\n"));
 
   const pineconeRetriever = createPineconeRetrieverTool(
     grokipediaUrl,
@@ -90,14 +105,21 @@ export async function detectBiasInGrokipediaPage(
       messages: [
         {
           role: "user",
-          content: `Analyze the Grokipedia article at ${grokipediaUrl} for bias by comparing it with the Wikipedia article at ${wikipediaUrl}.
+          content: `Analyze the Grokipedia article for bias by comparing it with Wikipedia.
 
-Coordinate your subagents to:
-1. Verify factual accuracy (fact-checker)
-2. Identify missing context (context-analyzer)
-3. Validate sources and citations (source-verifier)
+Here is the structured summary of the Grokipedia article:
 
-Synthesize their findings into a comprehensive bias report.`,
+${summary}
+
+Use the section-based sequential workflow:
+1. Process each section sequentially
+2. For each section, spawn fact-checker, context-analyzer, and source-verifier
+3. Handle followups
+4. Use quality-assurance to assess work quality
+5. If RETRY_ONCE, provide targeted feedback for refinement
+6. After all sections, synthesize comprehensive bias report
+
+Compare findings against Wikipedia (indexed in Pinecone).`,
         },
       ],
     },

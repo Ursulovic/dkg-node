@@ -16,6 +16,11 @@ import {
   SOURCE_VERIFIER_PROMPT,
 } from "./prompts/subagents/source-verifier";
 import {
+  QUALITY_ASSURANCE_NAME,
+  QUALITY_ASSURANCE_DESCRIPTION,
+  QUALITY_ASSURANCE_PROMPT,
+} from "./prompts/subagents/quality-assurance";
+import {
   injectPromptVariables,
   type BiasDetectionPromptVariables,
 } from "./prompts/inject-variables";
@@ -66,6 +71,13 @@ export function createSubagentConfigs({
         promptVariables,
       ),
       tools: [pineconeRetriever] as unknown as SubAgent["tools"],
+    },
+    {
+      name: QUALITY_ASSURANCE_NAME,
+      model: modelName,
+      description: QUALITY_ASSURANCE_DESCRIPTION,
+      systemPrompt: QUALITY_ASSURANCE_PROMPT,
+      tools: [] as unknown as SubAgent["tools"],
     },
   ];
 }
