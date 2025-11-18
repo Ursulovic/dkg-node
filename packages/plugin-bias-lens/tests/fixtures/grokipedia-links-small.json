@@ -1,0 +1,77 @@
+[
+  {
+    "text": "IPCC archive",
+    "url": "https://archive.ipcc.ch/ipccreports/tar/wg1/247.htm",
+    "type": "html"
+  },
+  {
+    "text": "EPA emissions",
+    "url": "https://www.epa.gov/ghgemissions/understanding-global-warming-potentials",
+    "type": "html"
+  },
+  {
+    "text": "Nature article",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7212016/",
+    "type": "html"
+  },
+  {
+    "text": "ArXiv repository",
+    "url": "https://eartharxiv.org/repository/view/1686/",
+    "type": "html"
+  },
+  {
+    "text": "Science Direct",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0360544219320055",
+    "type": "html"
+  },
+  {
+    "text": "Springer article",
+    "url": "https://link.springer.com/article/10.1007/s10584-005-1146-9",
+    "type": "html"
+  },
+  {
+    "text": "Nature climate",
+    "url": "https://www.nature.com/articles/s41612-019-0086-4",
+    "type": "html"
+  },
+  {
+    "text": "IOP Science",
+    "url": "https://iopscience.iop.org/article/10.1088/1748-9326/adca46",
+    "type": "html"
+  },
+  {
+    "text": "Carbon Brief",
+    "url": "https://www.carbonbrief.org/guest-post-a-new-way-to-assess-global-warming-potential-of-short-lived-pollutants/",
+    "type": "html"
+  },
+  {
+    "text": "Climate Trace",
+    "url": "https://climatetrace.org/news/feeling-the-heat-global-warming-potentials-and-20-vs-100",
+    "type": "html"
+  },
+  {
+    "text": "IPCC PDF",
+    "url": "https://archive.ipcc.ch/pdf/special-reports/sroc/Boxes/b0202.pdf",
+    "type": "pdf"
+  },
+  {
+    "text": "GHG Protocol PDF",
+    "url": "https://ghgprotocol.org/sites/default/files/2024-08/Global-Warming-Potential-Values%2520%2528August%25202024%2529.pdf",
+    "type": "pdf"
+  },
+  {
+    "text": "DUPLICATE: EPA emissions",
+    "url": "https://www.epa.gov/ghgemissions/understanding-global-warming-potentials",
+    "type": "html"
+  },
+  {
+    "text": "DUPLICATE: IPCC archive",
+    "url": "https://archive.ipcc.ch/ipccreports/tar/wg1/247.htm",
+    "type": "html"
+  },
+  {
+    "text": "BROKEN: Non-existent",
+    "url": "https://example.com/grok-broken-link-404",
+    "type": "html"
+  }
+]

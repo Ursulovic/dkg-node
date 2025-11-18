@@ -8,6 +8,7 @@ import "dotenv/config";
 
 import type {
   PineconeConfig,
+  PineconeRAGCallbacks,
   QueryOptions,
   UpsertResult,
   VectorStoreMetadata,
@@ -17,6 +18,7 @@ export class PineconeRAG {
   private vectorStore: PineconeStore;
   private embeddings: OpenAIEmbeddings;
   private textSplitter: RecursiveCharacterTextSplitter;
+  private callbacks?: PineconeRAGCallbacks;
 
   constructor(config?: PineconeConfig) {
     const apiKey = config?.apiKey || process.env.PINECONE_API_KEY;
@@ -25,8 +27,8 @@ export class PineconeRAG {
     const embeddingModel = config?.embeddingModel || "text-embedding-3-large";
     const dimensions = config?.dimensions || 1024;
     const maxConcurrency = config?.maxConcurrency || 5;
-    const chunkSize = config?.chunkSize || 1000;
-    const chunkOverlap = config?.chunkOverlap || 200;
+    const chunkSize = config?.chunkSize || 600;
+    const chunkOverlap = config?.chunkOverlap || 100;
 
     if (!apiKey) {
       throw new Error("PINECONE_API_KEY is required");
@@ -56,6 +58,25 @@ export class PineconeRAG {
       chunkSize,
       chunkOverlap,
     });
+
+    this.callbacks = config?.callbacks;
+  }
+
+  /**
+   * Safely invoke a callback if it exists
+   * Catches and logs callback errors to prevent them from breaking main operations
+   */
+  private async invokeCallback<T extends (...args: any[]) => void | Promise<void>>(
+    callback: T | undefined,
+    ...args: Parameters<T>
+  ): Promise<void> {
+    if (!callback) return;
+
+    try {
+      await callback(...args);
+    } catch (error) {
+      console.error("Callback error:", error);
+    }
   }
 
   upsert = traceable(
@@ -74,13 +95,38 @@ export class PineconeRAG {
         }
       }
 
-      const checkResults = await Promise.all(
-        documents.map(async (doc) => {
-          const source = doc.metadata.source as string;
-          const exists = await this.isIndexed(source);
-          return { doc, source, exists };
-        }),
-      );
+      // Batch deduplication checks to avoid excessive concurrent Pinecone API calls
+      const DEDUP_BATCH_SIZE = 50;
+      const checkResults: Array<{
+        doc: Document;
+        source: string;
+        exists: boolean;
+      }> = [];
+
+      await this.invokeCallback(this.callbacks?.onDeduplicationStart, documents.length);
+
+      for (let i = 0; i < documents.length; i += DEDUP_BATCH_SIZE) {
+        const batch = documents.slice(i, i + DEDUP_BATCH_SIZE);
+        const batchResults = await Promise.all(
+          batch.map(async (doc) => {
+            const source = doc.metadata.source as string;
+            const exists = await this.isIndexed(source);
+            return { doc, source, exists };
+          }),
+        );
+        checkResults.push(...batchResults);
+
+        // Track progress after each batch (temporary counts)
+        const tempCached = checkResults.filter((r) => r.exists).length;
+        const tempToIndex = checkResults.filter((r) => !r.exists).length;
+        await this.invokeCallback(
+          this.callbacks?.onDeduplicationProgress,
+          checkResults.length,
+          documents.length,
+          tempCached,
+          tempToIndex,
+        );
+      }
 
       for (const { doc, source, exists } of checkResults) {
         if (exists) {
@@ -99,6 +145,12 @@ export class PineconeRAG {
           indexed.push(source);
         }
       }
+
+      await this.invokeCallback(
+        this.callbacks?.onDeduplicationComplete,
+        cached.length,
+        toIndex.length,
+      );
 
       const runTree = getCurrentRunTree();
       if (runTree) {
@@ -121,11 +173,71 @@ export class PineconeRAG {
       }
 
       if (toIndex.length > 0) {
-        const chunkedDocs = await this.textSplitter.splitDocuments(toIndex);
-        await this.vectorStore.addDocuments(chunkedDocs);
+        await this.invokeCallback(this.callbacks?.onChunkingStart, toIndex.length);
+
+        // Batch documents before chunking to avoid memory issues
+        const DOC_BATCH_SIZE = 50; // Process 50 documents at a time
+        let totalChunksCreated = 0;
+        let totalChunksUploaded = 0;
+
+        for (let i = 0; i < toIndex.length; i += DOC_BATCH_SIZE) {
+          const docBatch = toIndex.slice(i, i + DOC_BATCH_SIZE);
+          const chunkedDocs = await this.textSplitter.splitDocuments(docBatch);
+
+          // Progress logging for large operations
+          if (toIndex.length > DOC_BATCH_SIZE) {
+            const batchNum = Math.floor(i / DOC_BATCH_SIZE) + 1;
+            const totalBatches = Math.ceil(toIndex.length / DOC_BATCH_SIZE);
+            console.log(
+              `Processing document batch ${batchNum}/${totalBatches} (${docBatch.length} docs → ${chunkedDocs.length} chunks)`,
+            );
+          }
+
+          totalChunksCreated += chunkedDocs.length;
+
+          await this.invokeCallback(
+            this.callbacks?.onChunkingProgress,
+            Math.min(i + DOC_BATCH_SIZE, toIndex.length),
+            toIndex.length,
+            chunkedDocs.length,
+            totalChunksCreated,
+          );
+
+          // Upload start callback on first batch
+          if (i === 0) {
+            await this.invokeCallback(this.callbacks?.onUploadStart, totalChunksCreated);
+          }
+
+          // Upload chunks in sub-batches to handle cases where 50 docs create many chunks
+          const CHUNK_BATCH_SIZE = 100;
+          for (let j = 0; j < chunkedDocs.length; j += CHUNK_BATCH_SIZE) {
+            const chunkBatch = chunkedDocs.slice(j, j + CHUNK_BATCH_SIZE);
+            await this.vectorStore.addDocuments(chunkBatch);
+
+            totalChunksUploaded += chunkBatch.length;
+
+            await this.invokeCallback(
+              this.callbacks?.onUploadProgress,
+              totalChunksUploaded,
+              totalChunksCreated,
+            );
+          }
+        }
+
+        await this.invokeCallback(
+          this.callbacks?.onChunkingComplete,
+          toIndex.length,
+          totalChunksCreated,
+        );
+
+        await this.invokeCallback(this.callbacks?.onUploadComplete, totalChunksUploaded);
       }
 
-      return { cached, indexed };
+      const result = { cached, indexed };
+
+      await this.invokeCallback(this.callbacks?.onUpsertComplete, result);
+
+      return result;
     },
     { name: "rag-upsert" },
   );

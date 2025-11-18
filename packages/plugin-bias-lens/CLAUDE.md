@@ -67,10 +67,54 @@ Both loaders follow the same pattern but have different metadata:
 - Adds UUID `id` to each document
 
 **WikipediaLoader** (`src/loaders/wikipedia.ts`):
-- Uses Jina AI as a Wikipedia proxy (`https://r.jina.ai/`)
+- Fetches Wikipedia pages directly and converts HTML to Markdown
+- Uses Cheerio to select article content with selector `#mw-content-text .mw-parser-output`
+- Converts HTML to Markdown using Turndown to preserve links and structure
 - Returns: `WikipediaDocument[]` with metadata: `{ source: string }`
 - Adds UUID `id` to each document
-- Requires `JINA_AI_API_KEY` env var (optional, enables higher rate limits)
+- Custom Turndown rules convert relative links to absolute and citations to `[[n]]` format
+
+**ExternalAssetsLoader** (`src/loaders/external.ts`):
+- Loads external content (PDFs, HTML pages, images, video, audio) from URLs found in articles
+- Unified interface that routes different link types to appropriate handlers
+- Returns typed documents: `PdfDocument[]`, `HtmlDocument[]`, or `MediaDocument[]`
+- All documents include UUID `id` and proper metadata structure
+
+**Key Features:**
+- **PDF Loading**: Downloads PDFs to temp directory, extracts text using LangChain's PDFLoader
+- **HTML Scraping**: Fetches HTML directly, converts to Markdown using Turndown to preserve links
+- **Media Interpretation**: Uses Google Gemini (multimodal AI) to generate descriptions/transcriptions for images, video, and audio
+- **Batching Support**: Efficiently processes multiple links of the same type
+- **Error Isolation**: One link type failing doesn't break others
+- **Parallel Processing**: Processes different link types in parallel for optimal performance
+
+**Metadata Structure:**
+- `metadata.source` - The Wikipedia/Grokipedia article URL where the asset was referenced
+- `metadata.assetSource` - The actual URL of the asset itself
+- `metadata.assetType` - Type of asset: "pdf" | "html" | "image" | "video" | "audio"
+
+**Environment Variables Required:**
+- `GOOGLE_API_KEY` - Google Gemini API key (required for media interpretation)
+
+**Usage Example:**
+```typescript
+import { ExternalAssetsLoader } from "./loaders/external";
+import { extractLinks } from "./parsers/wikipedia";
+
+const loader = new ExternalAssetsLoader();
+const sourceUrl = "https://en.wikipedia.org/wiki/Climate_change";
+
+// Extract links from article content
+const links = extractLinks(articleContent);
+
+// Load all external assets with unified interface
+const documents = await loader.loadLinks(links, sourceUrl);
+
+// Or load specific types
+const pdfs = await loader.loadPDFs(pdfLinks, sourceUrl);
+const htmlPages = await loader.loadHTML(htmlLinks, sourceUrl);
+const media = await loader.loadMedia(mediaLinks, sourceUrl);
+```
 
 ### Vector Database (RAG Utility)
 
@@ -173,14 +217,53 @@ Get your API key from [LangSmith Settings](https://smith.langchain.com/settings)
 
 ### Type System
 
-Both loaders extend LangChain's Document type with typed metadata and UUID ids:
+All loaders extend LangChain's Document type with typed metadata and UUID ids:
 
+**Grokipedia & Wikipedia Loaders:**
 ```typescript
 interface GrokipediaMetadata { source: string; title: string; }
 type GrokipediaDocument = Document<GrokipediaMetadata> & { id: string };
 
 interface WikipediaMetadata { source: string; }
 type WikipediaDocument = Document<WikipediaMetadata> & { id: string };
+```
+
+**ExternalAssetsLoader:**
+```typescript
+interface PdfMetadata {
+  source: string;        // Article URL where PDF was found
+  assetSource: string;   // Actual PDF URL
+  assetType: "pdf";
+}
+type PdfDocument = Document<PdfMetadata> & { id: string };
+
+interface HtmlMetadata {
+  source: string;        // Article URL where link was found
+  assetSource: string;   // Actual page URL
+  assetType: "html";
+}
+type HtmlDocument = Document<HtmlMetadata> & { id: string };
+
+interface MediaMetadata {
+  source: string;        // Article URL where media was found
+  assetSource: string;   // Actual media URL
+  assetType: "image" | "video" | "audio";
+}
+type MediaDocument = Document<MediaMetadata> & { id: string };
+
+type ExternalAssetDocument = PdfDocument | HtmlDocument | MediaDocument;
+```
+
+**Link Types (Parsers):**
+Following the refactoring in Issues #3-6, academic and archive sources are now classified as "html":
+```typescript
+export type LinkType =
+  | "wiki-page"    | "grok-page"
+  | "image"        | "video"       | "audio"
+  | "pdf"          | "doc"         | "excel"
+  | "html"         // Includes academic sources (arxiv, doi.org, nature.com, etc.)
+                   // and archive sources (web.archive.org, archive.ipcc.ch, etc.)
+  | "citation"     | "other";
 ```
 
 **Important**: Document IDs are generated at load time with `randomUUID()` and are NOT persisted. Each plugin run generates new UUIDs for the same content.
@@ -195,7 +278,7 @@ type WikipediaDocument = Document<WikipediaMetadata> & { id: string };
 
 ### Test Structure
 
-Four test files with different purposes:
+Five test files with different purposes:
 
 1. **`tests/loaders/grokipedia.spec.ts`** ✅ Complete
    - Real integration tests against live grokipedia.com
@@ -206,13 +289,23 @@ Four test files with different purposes:
    - UUID format validation (RFC 4122 v4)
    - Unique ID generation verification
 
-3. **`tests/vectordb/pinecone.spec.ts`** ✅ Complete
+3. **`tests/loaders/external.spec.ts`** ✅ Complete
+   - Comprehensive tests for PDF, HTML, and media loading
+   - Tests all three phases: PDF loading, HTML scraping, media interpretation
+   - **Fully mocked** - No real network/API calls (uses `tests/helpers/mocks.ts`)
+   - Tests LoadResult structure (documents, errors, stats)
+   - Tests error tracking, deduplication, timeout handling, concurrent processing
+   - Uses small fixtures (`wikipedia-links-small.json`, `grokipedia-links-small.json`)
+   - Tests unified interface (`loadLinks`) with mixed link types
+   - Fast execution (<5 seconds)
+
+4. **`tests/vectordb/pinecone.spec.ts`** ✅ Complete
    - Comprehensive unit tests with mocked Pinecone/OpenAI calls
    - Tests: Core Functionality, Error Handling, Deduplication, Filtering
    - Uses Sinon to stub all external API calls (no real network requests)
    - Fast execution (<1 second)
 
-4. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
+5. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
    - Contains TODO placeholders that must be replaced
    - Infrastructure is set up correctly (MCP server/client, Express app)
    - See PLUGIN_TESTING_GUIDE.md for requirements
@@ -229,6 +322,18 @@ import {
   createMockDkgClient,        // Mock DKG blockchain client
 } from "@dkg/plugins/testing";
 ```
+
+**Custom Mocking Utilities** (`tests/helpers/mocks.ts`):
+- `setupFetchMock(fetchStub)` - Mocks global fetch with predefined responses
+- `setupGeminiMock(invokeStub)` - Mocks Gemini API calls for media interpretation
+- `createTimeoutFetchMock(fetchStub)` - Simulates slow/timeout requests
+- `createSlowFetchMock(fetchStub, delayMs)` - Simulates delayed responses
+- `countMockCalls(stub, urlPattern)` - Helper to count specific URL calls
+- `getCalledUrls(stub)` - Helper to get all URLs called during tests
+
+**Test Fixtures** (Small representative datasets for fast testing):
+- `tests/fixtures/wikipedia-links-small.json` - 19 links (images, PDFs, HTML, wiki-pages, duplicates, broken)
+- `tests/fixtures/grokipedia-links-small.json` - 15 links (HTML, PDFs, duplicates, broken)
 
 ### Testing Requirements
 
@@ -260,16 +365,15 @@ openAPIRoute({
 - `PINECONE_INDEX` - Pinecone index name (required for RAG functionality)
 - `OPENAI_API_KEY` - OpenAI API key for embeddings (required for RAG functionality)
 
-**Optional:**
-- `JINA_AI_API_KEY` - Loaded lazily (only in `wikipedia.ts` via dotenv)
-  - Not visible to GrokipediaLoader
-  - Gracefully handles missing key (Wikipedia loader still works with rate limits)
+**Required for ExternalAssetsLoader:**
+- `GOOGLE_API_KEY` - Google Gemini API key (required for media interpretation: images, video, audio)
 
 ### 4. Current Implementation Status
 - ✅ Core infrastructure complete
-- ✅ Loaders implemented and tested
+- ✅ Loaders implemented and tested (GrokipediaLoader, WikipediaLoader, ExternalAssetsLoader)
 - ✅ Vector database (PineconeRAG) implemented and tested
 - ✅ Plugin registration working
+- ✅ External assets loading complete (PDF, HTML, media with Gemini)
 - ⚠️ Bias detection is a placeholder (returns "0 biases")
 - ⚠️ Plugin integration tests incomplete (TODO placeholders)
 
