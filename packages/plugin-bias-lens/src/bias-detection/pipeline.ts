@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { getCurrentRunTree, traceable } from "langsmith/traceable";
 import { createPineconeRetrieverTool } from "./tools/create-pinecone-retriever";
 import { createTavilySearchTool } from "./tools/create-tavily-search";
 import { createGoogleScholarTool } from "./tools/create-google-scholar";
@@ -19,93 +20,102 @@ export interface BiasDetectionOptions {
   maxSubagentTasksPerFollowup?: number;
 }
 
-export async function detectBiasInGrokipediaPage(
-  options: BiasDetectionOptions,
-): Promise<string> {
-  const {
-    grokipediaUrl,
-    wikipediaUrl,
-    maxIterations = 200,
-    maxSubagentFollowups = 1,
-    maxSubagentTasksPerFollowup = 5,
-  } = options;
+export const detectBiasInGrokipediaPage = traceable(
+  async (options: BiasDetectionOptions): Promise<string> => {
+    const {
+      grokipediaUrl,
+      wikipediaUrl,
+      maxIterations = 200,
+      maxSubagentFollowups = 1,
+      maxSubagentTasksPerFollowup = 5,
+    } = options;
 
-  const promptVariables: BiasDetectionPromptVariables = {
-    maxSubagentFollowups,
-    maxSubagentTasksPerFollowup,
-  };
+    const runTree = getCurrentRunTree();
+    if (runTree) {
+      runTree.tags = [...(runTree.tags ?? []), grokipediaUrl];
+      runTree.metadata = {
+        ...runTree.metadata,
+        grokipediaUrl,
+        wikipediaUrl,
+      };
+    }
 
-  const rag = new PineconeRAG();
+    const promptVariables: BiasDetectionPromptVariables = {
+      maxSubagentFollowups,
+      maxSubagentTasksPerFollowup,
+    };
 
-  // Load Grokipedia article
-  const grokipediaLoader = new GrokipediaLoader();
-  const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
-  console.log(
-    chalk.gray(
-      `✓ Grokipedia: ${grokipediaDocuments.length} document(s) loaded`,
-    ),
-  );
+    const rag = new PineconeRAG();
 
-  // Load Wikipedia article
-  const wikipediaLoader = new WikipediaLoader();
-  const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
-  console.log(
-    chalk.gray(`✓ Wikipedia: ${wikipediaDocuments.length} document(s) loaded`),
-  );
+    const grokipediaLoader = new GrokipediaLoader();
+    const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
+    console.log(
+      chalk.gray(
+        `✓ Grokipedia: ${grokipediaDocuments.length} document(s) loaded`,
+      ),
+    );
 
-  // Index in Pinecone if not already indexed
-  const isGrokipediaIndexed = await rag.isIndexed(grokipediaUrl);
-  const isWikipediaIndexed = await rag.isIndexed(wikipediaUrl);
+    const wikipediaLoader = new WikipediaLoader();
+    const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
+    console.log(
+      chalk.gray(
+        `✓ Wikipedia: ${wikipediaDocuments.length} document(s) loaded`,
+      ),
+    );
 
-  const documentsToIndex = [
-    ...(isGrokipediaIndexed ? [] : grokipediaDocuments),
-    ...(isWikipediaIndexed ? [] : wikipediaDocuments),
-  ];
+    const isGrokipediaIndexed = await rag.isIndexed(grokipediaUrl);
+    const isWikipediaIndexed = await rag.isIndexed(wikipediaUrl);
 
-  if (documentsToIndex.length > 0) {
-    await rag.upsert(documentsToIndex);
-    console.log(chalk.gray(`✓ Indexed ${documentsToIndex.length} document(s)`));
-  } else {
-    console.log(chalk.gray(`✓ All documents already indexed (cached)`));
-  }
+    const documentsToIndex = [
+      ...(isGrokipediaIndexed ? [] : grokipediaDocuments),
+      ...(isWikipediaIndexed ? [] : wikipediaDocuments),
+    ];
 
-  // Generate Grokipedia summary
-  if (grokipediaDocuments.length === 0) {
-    throw new Error("No Grokipedia documents loaded");
-  }
-  console.log(chalk.gray("\nGenerating article summary with Gemini..."));
-  const summary = await summarizeGrokipediaArticle(
-    grokipediaDocuments[0]!.pageContent,
-  );
-  console.log(chalk.gray("✓ Summary generated\n"));
+    if (documentsToIndex.length > 0) {
+      await rag.upsert(documentsToIndex);
+      console.log(
+        chalk.gray(`✓ Indexed ${documentsToIndex.length} document(s)`),
+      );
+    } else {
+      console.log(chalk.gray(`✓ All documents already indexed (cached)`));
+    }
 
-  const pineconeRetriever = createPineconeRetrieverTool(
-    grokipediaUrl,
-    wikipediaUrl,
-  );
-  const tavilySearch = createTavilySearchTool();
-  const googleScholar = createGoogleScholarTool();
+    if (grokipediaDocuments.length === 0) {
+      throw new Error("No Grokipedia documents loaded");
+    }
+    console.log(chalk.gray("\nGenerating article summary with Gemini..."));
+    const summary = await summarizeGrokipediaArticle(
+      grokipediaDocuments[0]!.pageContent,
+    );
+    console.log(chalk.gray("✓ Summary generated\n"));
 
-  const subagents = createSubagentConfigs({
-    pineconeRetriever,
-    tavilySearch,
-    googleScholar,
-    promptVariables,
-  });
-  const { coordinator, callbackHandler } = createBiasDetectionCoordinator({
-    subagents: subagents,
-    coordinatorPrompt: COORDINATOR_PROMPT,
-    model: "claude-sonnet-4-5-20250929",
-    temperature: 0,
-    promptVariables,
-  });
+    const pineconeRetriever = createPineconeRetrieverTool(
+      grokipediaUrl,
+      wikipediaUrl,
+    );
+    const tavilySearch = createTavilySearchTool();
+    const googleScholar = createGoogleScholarTool();
 
-  const result = await coordinator.invoke(
-    {
-      messages: [
-        {
-          role: "user",
-          content: `Analyze the Grokipedia article for bias by comparing it with Wikipedia.
+    const subagents = createSubagentConfigs({
+      pineconeRetriever,
+      tavilySearch,
+      googleScholar,
+      promptVariables,
+    });
+    const { coordinator, callbackHandler } = createBiasDetectionCoordinator({
+      subagents: subagents,
+      coordinatorPrompt: COORDINATOR_PROMPT,
+      model: "claude-sonnet-4-5-20250929",
+      temperature: 0,
+      promptVariables,
+    });
+
+    const result = await coordinator.invoke(
+      {
+        messages: [
+          {
+            role: "user",
+            content: `Analyze the Grokipedia article for bias by comparing it with Wikipedia.
 
 Here is the structured summary of the Grokipedia article:
 
@@ -120,35 +130,37 @@ Use the section-based sequential workflow:
 6. After all sections, synthesize comprehensive bias report
 
 Compare findings against Wikipedia (indexed in Pinecone).`,
-        },
-      ],
-    },
-    {
-      recursionLimit: maxIterations,
-      callbacks: [callbackHandler],
-    },
-  );
+          },
+        ],
+      },
+      {
+        recursionLimit: maxIterations,
+        callbacks: [callbackHandler],
+      },
+    );
 
-  console.log(chalk.gray("\n" + "━".repeat(60)));
-  console.log(chalk.green("✅ Bias detection completed successfully\n"));
+    console.log(chalk.gray("\n" + "━".repeat(60)));
+    console.log(chalk.green("✅ Bias detection completed successfully\n"));
 
-  let markdownReport = "";
+    let markdownReport = "";
 
-  if (result.messages && Array.isArray(result.messages)) {
-    const lastMessage = result.messages[result.messages.length - 1];
-    if (lastMessage && typeof lastMessage === "object") {
-      const msg = lastMessage as { content?: string };
-      if (msg.content && typeof msg.content === "string") {
-        markdownReport = msg.content;
+    if (result.messages && Array.isArray(result.messages)) {
+      const lastMessage = result.messages[result.messages.length - 1];
+      if (lastMessage && typeof lastMessage === "object") {
+        const msg = lastMessage as { content?: string };
+        if (msg.content && typeof msg.content === "string") {
+          markdownReport = msg.content;
+        }
       }
     }
-  }
 
-  if (!markdownReport) {
-    throw new Error(
-      "No markdown report generated. The agent may not have completed the analysis.",
-    );
-  }
+    if (!markdownReport) {
+      throw new Error(
+        "No markdown report generated. The agent may not have completed the analysis.",
+      );
+    }
 
-  return markdownReport;
-}
+    return markdownReport;
+  },
+  { name: "bias-detection" },
+);
