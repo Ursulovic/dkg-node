@@ -1,12 +1,6 @@
 declare module "@joplin/turndown-plugin-gfm" {
-  import TurndownService from "turndown";
-
-  export interface Plugin {
-    (service: TurndownService): void;
-  }
-
-  export const tables: Plugin;
-  export const strikethrough: Plugin;
-  export const taskListItems: Plugin;
-  export const gfm: Plugin;
+  export function tables(service: any): void;
+  export function strikethrough(service: any): void;
+  export function taskListItems(service: any): void;
+  export function gfm(service: any): void;
 }
