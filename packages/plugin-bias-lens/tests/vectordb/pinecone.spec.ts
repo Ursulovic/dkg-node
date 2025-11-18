@@ -615,4 +615,178 @@ describe("PineconeRAG", () => {
       sinon.assert.notCalled(pineconeStoreStub);
     });
   });
+
+  describe("Callbacks", () => {
+    it("should invoke onDeduplicationStart callback", async () => {
+      const onDeduplicationStart = sinon.spy();
+
+      const rag = new PineconeRAG({
+        callbacks: { onDeduplicationStart },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test",
+          metadata: { source: "https://example.com/page1" },
+        }),
+      ];
+
+      await rag.upsert(documents);
+
+      sinon.assert.calledOnce(onDeduplicationStart);
+      sinon.assert.calledWith(onDeduplicationStart, 1);
+    });
+
+    it("should invoke onDeduplicationProgress callback", async () => {
+      const onDeduplicationProgress = sinon.spy();
+
+      const rag = new PineconeRAG({
+        callbacks: { onDeduplicationProgress },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test 1",
+          metadata: { source: "https://example.com/page1" },
+        }),
+        new Document({
+          pageContent: "Test 2",
+          metadata: { source: "https://example.com/page2" },
+        }),
+      ];
+
+      await rag.upsert(documents);
+
+      sinon.assert.called(onDeduplicationProgress);
+      expect(onDeduplicationProgress.lastCall.args).to.deep.equal([
+        2, // processed
+        2, // total
+        0, // cached
+        2, // toIndex
+      ]);
+    });
+
+    it("should invoke onDeduplicationComplete callback", async () => {
+      const onDeduplicationComplete = sinon.spy();
+
+      const rag = new PineconeRAG({
+        callbacks: { onDeduplicationComplete },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test",
+          metadata: { source: "https://example.com/page1" },
+        }),
+      ];
+
+      await rag.upsert(documents);
+
+      sinon.assert.calledOnce(onDeduplicationComplete);
+      sinon.assert.calledWith(
+        onDeduplicationComplete,
+        0, // cached
+        1, // toIndex
+      );
+    });
+
+    it("should invoke onChunkingStart callback", async () => {
+      const onChunkingStart = sinon.spy();
+
+      const rag = new PineconeRAG({
+        callbacks: { onChunkingStart },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test",
+          metadata: { source: "https://example.com/page1" },
+        }),
+      ];
+
+      await rag.upsert(documents);
+
+      sinon.assert.calledOnce(onChunkingStart);
+      sinon.assert.calledWith(onChunkingStart, 1);
+    });
+
+    it("should invoke onUploadComplete callback", async () => {
+      const onUploadComplete = sinon.spy();
+
+      const rag = new PineconeRAG({
+        callbacks: { onUploadComplete },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test",
+          metadata: { source: "https://example.com/page1" },
+        }),
+      ];
+
+      await rag.upsert(documents);
+
+      sinon.assert.calledOnce(onUploadComplete);
+    });
+
+    it("should invoke onUpsertComplete callback with result", async () => {
+      const onUpsertComplete = sinon.spy();
+
+      const rag = new PineconeRAG({
+        callbacks: { onUpsertComplete },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test",
+          metadata: { source: "https://example.com/page1" },
+        }),
+      ];
+
+      const result = await rag.upsert(documents);
+
+      sinon.assert.calledOnce(onUpsertComplete);
+      sinon.assert.calledWith(onUpsertComplete, result);
+      expect(result).to.deep.equal({
+        cached: [],
+        indexed: ["https://example.com/page1"],
+      });
+    });
+
+    it("should not fail if callbacks throw errors", async () => {
+      const onDeduplicationStart = sinon.stub().throws(new Error("Callback error"));
+
+      const rag = new PineconeRAG({
+        callbacks: { onDeduplicationStart },
+      });
+
+      mockVectorStore.similaritySearch.resolves([]);
+
+      const documents = [
+        new Document({
+          pageContent: "Test",
+          metadata: { source: "https://example.com/page1" },
+        }),
+      ];
+
+      // Should not throw despite callback error
+      const result = await rag.upsert(documents);
+
+      sinon.assert.calledOnce(onDeduplicationStart);
+      expect(result).to.have.property("cached");
+      expect(result).to.have.property("indexed");
+    });
+  });
 });
