@@ -14,8 +14,8 @@ export class WikipediaLoader {
   static baseUrl = "https://en.wikipedia.org";
   private turndownService: TurndownService;
 
-  async query(q: string, shallow?: boolean): Promise<WikipediaDocument[]> {
-    const url = new URL(`${WikipediaLoader.baseUrl}/w/index.php?search=${q}`);
+  constructor() {
+    this.turndownService = new TurndownService();
 
     // Remove style tags to prevent CSS from appearing in markdown
     this.turndownService.remove("style");
@@ -149,32 +149,11 @@ export class WikipediaLoader {
     // Convert preprocessed HTML to Markdown
     const markdown = this.turndownService.turndown($article.html() || "");
 
-    const pageContent = shallow ? result.slice(0, 3000) : result;
-
     return [
       {
         id: randomUUID(),
         metadata: {
           source: url.toString(),
-        },
-        pageContent: pageContent,
-      },
-    ];
-  }
-
-  async loadPage(url: string): Promise<WikipediaDocument[]> {
-    const response = await fetch(`https://r.jina.ai/${url}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.JINA_AI_API_KEY}`,
-      },
-    });
-    const result = await response.text();
-
-    return [
-      {
-        id: randomUUID(),
-        metadata: {
-          source: url,
         },
         pageContent: markdown,
       },

@@ -99,9 +99,10 @@ export const detectBiasInGrokipediaPage = traceable(
     const subagents = createSubagentConfigs({
       pineconeRetriever,
       tavilySearch,
-      googleScholar,
+      googleScholar: googleScholar,
       promptVariables,
     });
+
     const { coordinator, callbackHandler } = createBiasDetectionCoordinator({
       subagents: subagents,
       coordinatorPrompt: COORDINATOR_PROMPT,

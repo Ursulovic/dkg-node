@@ -8,7 +8,6 @@ import "dotenv/config";
 
 import type {
   PineconeConfig,
-  PineconeRAGCallbacks,
   QueryOptions,
   UpsertResult,
   VectorStoreMetadata,
@@ -18,7 +17,6 @@ export class PineconeRAG {
   private vectorStore: PineconeStore;
   private embeddings: OpenAIEmbeddings;
   private textSplitter: RecursiveCharacterTextSplitter;
-  private callbacks?: PineconeRAGCallbacks;
 
   constructor(config?: PineconeConfig) {
     const apiKey = config?.apiKey || process.env.PINECONE_API_KEY;
@@ -27,8 +25,8 @@ export class PineconeRAG {
     const embeddingModel = config?.embeddingModel || "text-embedding-3-large";
     const dimensions = config?.dimensions || 1024;
     const maxConcurrency = config?.maxConcurrency || 5;
-    const chunkSize = config?.chunkSize || 600;
-    const chunkOverlap = config?.chunkOverlap || 100;
+    const chunkSize = config?.chunkSize || 300;
+    const chunkOverlap = config?.chunkOverlap || 50;
 
     if (!apiKey) {
       throw new Error("PINECONE_API_KEY is required");
@@ -58,25 +56,6 @@ export class PineconeRAG {
       chunkSize,
       chunkOverlap,
     });
-
-    this.callbacks = config?.callbacks;
-  }
-
-  /**
-   * Safely invoke a callback if it exists
-   * Catches and logs callback errors to prevent them from breaking main operations
-   */
-  private async invokeCallback<T extends (...args: any[]) => void | Promise<void>>(
-    callback: T | undefined,
-    ...args: Parameters<T>
-  ): Promise<void> {
-    if (!callback) return;
-
-    try {
-      await callback(...args);
-    } catch (error) {
-      console.error("Callback error:", error);
-    }
   }
 
   upsert = traceable(
@@ -89,50 +68,27 @@ export class PineconeRAG {
       const indexed: string[] = [];
       const toIndex: Document<VectorStoreMetadata>[] = [];
 
+      // Validate all documents have source metadata
       for (const doc of documents) {
         if (!doc.metadata.source) {
           throw new Error("Document metadata must include a 'source' field");
         }
       }
 
-      // Batch deduplication checks to avoid excessive concurrent Pinecone API calls
-      const DEDUP_BATCH_SIZE = 1000;
-      const checkResults: Array<{
-        doc: Document;
-        source: string;
-        exists: boolean;
-      }> = [];
+      // Check which documents are already indexed
+      const checkResults = await Promise.all(
+        documents.map(async (doc) => {
+          const source = doc.metadata.source as string;
+          const isExternalAsset = !!doc.metadata.assetSource;
+          const dedupeKey = isExternalAsset
+            ? (doc.metadata.assetSource as string)
+            : source;
+          const exists = await this.isIndexed(dedupeKey, isExternalAsset);
+          return { doc, source, exists };
+        }),
+      );
 
-      await this.invokeCallback(this.callbacks?.onDeduplicationStart, documents.length);
-
-      for (let i = 0; i < documents.length; i += DEDUP_BATCH_SIZE) {
-        const batch = documents.slice(i, i + DEDUP_BATCH_SIZE);
-        const batchResults = await Promise.all(
-          batch.map(async (doc) => {
-            const source = doc.metadata.source as string;
-            // External assets have assetSource - check by that instead of source
-            const isExternalAsset = !!doc.metadata.assetSource;
-            const dedupeKey = isExternalAsset
-              ? (doc.metadata.assetSource as string)
-              : source;
-            const exists = await this.isIndexed(dedupeKey, isExternalAsset);
-            return { doc, source, exists };
-          }),
-        );
-        checkResults.push(...batchResults);
-
-        // Track progress after each batch (temporary counts)
-        const tempCached = checkResults.filter((r) => r.exists).length;
-        const tempToIndex = checkResults.filter((r) => !r.exists).length;
-        await this.invokeCallback(
-          this.callbacks?.onDeduplicationProgress,
-          checkResults.length,
-          documents.length,
-          tempCached,
-          tempToIndex,
-        );
-      }
-
+      // Separate cached vs. to-be-indexed documents
       for (const { doc, source, exists } of checkResults) {
         if (exists) {
           cached.push(source);
@@ -151,12 +107,7 @@ export class PineconeRAG {
         }
       }
 
-      await this.invokeCallback(
-        this.callbacks?.onDeduplicationComplete,
-        cached.length,
-        toIndex.length,
-      );
-
+      // Add LangSmith trace metadata
       const runTree = getCurrentRunTree();
       if (runTree) {
         runTree.tags = [...(runTree.tags ?? []), "rag-upsert"];
@@ -177,81 +128,20 @@ export class PineconeRAG {
         };
       }
 
+      // Chunk and upload new documents
       if (toIndex.length > 0) {
-        await this.invokeCallback(this.callbacks?.onChunkingStart, toIndex.length);
-
-        // Batch documents before chunking to avoid memory issues
-        const DOC_BATCH_SIZE = 1000; // Process 1000 documents at a time
-        let totalChunksCreated = 0;
-        let totalChunksUploaded = 0;
-
-        for (let i = 0; i < toIndex.length; i += DOC_BATCH_SIZE) {
-          const docBatch = toIndex.slice(i, i + DOC_BATCH_SIZE);
-          const chunkedDocs = await this.textSplitter.splitDocuments(docBatch);
-
-          // Progress logging for large operations
-          if (toIndex.length > DOC_BATCH_SIZE) {
-            const batchNum = Math.floor(i / DOC_BATCH_SIZE) + 1;
-            const totalBatches = Math.ceil(toIndex.length / DOC_BATCH_SIZE);
-            console.log(
-              `Processing document batch ${batchNum}/${totalBatches} (${docBatch.length} docs → ${chunkedDocs.length} chunks)`,
-            );
-          }
-
-          totalChunksCreated += chunkedDocs.length;
-
-          await this.invokeCallback(
-            this.callbacks?.onChunkingProgress,
-            Math.min(i + DOC_BATCH_SIZE, toIndex.length),
-            toIndex.length,
-            chunkedDocs.length,
-            totalChunksCreated,
-          );
-
-          // Upload start callback on first batch
-          if (i === 0) {
-            await this.invokeCallback(this.callbacks?.onUploadStart, totalChunksCreated);
-          }
-
-          // Upload chunks in sub-batches to handle cases where 1000 docs create many chunks
-          const CHUNK_BATCH_SIZE = 1000;
-          for (let j = 0; j < chunkedDocs.length; j += CHUNK_BATCH_SIZE) {
-            const chunkBatch = chunkedDocs.slice(j, j + CHUNK_BATCH_SIZE);
-            await this.vectorStore.addDocuments(chunkBatch);
-
-            totalChunksUploaded += chunkBatch.length;
-
-            await this.invokeCallback(
-              this.callbacks?.onUploadProgress,
-              totalChunksUploaded,
-              totalChunksCreated,
-            );
-          }
-        }
-
-        await this.invokeCallback(
-          this.callbacks?.onChunkingComplete,
-          toIndex.length,
-          totalChunksCreated,
-        );
-
-        await this.invokeCallback(this.callbacks?.onUploadComplete, totalChunksUploaded);
+        const chunkedDocs = await this.textSplitter.splitDocuments(toIndex);
+        await this.vectorStore.addDocuments(chunkedDocs);
       }
 
-      const result = { cached, indexed };
-
-      await this.invokeCallback(this.callbacks?.onUpsertComplete, result);
-
-      return result;
+      return { cached, indexed };
     },
     { name: "rag-upsert" },
   );
 
-  // TODO: Expand filter to support additional metadata fields from future document types
-  // See GitHub issues assigned to Ursulovic for upcoming document type requirements
   retrieve = traceable(
     async (query: string, options?: QueryOptions): Promise<Document[]> => {
-      const k = options?.k || 10;
+      const k = options?.k || 3;
       const filter = options?.filter || undefined;
 
       return this.vectorStore.similaritySearch(query, k, filter);
@@ -261,18 +151,13 @@ export class PineconeRAG {
 
   isIndexed = traceable(
     async (url: string, isAsset: boolean = false): Promise<boolean> => {
-      // External assets: check by assetSource
-      // Main pages: check by source
       const filter = isAsset ? { assetSource: url } : { source: url };
-
       const results = await this.vectorStore.similaritySearch("", 1, filter);
       return results.length > 0;
     },
     { name: "rag-is-indexed" },
   );
 
-  // TODO: Expand this method to handle additional document types beyond grokipedia/wikipedia
-  // See GitHub issues assigned to Ursulovic for future document type requirements
   private inferDocumentType(
     metadata: Record<string, unknown>,
   ): "grokipedia" | "wikipedia" {
