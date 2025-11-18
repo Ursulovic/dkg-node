@@ -3,7 +3,7 @@ import type { Document } from "@langchain/core/documents";
 export interface VectorStoreMetadata {
   source: string;
   title?: string;
-  documentType: "grokipedia" | "wikipedia";
+  documentType: "grokipedia" | "wikipedia" | "pdf";
   indexedAt: string;
 }
 
@@ -11,7 +11,7 @@ export interface QueryOptions {
   filter?: {
     source?: string;
     title?: string;
-    documentType?: "grokipedia" | "wikipedia";
+    documentType?: "grokipedia" | "wikipedia" | "pdf";
   };
   k?: number;
 }

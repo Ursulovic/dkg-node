@@ -152,11 +152,12 @@ export class PineconeRAG {
     { name: "rag-is-indexed" },
   );
 
-  // TODO: Expand this method to handle additional document types beyond grokipedia/wikipedia
-  // See GitHub issues assigned to Ursulovic for future document type requirements
   private inferDocumentType(
     metadata: Record<string, unknown>,
-  ): "grokipedia" | "wikipedia" {
+  ): "grokipedia" | "wikipedia" | "pdf" {
+    if (metadata.fileType === "pdf") {
+      return "pdf";
+    }
     return metadata.title ? "grokipedia" : "wikipedia";
   }
 }
