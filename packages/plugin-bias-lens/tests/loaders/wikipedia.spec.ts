@@ -29,6 +29,7 @@ describe("WikipediaLoader", () => {
     });
 
     it("should include source URL in metadata", async function () {
+      this.timeout(10000);
       const query = "Global warming potential";
       const result = await loader.query(query);
 
@@ -39,6 +40,7 @@ describe("WikipediaLoader", () => {
     });
 
     it("should return non-empty page content", async function () {
+      this.timeout(10000);
       const result = await loader.query("Global warming potential");
 
       expect(result[0].pageContent).to.be.a("string");

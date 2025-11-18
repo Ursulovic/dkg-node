@@ -2,12 +2,12 @@ import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/
 import { randomUUID } from "node:crypto";
 import { Document } from "@langchain/core/documents";
 
-interface GrokipediaMetadata {
+export interface GrokipediaMetadata {
   source: string;
   title: string;
 }
 
-type GrokipediaDocument = Document<GrokipediaMetadata> & { id: string };
+export type GrokipediaDocument = Document<GrokipediaMetadata> & { id: string };
 
 export class GrokipediaLoader {
   async loadPage(url: string): Promise<GrokipediaDocument[]> {
