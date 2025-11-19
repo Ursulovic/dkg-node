@@ -26,9 +26,40 @@ The application requires two processes in sequence:
 ### Testing Specific Files
 ```bash
 npm test -- tests/loaders/grokipedia.spec.ts    # Test single file
+npm test -- tests/utils/hash.spec.ts            # Test hash utility
 ```
 
 **Important**: The test command uses `mocha --import=tsx` (NOT `--loader`). The `--loader` flag is deprecated and incompatible with tsx/Node.js v22+.
+
+### Adding New Agent Tools
+
+When adding tools to the bias detection agent:
+
+1. Create `src/agents/bias-detector/tools/{tool-name}.ts`:
+```typescript
+import { z } from "zod";
+import { ToolClass } from "@langchain/...";
+
+const toolSchema = z.object({
+  // Define schema
+});
+
+export const myTool = new ToolClass({
+  // Configuration
+}).asTool({
+  name: "tool-name",
+  description: "Detailed description for agent...",
+  schema: toolSchema,
+});
+```
+
+2. Export from `src/agents/bias-detector/tools/index.ts`:
+```typescript
+import { myTool } from "./my-tool.js";
+// Add to tools array
+```
+
+**Pattern**: Declare schema as `const` at file top, then reference in `.asTool()` call. This keeps schema definitions clean and reusable.
 
 ## Architecture
 
@@ -40,6 +71,45 @@ This plugin uses a **dual-registration architecture** where everything is expose
 2. **HTTP Endpoint**: `api.get("/find-bias-in-grokipedia-page", ...)` - REST clients call this
 
 Both channels invoke the same business logic (`findBiasesInGrokipediaPage`). This design allows the plugin to work in any deployment context.
+
+### Content Hash Utility
+
+**Standalone utility** (`src/utils/hash.ts`) for content versioning and provenance tracking:
+
+```typescript
+import { generateSourceVersions } from "./utils/hash.js";
+
+const versions = await generateSourceVersions(
+  "https://grokipedia.com/page/COVID-19",
+  "https://en.wikipedia.org/wiki/COVID-19"
+);
+```
+
+**Key Features:**
+- Fetches raw HTML from both URLs in parallel
+- Calculates SHA-256 hashes of raw HTML content (not markdown)
+- Fetches Wikipedia revision ID from Wikipedia API for exact version tracking
+- Uses single timestamp for both sources (ensures consistency)
+- Completely independent of loaders (accepts URLs directly)
+
+**Output Structure:**
+```typescript
+{
+  grokipedia: {
+    url: string,
+    accessedAt: string,      // ISO 8601 timestamp
+    pageHash: string         // "sha256:..."
+  },
+  wikipedia: {
+    url: string,
+    accessedAt: string,      // Same timestamp as grokipedia
+    pageHash: string,        // "sha256:..."
+    revisionId: string       // Wikipedia revision ID
+  }
+}
+```
+
+This enables **audit trails**: any bias report can be re-verified against exact page versions using the revision ID and content hash.
 
 ### Plugin Entry Point (`src/index.ts`)
 
@@ -73,6 +143,17 @@ Both loaders follow the same pattern but have different metadata:
 - Returns: `WikipediaDocument[]` with metadata: `{ source: string }`
 - Adds UUID `id` to each document
 - Custom Turndown rules convert relative links to absolute and citations to `[[n]]` format
+
+**Preprocessing Pipeline (Both Loaders):**
+Both loaders apply identical preprocessing to ensure consistent markdown output:
+1. Remove navigation elements (Wikipedia navboxes, Grokipedia menus)
+2. Convert relative URLs to absolute (`/wiki/Page` → `https://en.wikipedia.org/wiki/Page`)
+3. Convert protocol-relative URLs (`//cdn.example.com` → `https://cdn.example.com`)
+4. Flatten table structures and convert to GitHub-flavored markdown
+5. Convert citations to `[[n]]` format
+6. Remove Wikipedia-specific metadata (sortable table keys, hidden elements)
+
+This creates a **unified content representation** that downstream agents consume consistently.
 
 **ExternalAssetsLoader** (`src/loaders/external.ts`):
 - Loads external content (PDFs, HTML pages, images, video, audio) from URLs found in articles
@@ -278,14 +359,14 @@ export type LinkType =
 
 ### Test Structure
 
-Five test files with different purposes:
+Six test files with different purposes:
 
 1. **`tests/loaders/grokipedia.spec.ts`** ✅ Complete
    - Real integration tests against live grokipedia.com
    - URL validation tests (invalid formats, wrong domains)
 
 2. **`tests/loaders/wikipedia.spec.ts`** ✅ Complete
-   - Real network tests via Jina AI
+   - Real network integration tests
    - UUID format validation (RFC 4122 v4)
    - Unique ID generation verification
 
@@ -305,7 +386,15 @@ Five test files with different purposes:
    - Uses Sinon to stub all external API calls (no real network requests)
    - Fast execution (<1 second)
 
-5. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
+5. **`tests/utils/hash.spec.ts`** ✅ Complete
+   - Real integration tests with Wikipedia API
+   - Tests SHA-256 hash calculation (deterministic, handles unicode)
+   - Tests Wikipedia title extraction from various URL formats
+   - Tests Wikipedia revision ID fetching
+   - Tests complete sourceVersions generation with real HTML fetching
+   - Validates timestamp consistency and hash format
+
+6. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
    - Contains TODO placeholders that must be replaced
    - Infrastructure is set up correctly (MCP server/client, Express app)
    - See PLUGIN_TESTING_GUIDE.md for requirements
@@ -347,7 +436,7 @@ According to `packages/PLUGIN_TESTING_GUIDE.md`, all plugins must have:
 
 ### 1. Loader Error Handling Asymmetry
 - **GrokipediaLoader**: Strict URL validation (throws synchronously on invalid URLs)
-- **WikipediaLoader**: No URL validation (accepts any string, relies on Jina AI error handling)
+- **WikipediaLoader**: No URL validation (accepts any string, relies on fetch error handling)
 
 ### 2. OpenAPI Auto-Documentation
 The plugin uses `openAPIRoute()` wrapper which generates Swagger documentation from Zod schemas:
@@ -365,19 +454,60 @@ openAPIRoute({
 - `PINECONE_INDEX` - Pinecone index name (required for RAG functionality)
 - `OPENAI_API_KEY` - OpenAI API key for embeddings (required for RAG functionality)
 
+**Required for Bias Detection Agent:**
+- `SERPAPI_API_KEY` - Google Scholar API (peer-reviewed source verification)
+- `TAVILY_API_KEY` - Web search API (news, events, quotes verification)
+
 **Required for ExternalAssetsLoader:**
 - `GOOGLE_API_KEY` - Google Gemini API key (required for media interpretation: images, video, audio)
 
-### 4. Current Implementation Status
+**Optional for Observability:**
+- `LANGSMITH_TRACING=true` - Enable LangSmith tracing
+- `LANGSMITH_API_KEY` - LangSmith API key
+- `LANGSMITH_PROJECT=plugin-bias-lens` - Project name for trace organization
+
+### 4. Bias Detection Agent Architecture
+
+The bias detection agent (`src/agents/bias-detector/`) implements a sophisticated fact-checking methodology:
+
+**Agent Tools** (`src/agents/bias-detector/tools/`):
+- **web-search.ts** - Tavily API for recent news, events, policy announcements, quotes
+- **google-scholar-search.ts** - SERPAPI for peer-reviewed papers, systematic reviews, academic consensus
+- **index.ts** - Exports array of all tools
+
+**Tool Selection Rules** (enforced by system prompt):
+- Scientific/medical/statistical claims → MUST use `google_scholar_search`
+- Claims citing specific studies → MUST use `google_scholar_search`
+- Recent events/news/quotes → Use `web_search`
+- Fallback: `web_search` when Scholar returns no results
+
+**Evidence Hierarchy** (affects confidence scoring):
+```
+peer-reviewed > systematic-review > government > academic-institution >
+major-news-outlet > think-tank > blog-opinion
+```
+
+Every finding includes a `credibilityTier` from this hierarchy. Lower-tier sources reduce confidence scores even when claims are verified.
+
+**Critical Pattern**: The agent is taught to distinguish between:
+- Peer-reviewed paper in journal (peer-reviewed tier)
+- News article ABOUT research (blog-opinion tier)
+- Editorial in journal (blog-opinion tier)
+
+This prevents "citation inflation" where news coverage is mistaken for primary evidence.
+
+### 5. Current Implementation Status
 - ✅ Core infrastructure complete
 - ✅ Loaders implemented and tested (GrokipediaLoader, WikipediaLoader, ExternalAssetsLoader)
 - ✅ Vector database (PineconeRAG) implemented and tested
+- ✅ Content hash utility implemented and tested
 - ✅ Plugin registration working
 - ✅ External assets loading complete (PDF, HTML, media with Gemini)
-- ⚠️ Bias detection is a placeholder (returns "0 biases")
+- ✅ Bias detection agent tools refactored into modular structure
+- ⚠️ Bias detection agent integration incomplete
 - ⚠️ Plugin integration tests incomplete (TODO placeholders)
 
-### 5. Namespace Pattern
+### 6. Namespace Pattern
 Plugins can use `.withNamespace()` to avoid naming collisions:
 ```typescript
 plugin.withNamespace("bias-lens", { middlewares: [...] })
