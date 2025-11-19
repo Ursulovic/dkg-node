@@ -8,6 +8,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   model: "gpt-4.1",
   temperature: 0,
+  cache: true,
   reasoning: { effort: "high" },
 });
 
