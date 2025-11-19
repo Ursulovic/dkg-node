@@ -10,83 +10,91 @@ import { z } from "zod";
  * - System fills: Provenance metadata (paranetId, blockchainAnchor)
  */
 
-const SourceSchema = z.object({
-  name: z
-    .string()
-    .describe("Name of the authoritative source used to verify this claim"),
-  url: z.string().url().describe("URL to the authoritative source"),
-  credibilityTier: z
-    .enum([
-      "peer-reviewed",
-      "systematic-review",
-      "government",
-      "academic-institution",
-      "major-news-outlet",
-      "think-tank",
-      "blog-opinion",
-    ])
-    .describe(
-      "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
-    ),
-});
+const SourceSchema = z
+  .object({
+    name: z
+      .string()
+      .describe("Name of the authoritative source used to verify this claim"),
+    url: z.string().url().describe("URL to the authoritative source"),
+    credibilityTier: z
+      .enum([
+        "peer-reviewed",
+        "systematic-review",
+        "government",
+        "academic-institution",
+        "major-news-outlet",
+        "think-tank",
+        "blog-opinion",
+      ])
+      .describe(
+        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+      ),
+  })
+  .required();
 
-const FindingSchema = z.object({
-  claim: z.string().describe("The exact claim from Grokipedia being evaluated"),
-  issue: z
-    .string()
-    .describe(
-      "Explanation of the problem: what is false, misleading, missing, or cherry-picked",
-    ),
-  confidence: z
-    .number()
-    .min(0)
-    .max(1)
-    .describe(
-      "Confidence level (0.0-1.0) based on source quality: 0.85-1.0=peer-reviewed, 0.6-0.85=government/news, 0.3-0.6=blog/opinion, 0.0-0.3=contradicted",
-    ),
-  sources: z
-    .array(SourceSchema)
-    .min(1)
-    .describe(
-      "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
-    ),
-  toolUsed: z
-    .enum(["google_scholar_search", "web_search", "both"])
-    .describe(
-      "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
-    ),
-  section: z
-    .string()
-    .describe(
-      "Section name in the Grokipedia article where this issue appears",
-    ),
-});
+const FindingSchema = z
+  .object({
+    claim: z
+      .string()
+      .describe("The exact claim from Grokipedia being evaluated"),
+    issue: z
+      .string()
+      .describe(
+        "Explanation of the problem: what is false, misleading, missing, or cherry-picked",
+      ),
+    confidence: z
+      .number()
+      .min(0)
+      .max(1)
+      .describe(
+        "Confidence level (0.0-1.0) based on source quality: 0.85-1.0=peer-reviewed, 0.6-0.85=government/news, 0.3-0.6=blog/opinion, 0.0-0.3=contradicted",
+      ),
+    sources: z
+      .array(SourceSchema)
+      .min(1)
+      .describe(
+        "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
+      ),
+    toolUsed: z
+      .enum(["google_scholar_search", "web_search", "both"])
+      .describe(
+        "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
+      ),
+    section: z
+      .string()
+      .describe(
+        "Section name in the Grokipedia article where this issue appears",
+      ),
+  })
+  .required();
 
-const MediaIssueSchema = z.object({
-  mediaType: z
-    .enum(["image", "video", "audio"])
-    .describe("Type of media content"),
-  description: z
-    .string()
-    .describe("Description of the media element in Grokipedia"),
-  issue: z
-    .string()
-    .describe(
-      "Problem identified: manipulation, misattribution, misleading caption, missing context, or fabrication",
-    ),
-  confidence: z
-    .number()
-    .min(0)
-    .max(1)
-    .describe("Confidence level that this media issue exists (0.0-1.0)"),
-  sources: z
-    .array(SourceSchema)
-    .min(1)
-    .describe(
-      "Sources verifying the media issue (original source, fact-check, forensic analysis)",
-    ),
-  section: z.string().describe("Section name where this media appears"),
-});
+const MediaIssueSchema = z
+  .object({
+    mediaType: z
+      .enum(["image", "video", "audio"])
+      .describe("Type of media content"),
+    description: z
+      .string()
+      .describe("Description of the media element in Grokipedia"),
+    issue: z
+      .string()
+      .describe(
+        "Problem identified: manipulation, misattribution, misleading caption, missing context, or fabrication",
+      ),
+    confidence: z
+      .number()
+      .min(0)
+      .max(1)
+      .describe("Confidence level that this media issue exists (0.0-1.0)"),
+    sources: z
+      .array(SourceSchema)
+      .min(1)
+      .describe(
+        "Sources verifying the media issue (original source, fact-check, forensic analysis)",
+      ),
+    section: z.string().describe("Section name where this media appears"),
+  })
+  .required();
 
 const BiasDetectionReportSchema = z
   .object({
@@ -107,6 +115,7 @@ const BiasDetectionReportSchema = z
         grokipedia: z.string().optional().describe("Grokipedia base URL"),
         wikipedia: z.string().optional().describe("Wikipedia base URL"),
       })
+      .required()
       .describe("JSON-LD context defining namespaces and vocabularies"),
 
     "@type": z
@@ -161,6 +170,7 @@ const BiasDetectionReportSchema = z
             "Major patterns of bias detected (e.g., 'Cherry-picking statistics', 'Omission of scientific consensus')",
           ),
       })
+      .required()
       .describe("Executive summary providing quick assessment of bias"),
 
     // ============================================
@@ -188,30 +198,32 @@ const BiasDetectionReportSchema = z
     // ============================================
     sourceProblems: z
       .array(
-        z.object({
-          sourceName: z
-            .string()
-            .describe("Name of the unreliable source used by Grokipedia"),
-          issue: z
-            .string()
-            .describe(
-              "Why this source is problematic: low credibility, bias, conflicts of interest, no editorial standards",
-            ),
-          confidence: z
-            .number()
-            .min(0)
-            .max(1)
-            .describe("Confidence that this source is unreliable (0.0-1.0)"),
-          evidenceSources: z
-            .array(SourceSchema)
-            .min(1)
-            .describe(
-              "Authoritative sources documenting this source's unreliability",
-            ),
-          section: z
-            .string()
-            .describe("Section in Grokipedia that relies on this source"),
-        }),
+        z
+          .object({
+            sourceName: z
+              .string()
+              .describe("Name of the unreliable source used by Grokipedia"),
+            issue: z
+              .string()
+              .describe(
+                "Why this source is problematic: low credibility, bias, conflicts of interest, no editorial standards",
+              ),
+            confidence: z
+              .number()
+              .min(0)
+              .max(1)
+              .describe("Confidence that this source is unreliable (0.0-1.0)"),
+            evidenceSources: z
+              .array(SourceSchema)
+              .min(1)
+              .describe(
+                "Authoritative sources documenting this source's unreliability",
+              ),
+            section: z
+              .string()
+              .describe("Section in Grokipedia that relies on this source"),
+          })
+          .required(),
       )
       .describe("Unreliable or low-quality sources used by Grokipedia"),
 
@@ -231,38 +243,41 @@ const BiasDetectionReportSchema = z
     // ============================================
     sectionAnalysis: z
       .array(
-        z.object({
-          sectionName: z
-            .string()
-            .describe("Section name in Grokipedia article"),
-          verifiedClaims: z
-            .array(z.string())
-            .describe("Claims verified as accurate in this section"),
-          issueCount: z
-            .object({
-              factualErrors: z
-                .number()
-                .int()
-                .nonnegative()
-                .describe("Number of factual errors in this section"),
-              missingContext: z
-                .number()
-                .int()
-                .nonnegative()
-                .describe("Number of context issues in this section"),
-              sourceProblems: z
-                .number()
-                .int()
-                .nonnegative()
-                .describe("Number of source problems in this section"),
-              mediaIssues: z
-                .number()
-                .int()
-                .nonnegative()
-                .describe("Number of media issues in this section"),
-            })
-            .describe("Count of each issue type in this section"),
-        }),
+        z
+          .object({
+            sectionName: z
+              .string()
+              .describe("Section name in Grokipedia article"),
+            verifiedClaims: z
+              .array(z.string())
+              .describe("Claims verified as accurate in this section"),
+            issueCount: z
+              .object({
+                factualErrors: z
+                  .number()
+                  .int()
+                  .nonnegative()
+                  .describe("Number of factual errors in this section"),
+                missingContext: z
+                  .number()
+                  .int()
+                  .nonnegative()
+                  .describe("Number of context issues in this section"),
+                sourceProblems: z
+                  .number()
+                  .int()
+                  .nonnegative()
+                  .describe("Number of source problems in this section"),
+                mediaIssues: z
+                  .number()
+                  .int()
+                  .nonnegative()
+                  .describe("Number of media issues in this section"),
+              })
+              .required()
+              .describe("Count of each issue type in this section"),
+          })
+          .required(),
       )
       .describe(
         "Section-by-section breakdown linking verified claims and problems to specific article sections",
@@ -305,6 +320,7 @@ const BiasDetectionReportSchema = z
           .nonnegative()
           .describe("Total count of media problems"),
       })
+      .required()
       .describe("Overall assessment with aggregate statistics"),
 
     // ============================================
@@ -356,6 +372,7 @@ const BiasDetectionReportSchema = z
                 "N-gram overlap measuring exact phrase matches (0.0-1.0). OPTIONAL: Only filled if system provides utility for cosine similarity calculation.",
               ),
           })
+          .required()
           .describe("Detailed text similarity metrics"),
         interpretation: z
           .string()
@@ -363,6 +380,7 @@ const BiasDetectionReportSchema = z
             "Interpretation of what similarity scores mean and whether divergence is concerning",
           ),
       })
+      .required()
       .describe(
         "Content similarity analysis comparing Grokipedia to Wikipedia baseline (required by hackathon challenge)",
       ),
@@ -403,6 +421,7 @@ const BiasDetectionReportSchema = z
                   .optional()
                   .describe("Last modified timestamp if available"),
               })
+              .required()
               .describe("Grokipedia source version metadata"),
             wikipedia: z
               .object({
@@ -422,8 +441,10 @@ const BiasDetectionReportSchema = z
                   .optional()
                   .describe("Last modified timestamp if available"),
               })
+              .required()
               .describe("Wikipedia source version metadata"),
           })
+          .required()
           .optional()
           .describe(
             "Versions of source articles analyzed. SYSTEM PRECALCULATES THIS, NOT LLM.",
@@ -441,14 +462,17 @@ const BiasDetectionReportSchema = z
             "Blockchain transaction hash proving integrity and timestamp (filled by publishing system)",
           ),
       })
+      .required()
       .describe(
         "Provenance tracking how report was created and where it's stored on DKG",
       ),
   })
+  .required()
   .describe(
     "Optimized bias detection report for OriginTrail DKG Knowledge Assets: compares Grokipedia vs Wikipedia to identify factual errors, missing context, source problems, and media issues",
   );
 
 export type BiasDetectionReport = z.infer<typeof BiasDetectionReportSchema>;
 
+export { BiasDetectionReportSchema };
 export default BiasDetectionReportSchema;

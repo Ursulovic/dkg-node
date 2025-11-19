@@ -16,7 +16,7 @@ export default createAgent({
   name: "bias-detector",
   model,
   tools,
-  contextSchema: z.object({}),
+  contextSchema: z.object({}).required(),
   responseFormat,
   systemPrompt,
 });
