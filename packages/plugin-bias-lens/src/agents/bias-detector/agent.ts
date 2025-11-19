@@ -1,9 +1,12 @@
-import { createAgent } from "langchain";
 import { z } from "zod";
-import systemPrompt from "./prompt";
-import tools from "./tools";
-import responseFormat from "./schema";
+
+import { createAgent } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
+
+import systemPrompt from "./prompt";
+import responseFormat from "./schema";
+import { webSearchTool } from "./tools/web-search";
+import { googleScholarSearchTool } from "./tools/google-scholar-search";
 
 const model = new ChatOpenAI({
   model: "gpt-4.1",
@@ -15,8 +18,8 @@ const model = new ChatOpenAI({
 export default createAgent({
   name: "bias-detector",
   model,
-  tools,
-  contextSchema: z.object({}).required(),
+  tools: [webSearchTool, googleScholarSearchTool],
+  contextSchema: z.object({}),
   responseFormat,
   systemPrompt,
 });
