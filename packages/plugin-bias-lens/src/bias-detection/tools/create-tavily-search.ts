@@ -3,10 +3,13 @@ import { TavilySearch } from "@langchain/tavily";
 
 export function createTavilySearchTool() {
   return new TavilySearch({
-    maxResults: 1,
+    maxResults: 3,
     tavilyApiKey: process.env.TAVILY_API_KEY,
     name: "web_search",
     includeAnswer: true,
+    includeImageDescriptions: true,
+    includeImages: true,
+    excludeDomains: ["grokipedia.com", "en.wikipedia.org"],
     description:
       "Search the web using Tavily to fact-check claims, verify information, and find supporting evidence. " +
       "Use this when you need to verify facts against current web sources, check if claims are accurate, " +

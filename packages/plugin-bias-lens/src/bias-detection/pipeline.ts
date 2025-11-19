@@ -1,167 +1,124 @@
-import chalk from "chalk";
-import { getCurrentRunTree, traceable } from "langsmith/traceable";
-import { createPineconeRetrieverTool } from "./tools/create-pinecone-retriever";
+import { traceable } from "langsmith/traceable";
 import { createTavilySearchTool } from "./tools/create-tavily-search";
 import { createGoogleScholarTool } from "./tools/create-google-scholar";
-import { createSubagentConfigs } from "./subagents";
+import { createCoordinatorTrackerTool } from "./tools/create-coordinator-tracker-tool";
+import { createSubagentTools } from "./subagents";
 import { COORDINATOR_PROMPT } from "./prompts/coordinator";
 import { GrokipediaLoader } from "../loaders/grokipedia";
 import { WikipediaLoader } from "../loaders/wikipedia";
-import { PineconeRAG } from "../vectordb/pinecone";
 import { createBiasDetectionCoordinator } from "./create-coordinator";
-import type { BiasDetectionPromptVariables } from "./prompts/inject-variables";
-import { summarizeGrokipediaArticle } from "./summarizer";
+import { createCrossReferencedSections } from "./summarizer";
+import { SectionTracker } from "./section-tracker";
+import {
+  computeSimilarity,
+  summarizeSimilarity,
+} from "../similarity/compute-similarity";
+import { synthesizeBiasReport } from "./create-synthesizer";
 
 export interface BiasDetectionOptions {
   grokipediaUrl: string;
   wikipediaUrl: string;
   maxIterations?: number;
-  maxSubagentFollowups?: number;
-  maxSubagentTasksPerFollowup?: number;
 }
 
 export const detectBiasInGrokipediaPage = traceable(
-  async (options: BiasDetectionOptions): Promise<string> => {
-    const {
-      grokipediaUrl,
-      wikipediaUrl,
-      maxIterations = 200,
-      maxSubagentFollowups = 1,
-      maxSubagentTasksPerFollowup = 5,
-    } = options;
-
-    const runTree = getCurrentRunTree();
-    if (runTree) {
-      runTree.tags = [...(runTree.tags ?? []), grokipediaUrl];
-      runTree.metadata = {
-        ...runTree.metadata,
-        grokipediaUrl,
-        wikipediaUrl,
-      };
-    }
-
-    const promptVariables: BiasDetectionPromptVariables = {
-      maxSubagentFollowups,
-      maxSubagentTasksPerFollowup,
-    };
-
-    const rag = new PineconeRAG();
+  async (
+    options: BiasDetectionOptions,
+  ): Promise<{ markdown: string; jsonld: string }> => {
+    const { grokipediaUrl, wikipediaUrl, maxIterations = 200 } = options;
 
     const grokipediaLoader = new GrokipediaLoader();
-    const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
-    console.log(
-      chalk.gray(
-        `✓ Grokipedia: ${grokipediaDocuments.length} document(s) loaded`,
-      ),
-    );
-
     const wikipediaLoader = new WikipediaLoader();
+
+    const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
     const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
-    console.log(
-      chalk.gray(
-        `✓ Wikipedia: ${wikipediaDocuments.length} document(s) loaded`,
-      ),
+    if (grokipediaDocuments.length === 0 || wikipediaDocuments.length === 0) {
+      throw new Error("Failed to load one or both articles");
+    }
+
+    console.log("Fetched pages.");
+
+    const similarityReport = await computeSimilarity(
+      grokipediaDocuments[0]!,
+      wikipediaDocuments[0]!,
     );
 
-    const isGrokipediaIndexed = await rag.isIndexed(grokipediaUrl);
-    const isWikipediaIndexed = await rag.isIndexed(wikipediaUrl);
+    console.log("Calculated similarity");
 
-    const documentsToIndex = [
-      ...(isGrokipediaIndexed ? [] : grokipediaDocuments),
-      ...(isWikipediaIndexed ? [] : wikipediaDocuments),
-    ];
+    console.log("Starting agents.");
 
-    if (documentsToIndex.length > 0) {
-      await rag.upsert(documentsToIndex);
-      console.log(
-        chalk.gray(`✓ Indexed ${documentsToIndex.length} document(s)`),
-      );
-    } else {
-      console.log(chalk.gray(`✓ All documents already indexed (cached)`));
-    }
-
-    if (grokipediaDocuments.length === 0) {
-      throw new Error("No Grokipedia documents loaded");
-    }
-    console.log(chalk.gray("\nGenerating article summary with Gemini..."));
-    const summary = await summarizeGrokipediaArticle(
+    const sections = await createCrossReferencedSections(
       grokipediaDocuments[0]!.pageContent,
+      wikipediaDocuments[0]!.pageContent,
+      similarityReport,
     );
-    console.log(chalk.gray("✓ Summary generated\n"));
 
-    const pineconeRetriever = createPineconeRetrieverTool(
-      grokipediaUrl,
-      wikipediaUrl,
-    );
+    const sectionTracker = new SectionTracker();
+    sectionTracker.initializeSections(sections);
+
+    const coordinatorTrackerTool = createCoordinatorTrackerTool(sectionTracker);
+
     const tavilySearch = createTavilySearchTool();
     const googleScholar = createGoogleScholarTool();
 
-    const subagents = createSubagentConfigs({
-      pineconeRetriever,
+    const subagentTools = createSubagentTools({
+      sectionTracker,
       tavilySearch,
-      googleScholar: googleScholar,
-      promptVariables,
+      googleScholar,
     });
 
-    const { coordinator, callbackHandler } = createBiasDetectionCoordinator({
-      subagents: subagents,
+    const coordinator = createBiasDetectionCoordinator({
+      subagentTools: [
+        subagentTools.callFactChecker,
+        subagentTools.callContextAnalyzer,
+        subagentTools.callSourceVerifier,
+        subagentTools.callQualityAssurance,
+      ] as any,
       coordinatorPrompt: COORDINATOR_PROMPT,
       model: "claude-sonnet-4-5-20250929",
-      temperature: 0,
-      promptVariables,
+      tools: [coordinatorTrackerTool as any],
     });
 
-    const result = await coordinator.invoke(
+    await coordinator.invoke(
       {
         messages: [
           {
             role: "user",
-            content: `Analyze the Grokipedia article for bias by comparing it with Wikipedia.
+            content: `Orchestrate bias detection analysis using the 3-phase workflow.
 
-Here is the structured summary of the Grokipedia article:
+**Phase 1: Initial Analysis**
+- For each section, call coordinator_tracker(action="get_next_section_metadata")
+- Delegate to fact-checker, context-analyzer, source-verifier (they fetch content via section_reader)
+- Call coordinator_tracker(action="mark_section_complete")
+- Repeat until all sections analyzed
 
-${summary}
+**Phase 2: Quality Assurance**
+- Call coordinator_tracker(action="start_qa_phase")
+- Delegate to quality-assurance for batch review
+- Call coordinator_tracker(action="get_revision_map")
 
-Use the section-based sequential workflow:
-1. Process each section sequentially
-2. For each section, spawn fact-checker, context-analyzer, and source-verifier
-3. Handle followups
-4. Use quality-assurance to assess work quality
-5. If RETRY_ONCE, provide targeted feedback for refinement
-6. After all sections, synthesize comprehensive bias report
+**Phase 3: Revisions (if needed)**
+- If revision map has sections, delegate revisions to appropriate agents
+- Agents use section_reader to fetch content + previous analysis + QA feedback
 
-Compare findings against Wikipedia (indexed in Pinecone).`,
+**Important:**
+- You ONLY see metadata (section numbers/titles), never full content
+- Agents fetch content themselves using section_reader
+- Do NOT synthesize final report - that's done by separate synthesizer
+
+Begin with Phase 1.`,
           },
         ],
       },
-      {
-        recursionLimit: maxIterations,
-        callbacks: [callbackHandler],
-      },
+      { recursionLimit: maxIterations },
     );
 
-    console.log(chalk.gray("\n" + "━".repeat(60)));
-    console.log(chalk.green("✅ Bias detection completed successfully\n"));
+    const synthesizerOutput = await synthesizeBiasReport(sectionTracker);
 
-    let markdownReport = "";
+    const similaritySummary = summarizeSimilarity(similarityReport);
+    const markdownReport = `${synthesizerOutput.markdown}\n\n---\n\n${similaritySummary}`;
 
-    if (result.messages && Array.isArray(result.messages)) {
-      const lastMessage = result.messages[result.messages.length - 1];
-      if (lastMessage && typeof lastMessage === "object") {
-        const msg = lastMessage as { content?: string };
-        if (msg.content && typeof msg.content === "string") {
-          markdownReport = msg.content;
-        }
-      }
-    }
-
-    if (!markdownReport) {
-      throw new Error(
-        "No markdown report generated. The agent may not have completed the analysis.",
-      );
-    }
-
-    return markdownReport;
+    return { markdown: markdownReport, jsonld: synthesizerOutput.jsonld };
   },
   { name: "bias-detection" },
 );

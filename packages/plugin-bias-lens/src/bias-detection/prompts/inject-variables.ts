@@ -23,7 +23,5 @@ export function injectPromptVariables(
  */
 export interface BiasDetectionPromptVariables
   extends Record<string, string | number | boolean> {
-  maxSubagentFollowups: number;
-  maxSubagentTasksPerFollowup: number;
-  // Easy to extend with more variables in future
+  // Empty for now - easy to extend with variables in future if needed
 }

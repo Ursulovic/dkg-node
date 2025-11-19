@@ -9,13 +9,14 @@ async function findBiasesInGrokipediaPage(
   wikipediaUrl: string,
 ): Promise<string> {
   try {
-    // detectBiasInGrokipediaPage now returns markdown directly
-    const markdownReport = await detectBiasInGrokipediaPage({
+    // detectBiasInGrokipediaPage returns { markdown, jsonld }
+    const result = await detectBiasInGrokipediaPage({
       grokipediaUrl,
       wikipediaUrl,
     });
 
-    return markdownReport;
+    // Return markdown for MCP/API response (jsonld can be added later if needed)
+    return result.markdown;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return `Error analyzing ${grokipediaUrl}: ${errorMessage}`;
