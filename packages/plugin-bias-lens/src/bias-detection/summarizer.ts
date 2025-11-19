@@ -11,24 +11,37 @@ const CrossReferencedSectionSchema = z.object({
   grokipediaChunk: z
     .string()
     .describe(
-      "Verbatim content from Grokipedia (1-3 paragraphs with all citations and links)",
+      "Verbatim paragraph content from Grokipedia (inline links removed and extracted to grokipediaLinks array)",
     ),
   wikipediaChunk: z
     .string()
     .describe(
-      "Verbatim content from Wikipedia (corresponding section with all citations and links)",
+      "Verbatim paragraph content from Wikipedia (inline links removed and extracted to wikipediaLinks array)",
     ),
   grokipediaLinks: z
     .array(z.string())
-    .describe(
-      "Extracted and de-referenced citations/links from Grokipedia chunk",
-    ),
+    .describe("All citations and URLs extracted from Grokipedia chunk"),
   wikipediaLinks: z
     .array(z.string())
+    .describe("All citations and URLs extracted from Wikipedia chunk"),
+  tasks: z
+    .array(
+      z.object({
+        claim: z
+          .string()
+          .describe(
+            "Summarized claim from Grokipedia content that needs bias verification",
+          ),
+        relevantLinks: z
+          .array(z.string())
+          .describe(
+            "URLs from BOTH Grokipedia and Wikipedia relevant to verifying this specific claim",
+          ),
+      }),
+    )
     .describe(
-      "Extracted and de-referenced citations/links from Wikipedia chunk",
+      "List of verification tasks - key claims from Grokipedia with relevant source links",
     ),
-  tokenEstimate: z.number().describe("Estimated token count for this section"),
 });
 
 /**
@@ -47,59 +60,47 @@ const CROSS_REFERENCE_PROMPT = `You are an expert article analyzer creating cros
 
 ## Your Mission
 
-Create an array of cross-referenced sections that pair corresponding content from Grokipedia and Wikipedia articles. Each section should contain 1-3 paragraphs of verbatim content from each source.
+Create an array of cross-referenced sections that pair corresponding content from Grokipedia and Wikipedia articles. Each section should contain verbatim paragraph content from each source.
 
 ## Input Context
 
 You will receive:
 1. Full Grokipedia article (markdown with citations and links)
 2. Full Wikipedia article (markdown with citations and links)
-3. Similarity analysis showing overall alignment and divergence areas
 
 ## CRITICAL RULES
 
-**SECTION MATCHING**:
-- Identify corresponding sections between Grokipedia and Wikipedia
-- Match sections by topic/theme (titles don't need to be identical)
-- Prioritize high-divergence areas flagged in similarity analysis
-- Ensure all major topics from both sources are covered
+**SECTION STRUCTURE**:
+Each section MUST contain:
+- sectionIndex: Sequential number starting from 0
+- sectionTitle: Clear, descriptive title
+- grokipediaChunk: VERBATIM paragraph text (inline links removed)
+- wikipediaChunk: VERBATIM paragraph text (inline links removed)
+- grokipediaLinks: All URLs/citations extracted from grokipediaChunk
+- wikipediaLinks: All URLs/citations extracted from wikipediaChunk
+- tasks: Array of verification tasks with {claim, relevantLinks} structure
 
-**CONTENT EXTRACTION**:
-- Extract 1-3 paragraphs verbatim from each source (NO paraphrasing)
-- Include ALL citations, links, and references exactly as they appear
-- Preserve markdown formatting (links, bold, italics, etc.)
-- Target 500-1000 tokens per chunk (approximately 2-4 paragraphs)
+**CONTENT EXTRACTION RULES**:
 
-**TABLE HANDLING**:
-- If a section contains large tables, summarize key data points
-- Or split tables into logical chunks if they're critical
-- Preserve the most important data while keeping token count reasonable
-
-**LINK EXTRACTION**:
-- Extract all URLs, citations, and references from each chunk
-- De-reference them into clean lists for easy agent access
-- Include both inline links and citation references
-
-## Output Format
-
-Return an array of section objects with the following structure:
-- sectionIndex: number (zero-based)
-- sectionTitle: string (descriptive title)
-- grokipediaChunk: string (verbatim paragraphs with links and citations)
-- wikipediaChunk: string (verbatim paragraphs with links and citations)
-- grokipediaLinks: string[] (extracted URLs and citations)
-- wikipediaLinks: string[] (extracted URLs and citations)
-- tokenEstimate: number (estimated tokens for this section)
+1. **Paragraph Content**: Extract VERBATIM - exact quotes, no paraphrasing
+2. **Links**: Remove inline citations/links from paragraph text, extract to links arrays
+3. **Tables**: Can be summarized to key data points (not required verbatim)
+4. **Tasks**: For each section, identify 3-7 key verifiable claims from Grokipedia content
+   - Summarize each claim clearly
+   - Include relevant URLs from BOTH Grokipedia AND Wikipedia for cross-verification
+   - Focus on factual statements, statistics, attributions, and specific assertions
+5. **Coverage**: Include ALL major topics from BOTH articles - do not skip sections
+6. **Matching**: Ensure 1-to-1 pairing between Grokipedia and Wikipedia sections
 
 ## Important Notes
 
-- Extract content VERBATIM - do not paraphrase or summarize (except tables)
-- Ensure 1-to-1 matching: each Grokipedia section paired with corresponding Wikipedia section
-- Use similarity analysis to prioritize divergent areas
-- Keep sections focused and manageable (500-1000 tokens ideal)
+- Extract paragraph content VERBATIM - exact quotes, no paraphrasing
+- Tables can be summarized to key data points
+- Ensure comprehensive coverage - include ALL major topics from both articles
+- Create verification tasks for key Grokipedia claims
 - Preserve all attribution and source information
 
-Now create cross-referenced sections from the following articles and similarity analysis:`;
+Now create cross-referenced sections from the following articles:`;
 
 /**
  * Creates cross-referenced sections between Grokipedia and Wikipedia articles.
@@ -116,31 +117,11 @@ export async function createCrossReferencedSections(
   similarityReport: SimilarityReport,
 ): Promise<CrossReferencedSection[]> {
   const model = new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
-    temperature: 0,
+    model: "gemini-3-pro-preview",
+    cache: true,
   });
 
-  // Format similarity context for the model
-  const similarityContext = `
-SIMILARITY ANALYSIS:
-- Overall alignment: ${(similarityReport.overallAlignment * 100).toFixed(1)}%
-- Text similarity: ${(similarityReport.text.overallSimilarity * 100).toFixed(1)}%
-- Semantic similarity: ${(similarityReport.text.semanticSimilarity * 100).toFixed(1)}%
-- Structural similarity: ${(similarityReport.text.structuralSimilarity * 100).toFixed(1)}%
-- Media similarity: ${(similarityReport.media.imageSimilarityScore * 100).toFixed(1)}%
-
-${
-  similarityReport.divergenceAreas.length > 0
-    ? `HIGH-DIVERGENCE AREAS (prioritize these):
-${similarityReport.divergenceAreas.map((area) => `- ${area}`).join("\n")}`
-    : ""
-}
-
-Use this analysis to prioritize section creation around divergent areas.
-`;
-
-  const userPrompt = `${similarityContext}
-
+  const userPrompt = `
 GROKIPEDIA ARTICLE:
 ---
 ${grokipediaContent}
@@ -151,7 +132,15 @@ WIKIPEDIA ARTICLE:
 ${wikipediaContent}
 ---
 
-Create cross-referenced sections following the structure specified above.`;
+Create cross-referenced sections following the structure above.
+
+CRITICAL REQUIREMENTS:
+1. Extract ALL paragraph content VERBATIM (exact quotes from original text)
+2. Remove inline links/citations from paragraph text, extract to links arrays
+3. Create verification tasks for key Grokipedia claims with relevant links from BOTH sources
+4. Tables can be summarized (not required verbatim)
+5. Ensure comprehensive coverage - include ALL major topics, do not skip sections
+`;
 
   // Use structured output with Zod schema for automatic validation
   const modelWithStructuredOutput = model.withStructuredOutput(

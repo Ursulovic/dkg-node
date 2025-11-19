@@ -5,6 +5,15 @@
 export type { CrossReferencedSection } from "./summarizer";
 
 /**
+ * Section analysis result with metadata
+ */
+export interface SectionAnalysis {
+  sectionIndex: number;
+  sectionTitle: string;
+  analysis: string;
+}
+
+/**
  * Metadata about a section without the full content
  * Used for coordinator to track progress without consuming tokens
  */
@@ -45,29 +54,69 @@ export interface SectionContent {
   wikipediaChunk: string;
   grokipediaLinks: string[];
   wikipediaLinks: string[];
-  tokenEstimate: number;
+  tasks: Array<{
+    claim: string;
+    relevantLinks: string[];
+  }>;
 }
 
 /**
- * Section with all analyses from all agents (for QA review)
+ * Section with analysis from bias detection agent (for QA review)
  */
 export interface SectionWithAnalyses {
   section: SectionContent;
-  analyses: {
-    "fact-checker"?: string;
-    "context-analyzer"?: string;
-    "source-verifier"?: string;
-  };
+  analysis: string | undefined; // Single comprehensive analysis from bias-detection-agent
 }
 
 /**
  * Agent names for type safety
  */
-export type AgentName = "fact-checker" | "context-analyzer" | "source-verifier";
+export type AgentName = "bias-detection-agent";
 
 /**
- * Map of agent names to section indices that need revision
+ * Pipeline phases
  */
-export type RevisionMap = {
-  [K in AgentName]?: number[];
-};
+export type PipelinePhase =
+  | "initial_analysis"
+  | "awaiting_qa"
+  | "revisions"
+  | "complete";
+
+/**
+ * Pipeline status returned by get_status tool
+ */
+export interface PipelineStatus {
+  phase: PipelinePhase;
+  totalSections: number;
+  analyzedSections: number;
+  sectionsNeedingFeedback: number[];
+  nextSectionToAnalyze: number | null;
+  nextSectionForFeedback: number | null;
+  progress: string;
+}
+
+/**
+ * Pipeline logging callbacks for progress tracking and observability
+ */
+export interface PipelineCallbacks {
+  onCacheLoad?: () => void;
+  onCacheLoaded?: (sectionCount: number) => void;
+  onFetchStart?: () => void;
+  onFetchComplete?: () => void;
+  onSimilarityComplete?: () => void;
+  onSectionsStart?: () => void;
+  onSectionsComplete?: (sectionCount: number) => void;
+  onCacheSaved?: () => void;
+  onAnalysisStart?: (sectionCount: number) => void;
+  onSectionAnalyzed?: (index: number, total: number) => void;
+  onSectionAnalysisFailed?: (index: number, error: Error) => void;
+  onAnalysisComplete?: () => void;
+  onQAStart?: () => void;
+  onQAComplete?: (needsRevision: boolean, revisionCount: number) => void;
+  onRevisionsStart?: (revisionCount: number) => void;
+  onRevisionMissingData?: (index: number) => void;
+  onSectionRevised?: (index: number) => void;
+  onSectionRevisionFailed?: (index: number, error: Error) => void;
+  onRevisionsComplete?: () => void;
+  onSynthesisStart?: () => void;
+}

@@ -1,119 +1,135 @@
 import { traceable } from "langsmith/traceable";
 import { createTavilySearchTool } from "./tools/create-tavily-search";
 import { createGoogleScholarTool } from "./tools/create-google-scholar";
-import { createCoordinatorTrackerTool } from "./tools/create-coordinator-tracker-tool";
-import { createSubagentTools } from "./subagents";
-import { COORDINATOR_PROMPT } from "./prompts/coordinator";
 import { GrokipediaLoader } from "../loaders/grokipedia";
 import { WikipediaLoader } from "../loaders/wikipedia";
-import { createBiasDetectionCoordinator } from "./create-coordinator";
+import { createBiasDetectionAgent } from "./create-bias-detection-agent";
 import { createCrossReferencedSections } from "./summarizer";
-import { SectionTracker } from "./section-tracker";
 import {
   computeSimilarity,
   summarizeSimilarity,
 } from "../similarity/compute-similarity";
 import { synthesizeBiasReport } from "./create-synthesizer";
+import { ChatOpenAI } from "@langchain/openai";
+import { cacheExists, readCache, writeCache } from "./summarizer-cache";
+import type { PipelineCallbacks, CrossReferencedSection, SectionAnalysis } from "./types";
+import { EventEmitter } from "events";
 
 export interface BiasDetectionOptions {
   grokipediaUrl: string;
   wikipediaUrl: string;
-  maxIterations?: number;
+  callbacks?: PipelineCallbacks;
 }
 
 export const detectBiasInGrokipediaPage = traceable(
   async (
     options: BiasDetectionOptions,
   ): Promise<{ markdown: string; jsonld: string }> => {
-    const { grokipediaUrl, wikipediaUrl, maxIterations = 200 } = options;
+    const { grokipediaUrl, wikipediaUrl, callbacks = {} } = options;
 
-    const grokipediaLoader = new GrokipediaLoader();
-    const wikipediaLoader = new WikipediaLoader();
+    EventEmitter.defaultMaxListeners = 0;
 
-    const grokipediaDocuments = await grokipediaLoader.loadPage(grokipediaUrl);
-    const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
-    if (grokipediaDocuments.length === 0 || wikipediaDocuments.length === 0) {
-      throw new Error("Failed to load one or both articles");
+    let sections: CrossReferencedSection[] | undefined;
+    let similarityReport;
+
+    if (await cacheExists(grokipediaUrl, wikipediaUrl)) {
+      callbacks.onCacheLoad?.();
+      const cached = await readCache(grokipediaUrl, wikipediaUrl);
+
+      if (cached) {
+        sections = cached.sections;
+        similarityReport = cached.similarityReport;
+        callbacks.onCacheLoaded?.(sections.length);
+      }
     }
 
-    console.log("Fetched pages.");
+    if (!sections || !similarityReport) {
+      callbacks.onFetchStart?.();
+      const grokipediaLoader = new GrokipediaLoader();
+      const wikipediaLoader = new WikipediaLoader();
 
-    const similarityReport = await computeSimilarity(
-      grokipediaDocuments[0]!,
-      wikipediaDocuments[0]!,
-    );
+      const grokipediaDocuments =
+        await grokipediaLoader.loadPage(grokipediaUrl);
+      const wikipediaDocuments = await wikipediaLoader.loadPage(wikipediaUrl);
+      if (grokipediaDocuments.length === 0 || wikipediaDocuments.length === 0) {
+        throw new Error("Failed to load one or both articles");
+      }
 
-    console.log("Calculated similarity");
+      callbacks.onFetchComplete?.();
 
-    console.log("Starting agents.");
+      similarityReport = await computeSimilarity(
+        grokipediaDocuments[0]!,
+        wikipediaDocuments[0]!,
+      );
 
-    const sections = await createCrossReferencedSections(
-      grokipediaDocuments[0]!.pageContent,
-      wikipediaDocuments[0]!.pageContent,
-      similarityReport,
-    );
+      callbacks.onSimilarityComplete?.();
 
-    const sectionTracker = new SectionTracker();
-    sectionTracker.initializeSections(sections);
+      callbacks.onSectionsStart?.();
 
-    const coordinatorTrackerTool = createCoordinatorTrackerTool(sectionTracker);
+      sections = await createCrossReferencedSections(
+        grokipediaDocuments[0]!.pageContent,
+        wikipediaDocuments[0]!.pageContent,
+        similarityReport,
+      );
+
+      callbacks.onSectionsComplete?.(sections.length);
+
+      await writeCache(grokipediaUrl, wikipediaUrl, sections, similarityReport);
+      callbacks.onCacheSaved?.();
+    }
 
     const tavilySearch = createTavilySearchTool();
     const googleScholar = createGoogleScholarTool();
 
-    const subagentTools = createSubagentTools({
-      sectionTracker,
+    const biasDetectionAgent = createBiasDetectionAgent({
+      model: new ChatOpenAI({
+        model: "gpt-4o-mini",
+        temperature: 0,
+      }),
       tavilySearch,
       googleScholar,
     });
 
-    const coordinator = createBiasDetectionCoordinator({
-      subagentTools: [
-        subagentTools.callFactChecker,
-        subagentTools.callContextAnalyzer,
-        subagentTools.callSourceVerifier,
-        subagentTools.callQualityAssurance,
-      ] as any,
-      coordinatorPrompt: COORDINATOR_PROMPT,
-      model: "claude-sonnet-4-5-20250929",
-      tools: [coordinatorTrackerTool as any],
+    callbacks.onAnalysisStart?.(sections.length);
+
+    const sectionAnalyses: SectionAnalysis[] = [];
+
+    const analysisPromises = sections.map(async (section, index) => {
+      try {
+        const analysis = await biasDetectionAgent.analyze(index, {
+          sectionIndex: section.sectionIndex,
+          sectionTitle: section.sectionTitle,
+          grokipediaChunk: section.grokipediaChunk,
+          wikipediaChunk: section.wikipediaChunk,
+          grokipediaLinks: section.grokipediaLinks,
+          wikipediaLinks: section.wikipediaLinks,
+          tasks: section.tasks,
+        });
+
+        sectionAnalyses.push({
+          sectionIndex: index,
+          sectionTitle: section.sectionTitle,
+          analysis,
+        });
+
+        callbacks.onSectionAnalyzed?.(index, sections.length);
+      } catch (error) {
+        callbacks.onSectionAnalysisFailed?.(index, error as Error);
+
+        sectionAnalyses.push({
+          sectionIndex: index,
+          sectionTitle: section.sectionTitle,
+          analysis: `# Error\n\nAnalysis failed: ${(error as Error).message}`,
+        });
+      }
     });
 
-    await coordinator.invoke(
-      {
-        messages: [
-          {
-            role: "user",
-            content: `Orchestrate bias detection analysis using the 3-phase workflow.
+    await Promise.allSettled(analysisPromises);
+    callbacks.onAnalysisComplete?.();
 
-**Phase 1: Initial Analysis**
-- For each section, call coordinator_tracker(action="get_next_section_metadata")
-- Delegate to fact-checker, context-analyzer, source-verifier (they fetch content via section_reader)
-- Call coordinator_tracker(action="mark_section_complete")
-- Repeat until all sections analyzed
+    callbacks.onSynthesisStart?.();
 
-**Phase 2: Quality Assurance**
-- Call coordinator_tracker(action="start_qa_phase")
-- Delegate to quality-assurance for batch review
-- Call coordinator_tracker(action="get_revision_map")
-
-**Phase 3: Revisions (if needed)**
-- If revision map has sections, delegate revisions to appropriate agents
-- Agents use section_reader to fetch content + previous analysis + QA feedback
-
-**Important:**
-- You ONLY see metadata (section numbers/titles), never full content
-- Agents fetch content themselves using section_reader
-- Do NOT synthesize final report - that's done by separate synthesizer
-
-Begin with Phase 1.`,
-          },
-        ],
-      },
-      { recursionLimit: maxIterations },
-    );
-
-    const synthesizerOutput = await synthesizeBiasReport(sectionTracker);
+    const synthesizerOutput = await synthesizeBiasReport(sectionAnalyses);
 
     const similaritySummary = summarizeSimilarity(similarityReport);
     const markdownReport = `${synthesizerOutput.markdown}\n\n---\n\n${similaritySummary}`;

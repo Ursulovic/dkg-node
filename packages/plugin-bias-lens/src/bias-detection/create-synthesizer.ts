@@ -1,6 +1,6 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import * as z from "zod";
-import type { SectionTracker } from "./section-tracker";
+import type { SectionAnalysis } from "./types";
 
 /**
  * Zod schema for synthesizer output
@@ -23,34 +23,46 @@ export type SynthesizerOutput = z.infer<typeof SynthesizerOutputSchema>;
 /**
  * System prompt for the synthesizer agent
  */
-const SYNTHESIZER_PROMPT = `You are a Bias Report Synthesizer responsible for creating the final comprehensive bias detection report.
+const SYNTHESIZER_PROMPT = `You are a Bias Report Aggregator responsible for creating the final comprehensive bias detection report.
 
 ## Your Mission
 
-Synthesize ALL section analyses from all agents into a single, cohesive bias report with two outputs:
-1. **Markdown report**: Well-organized, comprehensive, and readable
+**AGGREGATE** ALL section analyses into a single, organized bias report with two outputs:
+1. **Markdown report**: All findings from all sections, organized by category
 2. **JSON-LD structured data**: Machine-readable representation following schema.org standards
+
+## CRITICAL REQUIREMENT: DO NOT SUMMARIZE
+
+**Your output should be approximately as long as all input analyses combined.**
+
+Your job is to **COLLECT and ORGANIZE**, NOT to condense or summarize:
+- Take EVERY finding from EVERY section
+- Organize them by category (Factual Errors, Missing Context, Source Problems)
+- Preserve ALL detail from each section analysis
+- DO NOT deduplicate unless findings are truly identical (same claim, same source)
+- DO NOT remove any findings because they seem minor
+- DO NOT shorten descriptions or evidence
 
 ## Your Input
 
-You will receive all section analyses from the bias detection process. Each section was analyzed by:
-- **fact-checker**: Identified factual errors, hallucinations, false claims
-- **context-analyzer**: Identified missing context, omissions, cherry-picking
-- **source-verifier**: Identified fake citations, misattributed quotes, unreliable sources
+You will receive all section analyses from the bias detection process. Each section was comprehensively analyzed across three dimensions:
+- **Factual Accuracy**: Identified factual errors, hallucinations, false claims
+- **Contextual Balance**: Identified missing context, omissions, cherry-picking
+- **Source Reliability**: Identified fake citations, misattributed quotes, unreliable sources
 
 ## Important Constraints
 
-**You can:**
-- Reorganize sections for better flow and coherence
-- Group related findings across sections
-- Improve presentation and clarity
-- Add section headers and organization
-- Create a cohesive narrative from the analyses
+**You MUST:**
+- Include EVERY finding from EVERY section (no exceptions)
+- Preserve all detail, evidence, and confidence levels exactly as provided
+- Organize findings by type (categorize, don't condense)
+- Maintain the full length of all analyses combined
 
 **You CANNOT:**
+- Summarize or condense any findings
+- Remove findings because sections seem similar
 - Change the substance of any finding
 - Add new findings not present in the analyses
-- Remove or downplay significant findings
 - Alter confidence levels or evidence
 - Modify quotes or claims
 
@@ -173,14 +185,16 @@ Your JSON-LD should follow schema.org standards:
 
 ## Guidelines
 
-1. **Be comprehensive**: Include ALL findings from ALL sections and ALL agents
-2. **Be organized**: Group similar findings for easy reading
-3. **Be faithful**: Don't alter the substance of any analysis
-4. **Be clear**: Use markdown formatting for readability
-5. **Be structured**: Ensure JSON-LD is valid and follows schema.org
-6. **Include sources**: Every finding must have its source URL preserved
+1. **Be comprehensive**: Include EVERY SINGLE finding from EVERY section - no exceptions
+2. **Preserve detail**: Maintain all evidence, explanations, and confidence levels exactly as provided
+3. **Organize, don't condense**: Group findings by category but preserve all detail
+4. **Be faithful**: Don't alter the substance of any analysis
+5. **Be clear**: Use markdown formatting for readability
+6. **Be structured**: Ensure JSON-LD is valid and follows schema.org
+7. **Include sources**: Every finding must have its source URL preserved
+8. **Maintain length**: Your output should be approximately as long as all input analyses combined
 
-Remember: Your job is synthesis and organization, not new analysis. Compile the work of all agents into a single, professional, well-structured report.`;
+Remember: Your job is AGGREGATION and ORGANIZATION, not summarization. Collect ALL findings from ALL sections and organize them by category while preserving complete detail.`;
 
 /**
  * Creates a Gemini model with structured output for synthesis
@@ -189,8 +203,7 @@ Remember: Your job is synthesis and organization, not new analysis. Compile the 
  */
 export function createSynthesizerModel() {
   const model = new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
-    temperature: 0,
+    model: "gemini-3-pro-preview",
   });
 
   // Use withStructuredOutput for Gemini
@@ -202,33 +215,23 @@ export function createSynthesizerModel() {
 /**
  * Run the synthesizer to create the final report
  *
- * @param sectionTracker - The section tracker with all completed analyses
+ * @param sectionAnalyses - Array of section analyses with their metadata
  * @returns Structured output with markdown and JSON-LD
  */
 export async function synthesizeBiasReport(
-  sectionTracker: SectionTracker,
+  sectionAnalyses: SectionAnalysis[],
 ): Promise<SynthesizerOutput> {
   const modelWithStructuredOutput = createSynthesizerModel();
 
-  // Collect all analyses
-  const allAnalyses = sectionTracker.getAllAnalyses();
-  const analyses: string[] = [];
+  // Build analyses from direct input
+  const analyses = sectionAnalyses.map(
+    (section) => `
+## Section ${section.sectionIndex + 1}: ${section.sectionTitle}
 
-  for (const [sectionIndex, agentMap] of allAnalyses.entries()) {
-    const section = sectionTracker.getSectionContent(sectionIndex);
-    analyses.push(`
-## Section ${sectionIndex + 1}: ${section.sectionTitle}
-
-### Fact-Checker Analysis:
-${agentMap.get("fact-checker") || "No analysis available"}
-
-### Context-Analyzer Analysis:
-${agentMap.get("context-analyzer") || "No analysis available"}
-
-### Source-Verifier Analysis:
-${agentMap.get("source-verifier") || "No analysis available"}
-`);
-  }
+### Comprehensive Bias Analysis:
+${section.analysis}
+`,
+  );
 
   const combinedAnalyses = analyses.join("\n\n---\n\n");
 
@@ -239,11 +242,13 @@ ${agentMap.get("source-verifier") || "No analysis available"}
     },
     {
       role: "user",
-      content: `Synthesize these bias analyses into a comprehensive final report.
+      content: `Aggregate ALL bias analyses into a comprehensive final report.
+
+CRITICAL: Include EVERY finding from EVERY section below. DO NOT summarize or condense - organize by category while preserving all detail.
 
 ${combinedAnalyses}
 
-Produce both markdown and JSON-LD outputs.`,
+Produce both markdown and JSON-LD outputs. Your markdown output should be approximately as long as all the section analyses above combined.`,
     },
   ]);
 
