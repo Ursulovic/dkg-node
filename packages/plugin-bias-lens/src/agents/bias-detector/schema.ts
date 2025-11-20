@@ -10,107 +10,18 @@ import { z } from "zod";
  * - System fills: Provenance metadata (paranetId, blockchainAnchor)
  */
 
-const SourceSchema = z
-  .object({
-    name: z
-      .string()
-      .describe("Name of the authoritative source used to verify this claim"),
-    url: z.string().url().describe("URL to the authoritative source"),
-    credibilityTier: z
-      .enum([
-        "peer-reviewed",
-        "systematic-review",
-        "government",
-        "academic-institution",
-        "major-news-outlet",
-        "think-tank",
-        "blog-opinion",
-      ])
-      .describe(
-        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
-      ),
-  })
-  .required();
-
-const FindingSchema = z
-  .object({
-    claim: z
-      .string()
-      .describe("The exact claim from Grokipedia being evaluated"),
-    issue: z
-      .string()
-      .describe(
-        "Explanation of the problem: what is false, misleading, missing, or cherry-picked",
-      ),
-    confidence: z
-      .number()
-      .min(0)
-      .max(1)
-      .describe(
-        "Confidence level (0.0-1.0) based on source quality: 0.85-1.0=peer-reviewed, 0.6-0.85=government/news, 0.3-0.6=blog/opinion, 0.0-0.3=contradicted",
-      ),
-    sources: z
-      .array(SourceSchema)
-      .min(1)
-      .describe(
-        "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
-      ),
-    toolUsed: z
-      .enum(["google_scholar_search", "web_search", "both"])
-      .describe(
-        "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
-      ),
-    section: z
-      .string()
-      .describe(
-        "Section name in the Grokipedia article where this issue appears",
-      ),
-  })
-  .required();
-
-const MediaIssueSchema = z
-  .object({
-    mediaType: z
-      .enum(["image", "video", "audio"])
-      .describe("Type of media content"),
-    description: z
-      .string()
-      .describe("Description of the media element in Grokipedia"),
-    issue: z
-      .string()
-      .describe(
-        "Problem identified: manipulation, misattribution, misleading caption, missing context, or fabrication",
-      ),
-    confidence: z
-      .number()
-      .min(0)
-      .max(1)
-      .describe("Confidence level that this media issue exists (0.0-1.0)"),
-    sources: z
-      .array(SourceSchema)
-      .min(1)
-      .describe(
-        "Sources verifying the media issue (original source, fact-check, forensic analysis)",
-      ),
-    section: z.string().describe("Section name where this media appears"),
-  })
-  .required();
-
 const BiasDetectionReportSchema = z
   .object({
     "@context": z
       .object({
         "@vocab": z
           .string()
-          .default("https://schema.org/")
           .describe("Base vocabulary URL for the ontology"),
         bias: z
           .string()
-          .default("https://grokipedia.com/ontology/bias/")
           .describe("Bias ontology namespace URL"),
         schema: z
           .string()
-          .default("https://schema.org/")
           .describe("Schema.org namespace URL"),
         grokipedia: z.string().optional().describe("Grokipedia base URL"),
         wikipedia: z.string().optional().describe("Wikipedia base URL"),
@@ -138,11 +49,9 @@ const BiasDetectionReportSchema = z
     articleTitle: z.string().describe("Title of the article being analyzed"),
     grokipediaUrl: z
       .string()
-      .url()
       .describe("Full URL to the Grokipedia article"),
     wikipediaUrl: z
       .string()
-      .url()
       .describe("Full URL to the Wikipedia article for comparison"),
     analysisDate: z
       .string()
@@ -178,7 +87,67 @@ const BiasDetectionReportSchema = z
     // Merged: hallucinations + false claims
     // ============================================
     factualErrors: z
-      .array(FindingSchema)
+      .array(
+        z
+          .object({
+            claim: z
+              .string()
+              .describe("The exact claim from Grokipedia being evaluated"),
+            issue: z
+              .string()
+              .describe(
+                "Explanation of the problem: what is false, misleading, missing, or cherry-picked",
+              ),
+            confidence: z
+              .number()
+              .min(0)
+              .max(1)
+              .describe(
+                "Confidence level (0.0-1.0) based on source quality: 0.85-1.0=peer-reviewed, 0.6-0.85=government/news, 0.3-0.6=blog/opinion, 0.0-0.3=contradicted",
+              ),
+            sources: z
+              .array(
+                z
+                  .object({
+                    name: z
+                      .string()
+                      .describe(
+                        "Name of the authoritative source used to verify this claim",
+                      ),
+                    url: z.string().describe("URL to the authoritative source"),
+                    credibilityTier: z
+                      .enum([
+                        "peer-reviewed",
+                        "systematic-review",
+                        "government",
+                        "academic-institution",
+                        "major-news-outlet",
+                        "think-tank",
+                        "blog-opinion",
+                      ])
+                      .describe(
+                        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+                      ),
+                  })
+                  .required(),
+              )
+              .min(1)
+              .describe(
+                "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
+              ),
+            toolUsed: z
+              .enum(["google_scholar_search", "web_search", "both"])
+              .describe(
+                "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
+              ),
+            section: z
+              .string()
+              .describe(
+                "Section name in the Grokipedia article where this issue appears",
+              ),
+          })
+          .required(),
+      )
       .describe(
         "All factual errors: hallucinations (fabricated information) and false claims (inaccurate or misrepresented information). Both require peer-reviewed sources for scientific claims.",
       ),
@@ -188,7 +157,67 @@ const BiasDetectionReportSchema = z
     // Merged: omissions + cherry-picking
     // ============================================
     missingContext: z
-      .array(FindingSchema)
+      .array(
+        z
+          .object({
+            claim: z
+              .string()
+              .describe("The exact claim from Grokipedia being evaluated"),
+            issue: z
+              .string()
+              .describe(
+                "Explanation of the problem: what is false, misleading, missing, or cherry-picked",
+              ),
+            confidence: z
+              .number()
+              .min(0)
+              .max(1)
+              .describe(
+                "Confidence level (0.0-1.0) based on source quality: 0.85-1.0=peer-reviewed, 0.6-0.85=government/news, 0.3-0.6=blog/opinion, 0.0-0.3=contradicted",
+              ),
+            sources: z
+              .array(
+                z
+                  .object({
+                    name: z
+                      .string()
+                      .describe(
+                        "Name of the authoritative source used to verify this claim",
+                      ),
+                    url: z.string().describe("URL to the authoritative source"),
+                    credibilityTier: z
+                      .enum([
+                        "peer-reviewed",
+                        "systematic-review",
+                        "government",
+                        "academic-institution",
+                        "major-news-outlet",
+                        "think-tank",
+                        "blog-opinion",
+                      ])
+                      .describe(
+                        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+                      ),
+                  })
+                  .required(),
+              )
+              .min(1)
+              .describe(
+                "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
+              ),
+            toolUsed: z
+              .enum(["google_scholar_search", "web_search", "both"])
+              .describe(
+                "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
+              ),
+            section: z
+              .string()
+              .describe(
+                "Section name in the Grokipedia article where this issue appears",
+              ),
+          })
+          .required(),
+      )
       .describe(
         "Missing context issues: significant omissions (important information left out) and cherry-picking (selective presentation creating misleading impression).",
       ),
@@ -214,7 +243,31 @@ const BiasDetectionReportSchema = z
               .max(1)
               .describe("Confidence that this source is unreliable (0.0-1.0)"),
             evidenceSources: z
-              .array(SourceSchema)
+              .array(
+                z
+                  .object({
+                    name: z
+                      .string()
+                      .describe(
+                        "Name of the authoritative source used to verify this claim",
+                      ),
+                    url: z.string().describe("URL to the authoritative source"),
+                    credibilityTier: z
+                      .enum([
+                        "peer-reviewed",
+                        "systematic-review",
+                        "government",
+                        "academic-institution",
+                        "major-news-outlet",
+                        "think-tank",
+                        "blog-opinion",
+                      ])
+                      .describe(
+                        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+                      ),
+                  })
+                  .required(),
+              )
               .min(1)
               .describe(
                 "Authoritative sources documenting this source's unreliability",
@@ -232,7 +285,59 @@ const BiasDetectionReportSchema = z
     // NEW: Required by system prompt STEP 7
     // ============================================
     mediaIssues: z
-      .array(MediaIssueSchema)
+      .array(
+        z
+          .object({
+            mediaType: z
+              .enum(["image", "video", "audio"])
+              .describe("Type of media content"),
+            description: z
+              .string()
+              .describe("Description of the media element in Grokipedia"),
+            issue: z
+              .string()
+              .describe(
+                "Problem identified: manipulation, misattribution, misleading caption, missing context, or fabrication",
+              ),
+            confidence: z
+              .number()
+              .min(0)
+              .max(1)
+              .describe("Confidence level that this media issue exists (0.0-1.0)"),
+            sources: z
+              .array(
+                z
+                  .object({
+                    name: z
+                      .string()
+                      .describe(
+                        "Name of the authoritative source used to verify this claim",
+                      ),
+                    url: z.string().describe("URL to the authoritative source"),
+                    credibilityTier: z
+                      .enum([
+                        "peer-reviewed",
+                        "systematic-review",
+                        "government",
+                        "academic-institution",
+                        "major-news-outlet",
+                        "think-tank",
+                        "blog-opinion",
+                      ])
+                      .describe(
+                        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+                      ),
+                  })
+                  .required(),
+              )
+              .min(1)
+              .describe(
+                "Sources verifying the media issue (original source, fact-check, forensic analysis)",
+              ),
+            section: z.string().describe("Section name where this media appears"),
+          })
+          .required(),
+      )
       .describe(
         "Image, video, or audio problems: manipulation, misattribution, misleading context, or fabrication",
       ),
@@ -409,7 +514,7 @@ const BiasDetectionReportSchema = z
           .object({
             grokipedia: z
               .object({
-                url: z.string().url(),
+                url: z.string(),
                 accessedAt: z.string().datetime(),
                 contentHash: z
                   .string()
@@ -425,7 +530,7 @@ const BiasDetectionReportSchema = z
               .describe("Grokipedia source version metadata"),
             wikipedia: z
               .object({
-                url: z.string().url(),
+                url: z.string(),
                 accessedAt: z.string().datetime(),
                 revisionId: z
                   .string()

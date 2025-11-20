@@ -11,7 +11,9 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "npx mocha --import=tsx 'tests/**/*.spec.ts'",
-    "reset-vector-db": "tsx scripts/reset-vector-db.ts"
+    "reset-vector-db": "tsx scripts/reset-vector-db.ts",
+    "fetch-wikidata-cache": "tsx scripts/fetch-wikidata-cache.ts",
+    "update-wikidata-cache": "npm run fetch-wikidata-cache"
   },
   "dependencies": {
     "@dkg/plugin-swagger": "^0.0.2",
@@ -25,6 +27,7 @@
     "@pinecone-database/pinecone": "^5.1.2",
     "cheerio": "^1.1.2",
     "dotenv": "^16.4.5",
+    "fuse.js": "^7.1.0",
     "langchain": "^1.0.4",
     "langsmith": "^0.3.75",
     "turndown": "^7.2.2",

@@ -1,0 +1,2378 @@
+[
+  {
+    "id": "Q169599",
+    "label": "Q169599"
+  },
+  {
+    "id": "Q509016",
+    "label": "Q509016"
+  },
+  {
+    "id": "Q740585",
+    "label": "Dobson unit",
+    "description": "unit of measurement",
+    "symbol": "DU"
+  },
+  {
+    "id": "Q626104",
+    "label": "Q626104"
+  },
+  {
+    "id": "Q808738",
+    "label": "Q808738"
+  },
+  {
+    "id": "Q820769",
+    "label": "Q820769"
+  },
+  {
+    "id": "Q850880",
+    "label": "Q850880"
+  },
+  {
+    "id": "Q889342",
+    "label": "Q889342"
+  },
+  {
+    "id": "Q908369",
+    "label": "Q908369"
+  },
+  {
+    "id": "Q908379",
+    "label": "Q908379"
+  },
+  {
+    "id": "Q953950",
+    "label": "Q953950"
+  },
+  {
+    "id": "Q1026236",
+    "label": "Q1026236"
+  },
+  {
+    "id": "Q1058487",
+    "label": "Q1058487"
+  },
+  {
+    "id": "Q729222",
+    "label": "passenger car equivalent",
+    "description": "metric used in transportation engineering",
+    "symbol": "pbe"
+  },
+  {
+    "id": "Q729222",
+    "label": "passenger car equivalent",
+    "description": "metric used in transportation engineering",
+    "symbol": "pbe"
+  },
+  {
+    "id": "Q369992",
+    "label": "literacy rate",
+    "description": "percentage of a population that is not illiterate"
+  },
+  {
+    "id": "Q193423",
+    "label": "octane rating",
+    "description": "standard measure of an engine or aviation fuel's ability to withstand compression without detonating"
+  },
+  {
+    "id": "Q1051746",
+    "label": "Cavalleria"
+  },
+  {
+    "id": "Q946868",
+    "label": "Tumen",
+    "description": "Mongol Empire military unit"
+  },
+  {
+    "id": "Q36384",
+    "label": "molar equivalent",
+    "description": "unit of measurement",
+    "symbol": "val"
+  },
+  {
+    "id": "Q36384",
+    "label": "molar equivalent",
+    "description": "unit of measurement",
+    "symbol": "Eq"
+  },
+  {
+    "id": "Q36384",
+    "label": "molar equivalent",
+    "description": "unit of measurement",
+    "symbol": "equiv"
+  },
+  {
+    "id": "Q178413",
+    "label": "gallon",
+    "description": "unit of volume with different values",
+    "symbol": "gal"
+  },
+  {
+    "id": "Q25661",
+    "label": "parity",
+    "description": "number of times a female has given birth to a baby"
+  },
+  {
+    "id": "Q676380",
+    "label": "sone",
+    "description": "unit of perceived loudness"
+  },
+  {
+    "id": "Q568761",
+    "label": "enantiomeric excess",
+    "description": "difference between the abundance of enantiomers in a chiral substance"
+  },
+  {
+    "id": "Q188768",
+    "label": "FLOPS",
+    "description": "measure of computer performance",
+    "symbol": "FLOPS"
+  },
+  {
+    "id": "Q949075",
+    "label": "megapixel",
+    "description": "unit of digital image resolution"
+  },
+  {
+    "id": "Q896140",
+    "label": "Q896140",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q71486",
+    "label": "instructions per second",
+    "description": "measure of a computer's processing speed"
+  },
+  {
+    "id": "Q1033699",
+    "label": "Q1033699",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q569389",
+    "label": "words per minute",
+    "description": "measure of words processed in a minute, e.g. speed of typing, reading or Morse code sending and receiving",
+    "symbol": "wpm"
+  },
+  {
+    "id": "Q193933",
+    "label": "dioptre",
+    "description": "unit of optical power",
+    "symbol": "D"
+  },
+  {
+    "id": "Q381335",
+    "label": "aerobic threshold"
+  },
+  {
+    "id": "Q835916",
+    "label": "international unit",
+    "description": "pharmacological measurement unit for the amount of a biologically active substance",
+    "symbol": "IU"
+  },
+  {
+    "id": "Q284100",
+    "label": "centimorgan",
+    "description": "unit for measuring genetic linkage",
+    "symbol": "cM"
+  },
+  {
+    "id": "Q284100",
+    "label": "centimorgan",
+    "description": "unit for measuring genetic linkage",
+    "symbol": "cM"
+  },
+  {
+    "id": "Q337320",
+    "label": "carbohydrate counting",
+    "description": "Meal planning tool in diabetes management"
+  },
+  {
+    "id": "Q273924",
+    "label": "glycemic index",
+    "description": "number associated with a particular type of food that indicates the food's effect on a person's blood glucose level"
+  },
+  {
+    "id": "Q569389",
+    "label": "words per minute",
+    "description": "measure of words processed in a minute, e.g. speed of typing, reading or Morse code sending and receiving",
+    "symbol": "mpm"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "PPP"
+  },
+  {
+    "id": "Q539454",
+    "label": "IOPS",
+    "description": "input/output performance measurement used to characterize computer storage devices"
+  },
+  {
+    "id": "Q781545",
+    "label": "phon",
+    "description": "unit of loudness level for pure tones",
+    "symbol": "phon"
+  },
+  {
+    "id": "Q835916",
+    "label": "international unit",
+    "description": "pharmacological measurement unit for the amount of a biologically active substance",
+    "symbol": "IU"
+  },
+  {
+    "id": "Q844596",
+    "label": "Saybolt universal second"
+  },
+  {
+    "id": "Q193933",
+    "label": "dioptre",
+    "description": "unit of optical power",
+    "symbol": "dpt"
+  },
+  {
+    "id": "Q193933",
+    "label": "dioptre",
+    "description": "unit of optical power",
+    "symbol": "дптр"
+  },
+  {
+    "id": "Q1201",
+    "label": "Saarland",
+    "description": "state of the Federal Republic of Germany"
+  },
+  {
+    "id": "Q726627",
+    "label": "cetane number",
+    "description": "Performance measurement of diesel fuel"
+  },
+  {
+    "id": "Q614132",
+    "label": "number needed to treat",
+    "description": "average number of patients who need to be treated to prevent one additional bad outcome"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "DPI"
+  },
+  {
+    "id": "Q32291",
+    "label": "hydrophilic-lipophilic balance",
+    "description": "measure of the degree to which a surfactant is hydrophilic or lipophilic"
+  },
+  {
+    "id": "Q225888",
+    "label": "erlang",
+    "description": "unit used in telephony as a measure of offered load or carried load",
+    "symbol": "E"
+  },
+  {
+    "id": "Q36977",
+    "label": "Q36977",
+    "description": "natural number"
+  },
+  {
+    "id": "Q954757",
+    "label": "colony-forming unit",
+    "description": "parameter in microbiology",
+    "symbol": "CFU"
+  },
+  {
+    "id": "Q355198",
+    "label": "pixel",
+    "description": "physical point in a raster image",
+    "symbol": "px"
+  },
+  {
+    "id": "Q818500",
+    "label": "Q818500",
+    "symbol": "BÄ"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "ppp"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "p.e.c."
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "pec"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "ppp"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "ppp"
+  },
+  {
+    "id": "Q305896",
+    "label": "dots per inch",
+    "description": "unit of measurement",
+    "symbol": "ppp"
+  },
+  {
+    "id": "Q355198",
+    "label": "pixel",
+    "description": "physical point in a raster image",
+    "symbol": "пкс"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q843877",
+    "label": "solar luminosity",
+    "description": "unit of radiant flux in astronomy",
+    "symbol": "L☉"
+  },
+  {
+    "id": "Q889790",
+    "label": "water retention curve",
+    "description": "relationship between soil water content and water pressure head"
+  },
+  {
+    "id": "Q835916",
+    "label": "international unit",
+    "description": "pharmacological measurement unit for the amount of a biologically active substance",
+    "symbol": "j.m."
+  },
+  {
+    "id": "Q890478",
+    "label": "signature",
+    "description": "starting material for making newspapers"
+  },
+  {
+    "id": "Q808873",
+    "label": "Barrer",
+    "description": "non-SI unit of gas permeability"
+  },
+  {
+    "id": "Q729222",
+    "label": "passenger car equivalent",
+    "description": "metric used in transportation engineering",
+    "symbol": "PCU"
+  },
+  {
+    "id": "Q634888",
+    "label": "vector group",
+    "description": "designation of electrical transformer configuration"
+  },
+  {
+    "id": "Q1053453",
+    "label": "cent",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q885409",
+    "label": "Bloom",
+    "description": "test to measure the strength of a gel or gelatin"
+  },
+  {
+    "id": "Q2111",
+    "label": "speed of light in vacuum",
+    "description": "speed of electromagnetic waves in vacuum",
+    "symbol": "c"
+  },
+  {
+    "id": "Q845833",
+    "label": "olf",
+    "description": "unit used to measure the strength of a pollution source"
+  },
+  {
+    "id": "Q849279",
+    "label": "solar neutrino unit",
+    "description": "unit of solar neutrino flux equal to the neutrino flux producing 10⁻³⁶ captures per target atom per second"
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "S."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "с."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "с."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "p."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "s."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "σελ."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "p."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "lk"
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "p."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "頁"
+  },
+  {
+    "id": "Q206037",
+    "label": "revolutions per minute",
+    "description": "number of rotations around a fixed axis in one minute",
+    "symbol": "r/min"
+  },
+  {
+    "id": "Q206037",
+    "label": "revolutions per minute",
+    "description": "number of rotations around a fixed axis in one minute",
+    "symbol": "rev/min"
+  },
+  {
+    "id": "Q206037",
+    "label": "revolutions per minute",
+    "description": "number of rotations around a fixed axis in one minute",
+    "symbol": "об./мин"
+  },
+  {
+    "id": "Q206037",
+    "label": "revolutions per minute",
+    "description": "number of rotations around a fixed axis in one minute",
+    "symbol": "o/min"
+  },
+  {
+    "id": "Q806091",
+    "label": "California postmile",
+    "description": "measurement"
+  },
+  {
+    "id": "Q674173",
+    "label": "okta",
+    "description": "meteorological unit of measurement describing the amount of cloud cover, ranging from 0 oktas (completely clear sky) through to 8 oktas (completely overcast)"
+  },
+  {
+    "id": "Q776862",
+    "label": "insulin index",
+    "description": "Number assigned to food"
+  },
+  {
+    "id": "L158376-S2",
+    "label": "L158376-S2"
+  },
+  {
+    "id": "Q1147304",
+    "label": "Q1147304"
+  },
+  {
+    "id": "Q1163822",
+    "label": "Q1163822"
+  },
+  {
+    "id": "Q1233925",
+    "label": "Q1233925"
+  },
+  {
+    "id": "Q1455700",
+    "label": "Q1455700"
+  },
+  {
+    "id": "Q1534056",
+    "label": "Q1534056"
+  },
+  {
+    "id": "Q1603247",
+    "label": "Q1603247"
+  },
+  {
+    "id": "Q1637367",
+    "label": "Q1637367"
+  },
+  {
+    "id": "Q1677716",
+    "label": "Q1677716"
+  },
+  {
+    "id": "Q1732674",
+    "label": "Q1732674"
+  },
+  {
+    "id": "Q1783854",
+    "label": "Q1783854"
+  },
+  {
+    "id": "Q1795343",
+    "label": "Q1795343"
+  },
+  {
+    "id": "Q1869654",
+    "label": "Q1869654"
+  },
+  {
+    "id": "Q1897194",
+    "label": "Q1897194"
+  },
+  {
+    "id": "Q1914439",
+    "label": "Q1914439"
+  },
+  {
+    "id": "Q1924211",
+    "label": "Q1924211"
+  },
+  {
+    "id": "Q1925311",
+    "label": "Q1925311"
+  },
+  {
+    "id": "Q1928661",
+    "label": "Q1928661"
+  },
+  {
+    "id": "Q1930004",
+    "label": "Q1930004"
+  },
+  {
+    "id": "Q1942514",
+    "label": "Q1942514"
+  },
+  {
+    "id": "Q1952089",
+    "label": "Q1952089"
+  },
+  {
+    "id": "Q1955823",
+    "label": "Q1955823"
+  },
+  {
+    "id": "Q1961150",
+    "label": "Q1961150"
+  },
+  {
+    "id": "Q2007435",
+    "label": "Q2007435"
+  },
+  {
+    "id": "Q2070072",
+    "label": "Q2070072"
+  },
+  {
+    "id": "Q2083789",
+    "label": "Q2083789"
+  },
+  {
+    "id": "Q2096934",
+    "label": "Q2096934"
+  },
+  {
+    "id": "Q2122743",
+    "label": "Q2122743"
+  },
+  {
+    "id": "Q2146137",
+    "label": "Q2146137"
+  },
+  {
+    "id": "Q2251805",
+    "label": "Q2251805"
+  },
+  {
+    "id": "Q1905557",
+    "label": "Martindale"
+  },
+  {
+    "id": "Q1390401",
+    "label": "micromort",
+    "description": "unit of risk, defined as one-in-a-million chance of death"
+  },
+  {
+    "id": "Q1755092",
+    "label": "melt flow index",
+    "description": "measurement of property of a thermoplastic polymer as a means of quality control"
+  },
+  {
+    "id": "Q2222612",
+    "label": "strength of ships",
+    "description": "Topic in naval architecture ship design"
+  },
+  {
+    "id": "Q1402691",
+    "label": "field capacity",
+    "description": "amount of soil water content held in the soil after excess water has drained away and the rate of downward movement has decreased"
+  },
+  {
+    "id": "Q1771950",
+    "label": "dBc",
+    "description": "Unit used in signals"
+  },
+  {
+    "id": "Q2252280",
+    "label": "sabin",
+    "description": "unit of sound absorption"
+  },
+  {
+    "id": "Q1165725",
+    "label": "darcy",
+    "description": "unit of permeability",
+    "symbol": "d"
+  },
+  {
+    "id": "Q1165725",
+    "label": "darcy",
+    "description": "unit of permeability",
+    "symbol": "D"
+  },
+  {
+    "id": "Q1870730",
+    "label": "Lot (fineness)",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1293885",
+    "label": "fibre year"
+  },
+  {
+    "id": "Q1637469",
+    "label": "Hundred",
+    "description": "English unit of measurement"
+  },
+  {
+    "id": "Q1165639",
+    "label": "daraf",
+    "description": "unit of electric elastance",
+    "symbol": "daraf"
+  },
+  {
+    "id": "Q1606390",
+    "label": "Henry's Law constant"
+  },
+  {
+    "id": "Q1956359",
+    "label": "partial pressure value"
+  },
+  {
+    "id": "Q2114702",
+    "label": "rate equation"
+  },
+  {
+    "id": "Q2178908",
+    "label": "bioconcentration factor"
+  },
+  {
+    "id": "Q2225285",
+    "label": "concrete compression strength"
+  },
+  {
+    "id": "Q1929025",
+    "label": "Watt Peak",
+    "description": "term"
+  },
+  {
+    "id": "Q1520014",
+    "label": "unit of volume of cereal grain",
+    "description": "unit of volume"
+  },
+  {
+    "id": "Q1853154",
+    "label": "Living Planet Index",
+    "description": "indicator of the state of global biological diversity, based on trends in vertebrate populations of species from around the world"
+  },
+  {
+    "id": "Q1110046",
+    "label": "Q1110046",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1131265",
+    "label": "Q1131265",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1131528",
+    "label": "Q1131528",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1139207",
+    "label": "Q1139207",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1149618",
+    "label": "toxic equivalency factor",
+    "description": "factor"
+  },
+  {
+    "id": "Q1140909",
+    "label": "Cronbach's alpha",
+    "description": "statistical measure of reliability"
+  },
+  {
+    "id": "Q1496383",
+    "label": "International System of Electrical and Magnetic Units",
+    "description": "obsolete system of units used for measuring electrical and magnetic quantities, proposed in 1893"
+  },
+  {
+    "id": "Q1899871",
+    "label": "unit of alcohol",
+    "description": "measure of the volume of pure ethanol in an alcoholic beverage"
+  },
+  {
+    "id": "Q1514697",
+    "label": "Q1514697",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1514559",
+    "label": "degree day",
+    "description": "measure of heating or cooling used in agriculture"
+  },
+  {
+    "id": "Q1212976",
+    "label": "Q1212976",
+    "symbol": "pesti mérő"
+  },
+  {
+    "id": "Q1924756",
+    "label": "metabolic equivalent",
+    "description": "physiological measure expressing the energy cost of physical activities"
+  },
+  {
+    "id": "Q1530622",
+    "label": "floating-point operation",
+    "description": "unit of measurement for numerical computer work"
+  },
+  {
+    "id": "Q1931531",
+    "label": "micronaire",
+    "description": "measure of cotton fiber fineness and maturity"
+  },
+  {
+    "id": "Q1166886",
+    "label": "darwin",
+    "description": "unit of evolutionary change",
+    "symbol": "d"
+  },
+  {
+    "id": "Q1945974",
+    "label": "degree of concentration",
+    "description": "level of competition in a sector"
+  },
+  {
+    "id": "Q1965903",
+    "label": "author's sheet",
+    "description": "publication base sheet, printed sheet"
+  },
+  {
+    "id": "Q1977731",
+    "label": "Nephelometric Turbidity Unit",
+    "description": "measure of haziness of liquids"
+  },
+  {
+    "id": "Q1166886",
+    "label": "darwin",
+    "description": "unit of evolutionary change",
+    "symbol": "d"
+  },
+  {
+    "id": "Q2000486",
+    "label": "International Bittering Units scale",
+    "description": "unit used to approximately quantify the bitterness of beer; 1 mg/L of iso-alpha acids"
+  },
+  {
+    "id": "Q1597271",
+    "label": "capacity utilization",
+    "description": "economic term"
+  },
+  {
+    "id": "Q2031181",
+    "label": "Hubble's constant",
+    "description": "constant of proportionality occurring in Hubble's law; approximately 70 (km/s)/Mpc"
+  },
+  {
+    "id": "Q1098949",
+    "label": "clausius",
+    "description": "unit of measure",
+    "symbol": "Cl"
+  },
+  {
+    "id": "Q2054322",
+    "label": "ligand cone angle",
+    "description": "measure of the steric bulk of a ligand in a transition metal complex"
+  },
+  {
+    "id": "Q1146944",
+    "label": "block",
+    "description": "sequence of bytes or bits, having a nominal length (a block size)"
+  },
+  {
+    "id": "Q1091257",
+    "label": "tex",
+    "description": "unit of measurement",
+    "symbol": "tex"
+  },
+  {
+    "id": "Q2085434",
+    "label": "dGH",
+    "description": "unit of water hardness"
+  },
+  {
+    "id": "Q1638137",
+    "label": "full load hour",
+    "description": "Measure of the degree of utilisation"
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "hlmn."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "m/s"
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "str."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "s."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "с."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "পৃ."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "p."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "str."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "է."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "стр."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "p."
+  },
+  {
+    "id": "Q1069725",
+    "label": "page",
+    "description": "unit of extent that consists of a single side of a leaf",
+    "symbol": "p."
+  },
+  {
+    "id": "Q1600314",
+    "label": "mired",
+    "description": "unit of reciprocal color temperature"
+  },
+  {
+    "id": "Q2146903",
+    "label": "revision soul",
+    "description": "one taxable male person, a unit of population count in Russian Empire"
+  },
+  {
+    "id": "Q1386162",
+    "label": "eotvos",
+    "description": "unit for gravitation gradients equal to 10⁻⁹ s⁻²",
+    "symbol": "E"
+  },
+  {
+    "id": "Q1207397",
+    "label": "decipol",
+    "description": "measurement unit"
+  },
+  {
+    "id": "Q1337914",
+    "label": "emission intensity",
+    "description": "emission rate of a given pollutant relative to the intensity of a specific activity, or an industrial production process; e.g. grams of CO₂ released per megajoule of energy produced, or the ratio of greenhouse gas emissions produced to GDP"
+  },
+  {
+    "id": "Q1543700",
+    "label": "full-time equivalent",
+    "description": "unit of workload devoted to a task or project, equivalent to one person working full-time"
+  },
+  {
+    "id": "Q1106825",
+    "label": "cumulative incidence",
+    "description": "measure of total disease cases or deaths since start. Sum or integral of the desease frequency."
+  },
+  {
+    "id": "Q2105114",
+    "label": "portion",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q1434630",
+    "label": "tonne-kilometre",
+    "description": "ways of measuring the transport of goods"
+  },
+  {
+    "id": "Q1414202",
+    "label": "ton of coal equivalent",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q4346600",
+    "label": "passengers per hour per direction",
+    "description": "measure of capacity of a transportation network",
+    "symbol": "p/h/d"
+  },
+  {
+    "id": "Q4346600",
+    "label": "passengers per hour per direction",
+    "description": "measure of capacity of a transportation network",
+    "symbol": "PPHPD"
+  },
+  {
+    "id": "Q5189485",
+    "label": "crown closure",
+    "description": "measure of forest canopy coverage"
+  },
+  {
+    "id": "Q2672316",
+    "label": "drop",
+    "description": "height difference of river"
+  },
+  {
+    "id": "Q2318582",
+    "label": "Q2318582"
+  },
+  {
+    "id": "Q2360645",
+    "label": "Q2360645"
+  },
+  {
+    "id": "Q2384296",
+    "label": "Q2384296"
+  },
+  {
+    "id": "Q2387621",
+    "label": "Q2387621"
+  },
+  {
+    "id": "Q2393274",
+    "label": "Q2393274"
+  },
+  {
+    "id": "Q2396723",
+    "label": "Q2396723"
+  },
+  {
+    "id": "Q2443810",
+    "label": "Q2443810"
+  },
+  {
+    "id": "Q2452967",
+    "label": "Q2452967"
+  },
+  {
+    "id": "Q2454830",
+    "label": "Q2454830"
+  },
+  {
+    "id": "Q2468321",
+    "label": "Q2468321"
+  },
+  {
+    "id": "Q2471321",
+    "label": "Q2471321"
+  },
+  {
+    "id": "Q2478804",
+    "label": "Q2478804"
+  },
+  {
+    "id": "Q2485127",
+    "label": "Q2485127"
+  },
+  {
+    "id": "Q2491032",
+    "label": "Q2491032"
+  },
+  {
+    "id": "Q2512747",
+    "label": "Q2512747"
+  },
+  {
+    "id": "Q2534121",
+    "label": "Q2534121"
+  },
+  {
+    "id": "Q2537264",
+    "label": "Q2537264"
+  },
+  {
+    "id": "Q2586156",
+    "label": "Q2586156"
+  },
+  {
+    "id": "Q2597454",
+    "label": "Q2597454"
+  },
+  {
+    "id": "Q2600748",
+    "label": "Q2600748"
+  },
+  {
+    "id": "Q2691191",
+    "label": "Q2691191"
+  },
+  {
+    "id": "Q2751168",
+    "label": "Q2751168"
+  },
+  {
+    "id": "Q3990757",
+    "label": "thomson",
+    "description": "unit relating to the field of mass spectrometry",
+    "symbol": "Th"
+  },
+  {
+    "id": "Q2966907",
+    "label": "Q2966907"
+  },
+  {
+    "id": "Q3183982",
+    "label": "Q3183982"
+  },
+  {
+    "id": "Q3314392",
+    "label": "Q3314392"
+  },
+  {
+    "id": "Q3342254",
+    "label": "Q3342254"
+  },
+  {
+    "id": "Q3412320",
+    "label": "Q3412320"
+  },
+  {
+    "id": "Q3414788",
+    "label": "Q3414788"
+  },
+  {
+    "id": "Q3510939",
+    "label": "Q3510939"
+  },
+  {
+    "id": "Q3566735",
+    "label": "Q3566735"
+  },
+  {
+    "id": "Q3641453",
+    "label": "Q3641453"
+  },
+  {
+    "id": "Q3973989",
+    "label": "Q3973989"
+  },
+  {
+    "id": "Q4095373",
+    "label": "Q4095373"
+  },
+  {
+    "id": "Q3951942",
+    "label": "Schoenus",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q4687327",
+    "label": "Q4687327"
+  },
+  {
+    "id": "Q2256000",
+    "label": "API unit",
+    "description": "unit of radioactivity used for measuring natural gamma rays in the ground"
+  },
+  {
+    "id": "Q4098585",
+    "label": "buckingham",
+    "description": "unit of measurement for electric quadrupole moment; approximately 3.3×10⁻⁴⁰ C·m²",
+    "symbol": "B"
+  },
+  {
+    "id": "Q2270252",
+    "label": "octave band",
+    "description": "Base 2 logarithmically-spaced frequency bands"
+  },
+  {
+    "id": "Q2849633",
+    "label": "craniofacial angle",
+    "description": "facial prognathism measure formed by drawing two lines, one horizontally from the nostril to the ear and the other perpendicularly from the advancing part of the upper jawbone to the most prominent part of the forehead"
+  },
+  {
+    "id": "Q2852035",
+    "label": "years of potential life lost",
+    "description": "estimate of the average years a person would have lived if they had not died prematurely"
+  },
+  {
+    "id": "Q2277190",
+    "label": "Wolf number",
+    "description": "measure of sunspots"
+  },
+  {
+    "id": "Q4588088",
+    "label": "Hartkorn"
+  },
+  {
+    "id": "Q2300171",
+    "label": "qutrit",
+    "description": "unit of quantum information that exists as a superposition of three orthogonal quantum states; analogous to the classical trit, just as the qubit, a quantum particle of two possible states, is analogous to the classical bit"
+  },
+  {
+    "id": "Q3095011",
+    "label": "gamma",
+    "description": "unit of magnetic flux density"
+  },
+  {
+    "id": "Q2408649",
+    "label": "JTU",
+    "description": "Unit of measurement"
+  },
+  {
+    "id": "Q4672899",
+    "label": "accumulated thermal unit",
+    "description": "measurement unit describing the cumulative effect of temperature over time"
+  },
+  {
+    "id": "Q2266148",
+    "label": "surface resistance"
+  },
+  {
+    "id": "Q2325476",
+    "label": "Kosten unit",
+    "description": "Dutch measure for aircraft noise"
+  },
+  {
+    "id": "Q2308409",
+    "label": "speech interference level"
+  },
+  {
+    "id": "Q2445779",
+    "label": "bedding modulus"
+  },
+  {
+    "id": "Q2448902",
+    "label": "hemoglobin value"
+  },
+  {
+    "id": "Q2487631",
+    "label": "yarn number"
+  },
+  {
+    "id": "Q2560447",
+    "label": "speaker coverage angle"
+  },
+  {
+    "id": "Q3021270",
+    "label": "degree centigrade"
+  },
+  {
+    "id": "Q2916348",
+    "label": "x-height",
+    "description": "distance between the baseline and the mean line of lower-case letters in a typeface"
+  },
+  {
+    "id": "Q3393320",
+    "label": "point",
+    "description": "unit of measure in a sports competition and games",
+    "symbol": "pt"
+  },
+  {
+    "id": "Q3073386",
+    "label": "Flashes Per Minute"
+  },
+  {
+    "id": "Q3347700",
+    "label": "screen line"
+  },
+  {
+    "id": "Q3475441",
+    "label": "Schmerber"
+  },
+  {
+    "id": "Q4742312",
+    "label": "alcohol proof",
+    "description": "measure of alcohol content"
+  },
+  {
+    "id": "Q3879428",
+    "label": "steric number"
+  },
+  {
+    "id": "Q3926325",
+    "label": "Yule's Q"
+  },
+  {
+    "id": "Q4025831",
+    "label": "intracerebral pathogenicity index"
+  },
+  {
+    "id": "Q2948600",
+    "label": "high-power field",
+    "description": "area visible through the objective of a microscope"
+  },
+  {
+    "id": "Q5176811",
+    "label": "count per litre"
+  },
+  {
+    "id": "Q2399647",
+    "label": "dBZ",
+    "description": "unit of measure used in weather radar"
+  },
+  {
+    "id": "Q3033936",
+    "label": "dollar",
+    "description": "unit of reactivity for a nuclear reactor"
+  },
+  {
+    "id": "Q2989817",
+    "label": "Lines per inch",
+    "description": "measurement of printing resolution"
+  },
+  {
+    "id": "Q4911997",
+    "label": "billion cubic metres of natural gas",
+    "description": "measure of natural gas"
+  },
+  {
+    "id": "Q3021257",
+    "label": "Cartier degree",
+    "description": "specific gravity unit"
+  },
+  {
+    "id": "Q4917977",
+    "label": "Zakat al-Fitr",
+    "description": "charity given to the poor at the end of the fasting in the Islamic holy month of Ramadan"
+  },
+  {
+    "id": "Q4936395",
+    "label": "Bodansky unit",
+    "description": "obsolete measure of alkaline phosphatase concentration in blood"
+  },
+  {
+    "id": "Q3393320",
+    "label": "point",
+    "description": "unit of measure in a sports competition and games",
+    "symbol": "pt"
+  },
+  {
+    "id": "Q3393320",
+    "label": "point",
+    "description": "unit of measure in a sports competition and games",
+    "symbol": "pt"
+  },
+  {
+    "id": "Q2496637",
+    "label": "Q2496637",
+    "symbol": "M"
+  },
+  {
+    "id": "Q3561856",
+    "label": "homer",
+    "description": "biblical unit of volume (Ezek. 45:11–14)"
+  },
+  {
+    "id": "Q3357444",
+    "label": "mantal",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q3927858",
+    "label": "Quinaria",
+    "description": "Roman unit of area"
+  },
+  {
+    "id": "Q5058378",
+    "label": "Cellulase Unit",
+    "description": "unit of measurement for enzyme cellulase"
+  },
+  {
+    "id": "Q4352352",
+    "label": "step",
+    "description": "functional unit in music: interval between consecutive notes of a scale"
+  },
+  {
+    "id": "Q2308407",
+    "label": "Q2308407",
+    "symbol": "TME"
+  },
+  {
+    "id": "Q3247759",
+    "label": "normal",
+    "description": "obsolete unit representing equivalents per volume",
+    "symbol": "N"
+  },
+  {
+    "id": "Q4063874",
+    "label": "amagat",
+    "description": "unit of number density",
+    "symbol": "amg"
+  },
+  {
+    "id": "Q5168807",
+    "label": "copper units of pressure",
+    "description": "measurement in internal ballistics"
+  },
+  {
+    "id": "Q4962736",
+    "label": "Brewster",
+    "description": "unit of measure named after David Brewster"
+  },
+  {
+    "id": "Q5211896",
+    "label": "damage per second",
+    "description": "standard way to calculate the damage dealt to other players or creatures in video games, especially online multiplayer games"
+  },
+  {
+    "id": "Q4430129",
+    "label": "sokha",
+    "description": "Russian unit of land measure (13th–17th centuries)"
+  },
+  {
+    "id": "Q3361425",
+    "label": "R-value",
+    "description": "measure of how well an object, per unit of area, resists conductive flow of heat"
+  },
+  {
+    "id": "Q5280760",
+    "label": "Dirichlet's energy",
+    "description": "half of the integral of the squared gradient of a function on its domain"
+  },
+  {
+    "id": "Q2285395",
+    "label": "decibel watt",
+    "description": "measurement of signal strength and intensity",
+    "symbol": "dBW"
+  },
+  {
+    "id": "Q5299480",
+    "label": "dots per centimetre",
+    "symbol": "DPCm"
+  },
+  {
+    "id": "Q2799819",
+    "label": "Q2799819",
+    "description": "measure of heat"
+  },
+  {
+    "id": "Q2652700",
+    "label": "osmole",
+    "description": "unit of amount of osmotically active particles",
+    "symbol": "Osm"
+  },
+  {
+    "id": "Q2771020",
+    "label": "lacunarity",
+    "description": "term in geometry and fractal analysis"
+  },
+  {
+    "id": "Q2634309",
+    "label": "productivity",
+    "description": "degree to which native speakers use a particular grammatical process"
+  },
+  {
+    "id": "Q5503695",
+    "label": "Friedman Unit",
+    "description": "period of time to an event that never arrives"
+  },
+  {
+    "id": "Q5519131",
+    "label": "gallon per watt-hour",
+    "description": "unit used to measure the efficiency of a pump"
+  },
+  {
+    "id": "Q5459376",
+    "label": "Flik",
+    "description": "unit of measure"
+  },
+  {
+    "id": "Q5485172",
+    "label": "Q5485172"
+  },
+  {
+    "id": "Q5749155",
+    "label": "Q5749155"
+  },
+  {
+    "id": "Q5807341",
+    "label": "Q5807341"
+  },
+  {
+    "id": "Q6509656",
+    "label": "Q6509656"
+  },
+  {
+    "id": "Q6578291",
+    "label": "Q6578291"
+  },
+  {
+    "id": "Q6579586",
+    "label": "equivalent weight",
+    "description": "in chemistry"
+  },
+  {
+    "id": "Q9249801",
+    "label": "Q9249801"
+  },
+  {
+    "id": "Q9265821",
+    "label": "Q9265821"
+  },
+  {
+    "id": "Q9266124",
+    "label": "Q9266124"
+  },
+  {
+    "id": "Q9294566",
+    "label": "Q9294566"
+  },
+  {
+    "id": "Q9334293",
+    "label": "Q9334293"
+  },
+  {
+    "id": "Q9335076",
+    "label": "Q9335076"
+  },
+  {
+    "id": "Q9337955",
+    "label": "Q9337955"
+  },
+  {
+    "id": "Q9346025",
+    "label": "Q9346025"
+  },
+  {
+    "id": "Q9347622",
+    "label": "Q9347622"
+  },
+  {
+    "id": "Q9351166",
+    "label": "Q9351166"
+  },
+  {
+    "id": "Q9352348",
+    "label": "Q9352348"
+  },
+  {
+    "id": "Q9371569",
+    "label": "Q9371569"
+  },
+  {
+    "id": "Q9389532",
+    "label": "Q9389532"
+  },
+  {
+    "id": "Q9390174",
+    "label": "Q9390174"
+  },
+  {
+    "id": "Q9393764",
+    "label": "Q9393764"
+  },
+  {
+    "id": "Q9395358",
+    "label": "Q9395358"
+  },
+  {
+    "id": "Q9395778",
+    "label": "Q9395778"
+  },
+  {
+    "id": "Q9397012",
+    "label": "Q9397012"
+  },
+  {
+    "id": "Q10438179",
+    "label": "Q10438179"
+  },
+  {
+    "id": "Q10442409",
+    "label": "Q10442409"
+  },
+  {
+    "id": "Q10467551",
+    "label": "Q10467551"
+  },
+  {
+    "id": "Q10484105",
+    "label": "Q10484105"
+  },
+  {
+    "id": "Q10489208",
+    "label": "Q10489208"
+  },
+  {
+    "id": "Q10504940",
+    "label": "Q10504940"
+  },
+  {
+    "id": "Q10543436",
+    "label": "Q10543436"
+  },
+  {
+    "id": "Q10549773",
+    "label": "Q10549773"
+  },
+  {
+    "id": "Q10551039",
+    "label": "Q10551039"
+  },
+  {
+    "id": "Q10555386",
+    "label": "Q10555386"
+  },
+  {
+    "id": "Q10587388",
+    "label": "Q10587388"
+  },
+  {
+    "id": "Q10639863",
+    "label": "Q10639863"
+  },
+  {
+    "id": "Q10646786",
+    "label": "Q10646786"
+  },
+  {
+    "id": "Q10670083",
+    "label": "Q10670083"
+  },
+  {
+    "id": "Q10670370",
+    "label": "Q10670370"
+  },
+  {
+    "id": "Q10674337",
+    "label": "Q10674337"
+  },
+  {
+    "id": "Q10714196",
+    "label": "Q10714196"
+  },
+  {
+    "id": "Q10715338",
+    "label": "Q10715338"
+  },
+  {
+    "id": "Q10726718",
+    "label": "Q10726718"
+  },
+  {
+    "id": "Q10727151",
+    "label": "Q10727151"
+  },
+  {
+    "id": "Q10727726",
+    "label": "Q10727726"
+  },
+  {
+    "id": "Q5558595",
+    "label": "gigaflops",
+    "symbol": "GFLOPS"
+  },
+  {
+    "id": "Q5558595",
+    "label": "gigaflops",
+    "symbol": "GFLOPS"
+  },
+  {
+    "id": "Q5558595",
+    "label": "gigaflops",
+    "symbol": "GFLOPS"
+  },
+  {
+    "id": "Q7510935",
+    "label": "Siemens mercury unit",
+    "description": "obsolete unit of electrical resistance"
+  },
+  {
+    "id": "Q7169176",
+    "label": "perm",
+    "description": "unit of permeance"
+  },
+  {
+    "id": "Q5459058",
+    "label": "Flick",
+    "description": "unit of spectral radiance"
+  },
+  {
+    "id": "Q5610527",
+    "label": "gross ton mile",
+    "description": "unit of measurement in rail transport"
+  },
+  {
+    "id": "Q7828091",
+    "label": "total acid number",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q6671143",
+    "label": "quarter",
+    "description": "various traditional units defined as one-fourth of some other unit"
+  },
+  {
+    "id": "Q7136979",
+    "label": "Pari",
+    "description": "obsolete unit of measure"
+  },
+  {
+    "id": "Q7645974",
+    "label": "surface feet per minute",
+    "description": "unit of measurement of cutting speed (surface speed) in machining; the number of linear feet that a location on a rotating component travels in one minute"
+  },
+  {
+    "id": "Q5733010",
+    "label": "bit per pixel",
+    "description": "unit of color depth"
+  },
+  {
+    "id": "Q10478549",
+    "label": "Däcker",
+    "description": "old Swedish counting unit"
+  },
+  {
+    "id": "Q7624780",
+    "label": "strontium unit",
+    "description": "unit used to measure the amount of radioactivity from strontium-90 in a subject's skeleton per unit mass of calcium; = 37 Bq/kg = 1 picocurie/gram"
+  },
+  {
+    "id": "Q10404793",
+    "label": "Q10404793",
+    "description": "Area unit in China"
+  },
+  {
+    "id": "Q6296855",
+    "label": "Jow",
+    "description": "obsolete unit of length in India"
+  },
+  {
+    "id": "Q6508883",
+    "label": "leaf wetness"
+  },
+  {
+    "id": "Q6799778",
+    "label": "mbsf",
+    "description": "type of measurement"
+  },
+  {
+    "id": "Q7705818",
+    "label": "test weight",
+    "description": "average weight of a cereal in pounds per bushel"
+  },
+  {
+    "id": "Q7142596",
+    "label": "passenger miles per gallon"
+  },
+  {
+    "id": "Q7164593",
+    "label": "penrig"
+  },
+  {
+    "id": "Q7245301",
+    "label": "printer point"
+  },
+  {
+    "id": "Q7415435",
+    "label": "Sana lamjel"
+  },
+  {
+    "id": "Q7783044",
+    "label": "thermal dose unit"
+  },
+  {
+    "id": "Q7548564",
+    "label": "Snowden",
+    "description": "unit of soft X-ray emissivity"
+  },
+  {
+    "id": "Q8182107",
+    "label": "Adamcova míra"
+  },
+  {
+    "id": "Q7398951",
+    "label": "pixels per inch",
+    "description": "number of dots per area of an image",
+    "symbol": "PPI"
+  },
+  {
+    "id": "Q5477816",
+    "label": "car equivalent unit",
+    "description": "space required by one passenger car on a ship or other means of transportation",
+    "symbol": "CEU"
+  },
+  {
+    "id": "Q7435308",
+    "label": "score",
+    "description": "in sport, quantitative measure of the relative performance of opponents in a sporting discipline",
+    "symbol": "pts"
+  },
+  {
+    "id": "Q6858040",
+    "label": "milk equivalent",
+    "description": "measure of milk used in a product"
+  },
+  {
+    "id": "Q11059416",
+    "label": "Q11059416",
+    "description": "Unit of measure in the Republic of China"
+  },
+  {
+    "id": "Q7830165",
+    "label": "townsend",
+    "description": "physical unit of reduced electric field"
+  },
+  {
+    "id": "Q6881631",
+    "label": "Mithkal",
+    "description": "an Arabic unit of weight primarily used in the Middle East"
+  },
+  {
+    "id": "Q10859821",
+    "label": "Bag",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q10823623",
+    "label": "TEX",
+    "description": "Measure of roughness (textile industry)"
+  },
+  {
+    "id": "Q7857400",
+    "label": "Twaddell scale",
+    "description": "hydrometer scale"
+  },
+  {
+    "id": "Q7858484",
+    "label": "twists per inch",
+    "description": "measure of twist in yarn"
+  },
+  {
+    "id": "Q7813025",
+    "label": "tog",
+    "description": "measure of thermal insulance"
+  },
+  {
+    "id": "Q7251490",
+    "label": "protein nitrogen unit",
+    "description": "measurement unit"
+  },
+  {
+    "id": "Q7907501",
+    "label": "vRPM",
+    "description": "term for a synthetic measurement of performance"
+  },
+  {
+    "id": "Q10689334",
+    "label": "Total Competitiveness Weights",
+    "description": "Unit of measurement"
+  },
+  {
+    "id": "Q5510152",
+    "label": "Penalty in Minutes",
+    "description": "ice hockey"
+  },
+  {
+    "id": "Q7982038",
+    "label": "Welsh units",
+    "description": "historical units of measurement used in Wales"
+  },
+  {
+    "id": "Q7069572",
+    "label": "number needed to vaccinate",
+    "description": "epidemiologic metric"
+  },
+  {
+    "id": "Q9200366",
+    "label": "dBd",
+    "description": "logarithmic unit of measurement"
+  },
+  {
+    "id": "Q7142617",
+    "label": "Passeree",
+    "description": "East Indian measure of weight"
+  },
+  {
+    "id": "Q7201692",
+    "label": "plaque-forming unit",
+    "description": "measure of the number of particles capable of forming plaques per unit volume"
+  },
+  {
+    "id": "Q5309557",
+    "label": "Dry Sheep Equivalent",
+    "description": "measure of animal feed used in Australia; 7.60 megajoules per day"
+  },
+  {
+    "id": "Q5321406",
+    "label": "E-Government Unit",
+    "description": "part of the UK cabinet office"
+  },
+  {
+    "id": "Q5593542",
+    "label": "grain per gallon",
+    "description": "water hardness measurement",
+    "symbol": "gpg"
+  },
+  {
+    "id": "Q7312194",
+    "label": "Removal Units",
+    "description": "tradable allowance to emit greenhouse gases"
+  },
+  {
+    "id": "Q5420789",
+    "label": "expansion ratio",
+    "description": "measure of how much a fluid expands in size or volume after an expansion process"
+  },
+  {
+    "id": "Q15843029",
+    "label": "Rose",
+    "description": "old German unit of measurement for fish"
+  },
+  {
+    "id": "Q11187940",
+    "label": "Q11187940"
+  },
+  {
+    "id": "Q11489433",
+    "label": "Q11489433"
+  },
+  {
+    "id": "Q11547511",
+    "label": "Q11547511"
+  },
+  {
+    "id": "Q11739006",
+    "label": "Q11739006"
+  },
+  {
+    "id": "Q11742315",
+    "label": "Q11742315"
+  },
+  {
+    "id": "Q11748510",
+    "label": "Q11748510"
+  },
+  {
+    "id": "Q11755226",
+    "label": "Q11755226"
+  },
+  {
+    "id": "Q11755596",
+    "label": "Q11755596"
+  },
+  {
+    "id": "Q11755623",
+    "label": "Q11755623"
+  },
+  {
+    "id": "Q11762381",
+    "label": "Q11762381"
+  },
+  {
+    "id": "Q11765195",
+    "label": "Q11765195"
+  },
+  {
+    "id": "Q11781134",
+    "label": "Q11781134"
+  },
+  {
+    "id": "Q11781135",
+    "label": "Q11781135"
+  },
+  {
+    "id": "Q11781133",
+    "label": "Q11781133"
+  },
+  {
+    "id": "Q11781137",
+    "label": "Q11781137"
+  },
+  {
+    "id": "Q11782086",
+    "label": "Q11782086"
+  },
+  {
+    "id": "Q11788491",
+    "label": "Q11788491"
+  },
+  {
+    "id": "Q11792662",
+    "label": "Q11792662"
+  },
+  {
+    "id": "Q11802097",
+    "label": "Q11802097"
+  },
+  {
+    "id": "Q11820064",
+    "label": "Q11820064"
+  },
+  {
+    "id": "Q11825126",
+    "label": "Q11825126"
+  },
+  {
+    "id": "Q11870182",
+    "label": "Q11870182"
+  },
+  {
+    "id": "Q11885757",
+    "label": "Q11885757"
+  },
+  {
+    "id": "Q11899371",
+    "label": "Q11899371"
+  },
+  {
+    "id": "Q11907642",
+    "label": "Q11907642"
+  },
+  {
+    "id": "Q11910495",
+    "label": "Q11910495"
+  },
+  {
+    "id": "Q11929910",
+    "label": "Q11929910"
+  },
+  {
+    "id": "Q11959325",
+    "label": "Q11959325"
+  },
+  {
+    "id": "Q12006386",
+    "label": "Q12006386"
+  },
+  {
+    "id": "Q12081844",
+    "label": "Q12081844"
+  },
+  {
+    "id": "Q12280449",
+    "label": "Q12280449"
+  },
+  {
+    "id": "Q12324999",
+    "label": "Q12324999"
+  },
+  {
+    "id": "Q12336644",
+    "label": "Q12336644"
+  },
+  {
+    "id": "Q13028645",
+    "label": "Q13028645"
+  },
+  {
+    "id": "Q13033432",
+    "label": "Q13033432"
+  },
+  {
+    "id": "Q13490047",
+    "label": "Q13490047"
+  },
+  {
+    "id": "Q13647855",
+    "label": "Q13647855"
+  },
+  {
+    "id": "Q13748876",
+    "label": "Q13748876"
+  },
+  {
+    "id": "Q14253077",
+    "label": "Q14253077"
+  },
+  {
+    "id": "Q15639147",
+    "label": "Q15639147"
+  },
+  {
+    "id": "Q15648318",
+    "label": "Q15648318"
+  },
+  {
+    "id": "Q15803888",
+    "label": "Q15803888"
+  },
+  {
+    "id": "Q15841351",
+    "label": "Q15841351"
+  },
+  {
+    "id": "Q15849261",
+    "label": "Q15849261"
+  },
+  {
+    "id": "Q15849450",
+    "label": "Q15849450"
+  },
+  {
+    "id": "Q15852997",
+    "label": "Q15852997"
+  },
+  {
+    "id": "Q15879476",
+    "label": "Q15879476"
+  },
+  {
+    "id": "Q16594636",
+    "label": "Q16594636"
+  },
+  {
+    "id": "Q16675092",
+    "label": "Q16675092"
+  },
+  {
+    "id": "Q16680312",
+    "label": "Q16680312"
+  },
+  {
+    "id": "Q16690624",
+    "label": "Q16690624"
+  },
+  {
+    "id": "Q17045129",
+    "label": "Q17045129"
+  },
+  {
+    "id": "Q12049995",
+    "label": "resolution",
+    "description": "capability of a machine to create image with a certain resolution"
+  },
+  {
+    "id": "Q17300653",
+    "label": "Q17300653"
+  },
+  {
+    "id": "Q17990920",
+    "label": "Q17990920"
+  },
+  {
+    "id": "Q18292546",
+    "label": "Q18292546"
+  },
+  {
+    "id": "Q18432266",
+    "label": "Q18432266"
+  },
+  {
+    "id": "Q18450108",
+    "label": "Q18450108"
+  },
+  {
+    "id": "Q18450245",
+    "label": "Q18450245"
+  },
+  {
+    "id": "Q19716445",
+    "label": "Q19716445"
+  },
+  {
+    "id": "Q19967390",
+    "label": "Q19967390"
+  },
+  {
+    "id": "Q19978727",
+    "label": "Q19978727"
+  },
+  {
+    "id": "Q19978945",
+    "label": "Q19978945"
+  },
+  {
+    "id": "Q20109080",
+    "label": "Q20109080"
+  },
+  {
+    "id": "Q11138882",
+    "label": "fjerding"
+  },
+  {
+    "id": "Q19895695",
+    "label": "lambda",
+    "description": "unit of volume equal to 1 cubic millimetre"
+  },
+  {
+    "id": "Q13100559",
+    "label": "Bés",
+    "description": "Lombard numeral"
+  },
+  {
+    "id": "Q11976024",
+    "label": "Hubble length"
+  },
+  {
+    "id": "Q12248389",
+    "label": "Nasamah"
+  },
+  {
+    "id": "Q14741167",
+    "label": "kg coal equivalent",
+    "symbol": "SKE"
+  },
+  {
+    "id": "Q11339872",
+    "label": "mouse unit",
+    "description": "measure of poison",
+    "symbol": "MU"
+  },
+  {
+    "id": "Q12533281",
+    "label": "ball",
+    "description": "unit of measurement on various scales"
+  },
+  {
+    "id": "Q12819297",
+    "label": "Ball",
+    "description": "Uzbek unit of measure"
+  },
+  {
+    "id": "Q18344097",
+    "label": "metre water equivalent",
+    "description": "unit of nuclear and particle physics",
+    "symbol": "m.w.e."
+  },
+  {
+    "id": "Q18344097",
+    "label": "metre water equivalent",
+    "description": "unit of nuclear and particle physics",
+    "symbol": "mwe"
+  },
+  {
+    "id": "Q19765979",
+    "label": "augmentation index",
+    "description": "unit of measurement, pulse pressure"
+  },
+  {
+    "id": "Q12742125",
+    "label": "Q12742125",
+    "description": "unit for measuring distance",
+    "symbol": "Tm"
+  },
+  {
+    "id": "Q15055473",
+    "label": "Q15055473",
+    "description": "old quantity unit for paper"
+  },
+  {
+    "id": "Q19915205",
+    "label": "visus",
+    "description": "unit of visual acuity"
+  },
+  {
+    "id": "Q12332718",
+    "label": "Radarmile",
+    "description": "Time/length unit and indicates the time required for a radar pulse"
+  },
+  {
+    "id": "Q11090848",
+    "label": "Q11090848",
+    "description": "Traditional Chinese unit of time used at night, similar to watch"
+  },
+  {
+    "id": "Q14524610",
+    "label": "Heating degree day",
+    "description": "sum of temperature values"
+  },
+  {
+    "id": "Q11374690",
+    "label": "Q11374690",
+    "description": "Gold weighing unit"
+  },
+  {
+    "id": "Q12407251",
+    "label": "line pairs per millimetre",
+    "symbol": "LP/mm"
+  },
+  {
+    "id": "Q12407251",
+    "label": "line pairs per millimetre",
+    "symbol": "זקלמ\"מ"
+  },
+  {
+    "id": "Q17082773",
+    "label": "mem",
+    "description": "memory access, in computing"
+  },
+  {
+    "id": "Q11481291",
+    "label": "Q11481291",
+    "description": "Unit of length used in antiquity in China and Japan"
+  },
+  {
+    "id": "Q13583781",
+    "label": "A-weighting",
+    "description": "curves used to weigh sound pressure level"
+  },
+  {
+    "id": "Q12564523",
+    "label": "Tanap",
+    "description": "unit of measurement"
+  },
+  {
+    "id": "Q11811744",
+    "label": "Q11811744",
+    "description": "Unit of measurement in topography"
+  },
+  {
+    "id": "Q13860234",
+    "label": "modulus",
+    "description": "material science term"
+  },
+  {
+    "id": "Q18379097",
+    "label": "solar flux unit",
+    "description": "unit of incident solar energy falling on a surface",
+    "symbol": "sfu"
+  },
+  {
+    "id": "Q17122863",
+    "label": "Q17122863",
+    "description": "unit"
+  },
+  {
+    "id": "Q12718600",
+    "label": "Stabel",
+    "description": "Unit of measurement"
+  },
+  {
+    "id": "Q12728794",
+    "label": "Gammil",
+    "description": "Unit of measurement"
+  },
+  {
+    "id": "Q12374970",
+    "label": "Q12374970",
+    "description": "Unit of measurement from parasitology"
+  },
+  {
+    "id": "Q12863387",
+    "label": "Q12863387",
+    "description": "unit of length"
+  },
+  {
+    "id": "Q14397063",
+    "label": "Prony",
+    "description": "musical unit"
+  },
+  {
+    "id": "Q18408196",
+    "label": "zobnitsa",
+    "description": "old Russian unit of measure"
+  }
+]

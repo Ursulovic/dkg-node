@@ -1,0 +1,1852 @@
+[
+  {
+    "id": "Q750",
+    "label": "Bolivia",
+    "isoCode": "BO",
+    "population": 12244159,
+    "capital": "Q1491",
+    "capitalLabel": "La Paz"
+  },
+  {
+    "id": "Q750",
+    "label": "Bolivia",
+    "isoCode": "BO",
+    "population": 12244159,
+    "capital": "Q2907",
+    "capitalLabel": "Sucre"
+  },
+  {
+    "id": "Q754",
+    "label": "Trinidad and Tobago",
+    "isoCode": "TT",
+    "population": 1369125,
+    "capital": "Q39178",
+    "capitalLabel": "Port of Spain"
+  },
+  {
+    "id": "Q757",
+    "label": "Saint Vincent and the Grenadines",
+    "isoCode": "VC",
+    "population": 109897,
+    "capital": "Q41474",
+    "capitalLabel": "Kingstown"
+  },
+  {
+    "id": "Q760",
+    "label": "Saint Lucia",
+    "isoCode": "LC",
+    "population": 167591,
+    "capital": "Q41699",
+    "capitalLabel": "Castries"
+  },
+  {
+    "id": "Q763",
+    "label": "Saint Kitts and Nevis",
+    "isoCode": "KN",
+    "population": 46922,
+    "capital": "Q41295",
+    "capitalLabel": "Basseterre"
+  },
+  {
+    "id": "Q766",
+    "label": "Jamaica",
+    "isoCode": "JM",
+    "population": 2697983,
+    "capital": "Q34692",
+    "capitalLabel": "Kingston"
+  },
+  {
+    "id": "Q769",
+    "label": "Grenada",
+    "isoCode": "GD",
+    "population": 114299,
+    "capital": "Q41547",
+    "capitalLabel": "St. George's"
+  },
+  {
+    "id": "Q774",
+    "label": "Guatemala",
+    "isoCode": "GT",
+    "population": 17263239,
+    "capital": "Q1555",
+    "capitalLabel": "Guatemala City"
+  },
+  {
+    "id": "Q778",
+    "label": "The Bahamas",
+    "isoCode": "BS",
+    "population": 399440,
+    "capital": "Q2467",
+    "capitalLabel": "Nassau"
+  },
+  {
+    "id": "Q781",
+    "label": "Antigua and Barbuda",
+    "isoCode": "AG",
+    "population": 101489,
+    "capital": "Q36262",
+    "capitalLabel": "St. John's"
+  },
+  {
+    "id": "Q783",
+    "label": "Honduras",
+    "isoCode": "HN",
+    "population": 8303771,
+    "capital": "Q3238",
+    "capitalLabel": "Tegucigalpa"
+  },
+  {
+    "id": "Q784",
+    "label": "Dominica",
+    "isoCode": "DM",
+    "population": 74656,
+    "capital": "Q36281",
+    "capitalLabel": "Roseau"
+  },
+  {
+    "id": "Q786",
+    "label": "Dominican Republic",
+    "isoCode": "DO",
+    "population": 10760028,
+    "capital": "Q34820",
+    "capitalLabel": "Santo Domingo"
+  },
+  {
+    "id": "Q790",
+    "label": "Haiti",
+    "isoCode": "HT",
+    "population": 10981229,
+    "capital": "Q34261",
+    "capitalLabel": "Port-au-Prince"
+  },
+  {
+    "id": "Q792",
+    "label": "El Salvador",
+    "isoCode": "SV",
+    "population": 6029976,
+    "capital": "Q3110",
+    "capitalLabel": "San Salvador"
+  },
+  {
+    "id": "Q794",
+    "label": "Iran",
+    "isoCode": "IR",
+    "population": 92417700,
+    "capital": "Q3616",
+    "capitalLabel": "Tehran"
+  },
+  {
+    "id": "Q796",
+    "label": "Iraq",
+    "isoCode": "IQ",
+    "population": 38274618,
+    "capital": "Q1530",
+    "capitalLabel": "Baghdad"
+  },
+  {
+    "id": "Q800",
+    "label": "Costa Rica",
+    "isoCode": "CR",
+    "population": 5265575,
+    "capital": "Q3070",
+    "capitalLabel": "San José"
+  },
+  {
+    "id": "Q801",
+    "label": "Israel",
+    "isoCode": "IL",
+    "population": 9840000,
+    "capital": "Q1218",
+    "capitalLabel": "Jerusalem"
+  },
+  {
+    "id": "Q804",
+    "label": "Panama",
+    "isoCode": "PA",
+    "population": 4570133,
+    "capital": "Q3306",
+    "capitalLabel": "Panama City"
+  },
+  {
+    "id": "Q805",
+    "label": "Yemen",
+    "isoCode": "YE",
+    "population": 28250420,
+    "capital": "Q2471",
+    "capitalLabel": "Sanaa"
+  },
+  {
+    "id": "Q805",
+    "label": "Yemen",
+    "isoCode": "YE",
+    "population": 28250420,
+    "capital": "Q131694",
+    "capitalLabel": "Aden"
+  },
+  {
+    "id": "Q810",
+    "label": "Jordan",
+    "isoCode": "JO",
+    "population": 10428241,
+    "capital": "Q3805",
+    "capitalLabel": "Amman"
+  },
+  {
+    "id": "Q811",
+    "label": "Nicaragua",
+    "isoCode": "NI",
+    "population": 5142098,
+    "capital": "Q3274",
+    "capitalLabel": "Managua"
+  },
+  {
+    "id": "Q813",
+    "label": "Kyrgyzstan",
+    "isoCode": "KG",
+    "population": 7281800,
+    "capital": "Q9361",
+    "capitalLabel": "Bishkek"
+  },
+  {
+    "id": "Q817",
+    "label": "Kuwait",
+    "isoCode": "KW",
+    "population": 4464000,
+    "capital": "Q35178",
+    "capitalLabel": "Kuwait City"
+  },
+  {
+    "id": "Q819",
+    "label": "Laos",
+    "isoCode": "LA",
+    "population": 6858160,
+    "capital": "Q9326",
+    "capitalLabel": "Vientiane"
+  },
+  {
+    "id": "Q822",
+    "label": "Lebanon",
+    "isoCode": "LB",
+    "population": 6100075,
+    "capital": "Q3820",
+    "capitalLabel": "Beirut"
+  },
+  {
+    "id": "Q826",
+    "label": "Maldives",
+    "isoCode": "MV",
+    "population": 436330,
+    "capital": "Q9347",
+    "capitalLabel": "Malé"
+  },
+  {
+    "id": "Q833",
+    "label": "Malaysia",
+    "isoCode": "MY",
+    "population": 32447385,
+    "capital": "Q1865",
+    "capitalLabel": "Kuala Lumpur"
+  },
+  {
+    "id": "Q836",
+    "label": "Myanmar",
+    "isoCode": "MM",
+    "population": 53370609,
+    "capital": "Q37400",
+    "capitalLabel": "Naypyidaw"
+  },
+  {
+    "id": "Q837",
+    "label": "Nepal",
+    "isoCode": "NP",
+    "population": 29164578,
+    "capital": "Q3037",
+    "capitalLabel": "Kathmandu"
+  },
+  {
+    "id": "Q842",
+    "label": "Oman",
+    "isoCode": "OM",
+    "population": 4829480,
+    "capital": "Q3826",
+    "capitalLabel": "Muscat"
+  },
+  {
+    "id": "Q843",
+    "label": "Pakistan",
+    "isoCode": "PK",
+    "population": 223773700,
+    "capital": "Q1362",
+    "capitalLabel": "Islamabad"
+  },
+  {
+    "id": "Q846",
+    "label": "Qatar",
+    "isoCode": "QA",
+    "population": 2639211,
+    "capital": "Q3861",
+    "capitalLabel": "Doha"
+  },
+  {
+    "id": "Q851",
+    "label": "Saudi Arabia",
+    "isoCode": "SA",
+    "population": 33000000,
+    "capital": "Q3692",
+    "capitalLabel": "Riyadh"
+  },
+  {
+    "id": "Q854",
+    "label": "Sri Lanka",
+    "isoCode": "LK",
+    "population": 21444000,
+    "capital": "Q35381",
+    "capitalLabel": "Colombo"
+  },
+  {
+    "id": "Q854",
+    "label": "Sri Lanka",
+    "isoCode": "LK",
+    "population": 21444000,
+    "capital": "Q41963",
+    "capitalLabel": "Sri Jayawardenepura Kotte"
+  },
+  {
+    "id": "Q858",
+    "label": "Syria",
+    "isoCode": "SY",
+    "population": 23865423,
+    "capital": "Q3766",
+    "capitalLabel": "Damascus"
+  },
+  {
+    "id": "Q863",
+    "label": "Tajikistan",
+    "isoCode": "TJ",
+    "population": 9504000,
+    "capital": "Q9365",
+    "capitalLabel": "Dushanbe"
+  },
+  {
+    "id": "Q865",
+    "label": "Taiwan",
+    "isoCode": "TW",
+    "population": 23317031,
+    "capital": "Q1867",
+    "capitalLabel": "Taipei"
+  },
+  {
+    "id": "Q865",
+    "label": "Taiwan",
+    "isoCode": "TW",
+    "population": 23409323,
+    "capital": "Q1867",
+    "capitalLabel": "Taipei"
+  },
+  {
+    "id": "Q869",
+    "label": "Thailand",
+    "isoCode": "TH",
+    "population": 66188503,
+    "capital": "Q1861",
+    "capitalLabel": "Bangkok"
+  },
+  {
+    "id": "Q874",
+    "label": "Turkmenistan",
+    "isoCode": "TM",
+    "population": 6117933,
+    "capital": "Q23438",
+    "capitalLabel": "Ashgabat"
+  },
+  {
+    "id": "Q878",
+    "label": "United Arab Emirates",
+    "isoCode": "AE",
+    "population": 9890400,
+    "capital": "Q1519",
+    "capitalLabel": "Abu Dhabi"
+  },
+  {
+    "id": "Q881",
+    "label": "Vietnam",
+    "isoCode": "VN",
+    "population": 96208984,
+    "capital": "Q1858",
+    "capitalLabel": "Hanoi"
+  },
+  {
+    "id": "Q884",
+    "label": "South Korea",
+    "isoCode": "KR",
+    "population": 51466201,
+    "capital": "Q8684",
+    "capitalLabel": "Seoul"
+  },
+  {
+    "id": "Q889",
+    "label": "Afghanistan",
+    "isoCode": "AF",
+    "population": 41454761,
+    "capital": "Q5838",
+    "capitalLabel": "Kabul"
+  },
+  {
+    "id": "Q902",
+    "label": "Bangladesh",
+    "isoCode": "BD",
+    "population": 171466990,
+    "capital": "Q1354",
+    "capitalLabel": "Dhaka"
+  },
+  {
+    "id": "Q912",
+    "label": "Mali",
+    "isoCode": "ML",
+    "population": 20250833,
+    "capital": "Q3703",
+    "capitalLabel": "Bamako"
+  },
+  {
+    "id": "Q916",
+    "label": "Angola",
+    "isoCode": "AO",
+    "population": 36749906,
+    "capital": "Q3897",
+    "capitalLabel": "Luanda"
+  },
+  {
+    "id": "Q917",
+    "label": "Bhutan",
+    "isoCode": "BT",
+    "population": 787424,
+    "capital": "Q9270",
+    "capitalLabel": "Thimphu"
+  },
+  {
+    "id": "Q921",
+    "label": "Brunei",
+    "isoCode": "BN",
+    "population": 458949,
+    "capital": "Q9279",
+    "capitalLabel": "Bandar Seri Begawan"
+  },
+  {
+    "id": "Q924",
+    "label": "Tanzania",
+    "isoCode": "TZ",
+    "population": 57310019,
+    "capital": "Q3866",
+    "capitalLabel": "Dodoma"
+  },
+  {
+    "id": "Q928",
+    "label": "Philippines",
+    "isoCode": "PH",
+    "population": 112729484,
+    "capital": "Q1461",
+    "capitalLabel": "Manila"
+  },
+  {
+    "id": "Q929",
+    "label": "Central African Republic",
+    "isoCode": "CF",
+    "population": 5152421,
+    "capital": "Q3832",
+    "capitalLabel": "Bangui"
+  },
+  {
+    "id": "Q945",
+    "label": "Togo",
+    "isoCode": "TG",
+    "population": 7797694,
+    "capital": "Q3792",
+    "capitalLabel": "Lomé"
+  },
+  {
+    "id": "Q948",
+    "label": "Tunisia",
+    "isoCode": "TN",
+    "population": 11565204,
+    "capital": "Q3572",
+    "capitalLabel": "Tunis"
+  },
+  {
+    "id": "Q953",
+    "label": "Zambia",
+    "isoCode": "ZM",
+    "population": 19610769,
+    "capital": "Q3881",
+    "capitalLabel": "Lusaka"
+  },
+  {
+    "id": "Q954",
+    "label": "Zimbabwe",
+    "isoCode": "ZW",
+    "population": 15178979,
+    "capital": "Q3921",
+    "capitalLabel": "Harare"
+  },
+  {
+    "id": "Q958",
+    "label": "South Sudan",
+    "isoCode": "SS",
+    "population": 12575714,
+    "capital": "Q1947",
+    "capitalLabel": "Juba"
+  },
+  {
+    "id": "Q962",
+    "label": "Benin",
+    "isoCode": "BJ",
+    "population": 14111034,
+    "capital": "Q3799",
+    "capitalLabel": "Porto-Novo"
+  },
+  {
+    "id": "Q963",
+    "label": "Botswana",
+    "isoCode": "BW",
+    "population": 2480244,
+    "capital": "Q3919",
+    "capitalLabel": "Gaborone"
+  },
+  {
+    "id": "Q965",
+    "label": "Burkina Faso",
+    "isoCode": "BF",
+    "population": 23025776,
+    "capital": "Q3777",
+    "capitalLabel": "Ouagadougou"
+  },
+  {
+    "id": "Q967",
+    "label": "Burundi",
+    "isoCode": "BI",
+    "population": 13689450,
+    "capital": "Q167551",
+    "capitalLabel": "Gitega"
+  },
+  {
+    "id": "Q970",
+    "label": "Comoros",
+    "isoCode": "KM",
+    "population": 902348,
+    "capital": "Q3901",
+    "capitalLabel": "Moroni"
+  },
+  {
+    "id": "Q971",
+    "label": "Republic of the Congo",
+    "isoCode": "CG",
+    "population": 6142180,
+    "capital": "Q3844",
+    "capitalLabel": "Brazzaville"
+  },
+  {
+    "id": "Q974",
+    "label": "Democratic Republic of the Congo",
+    "isoCode": "CD",
+    "population": 105789731,
+    "capital": "Q3838",
+    "capitalLabel": "Kinshasa"
+  },
+  {
+    "id": "Q977",
+    "label": "Djibouti",
+    "isoCode": "DJ",
+    "population": 1152944,
+    "capital": "Q3604",
+    "capitalLabel": "Djibouti City"
+  },
+  {
+    "id": "Q983",
+    "label": "Equatorial Guinea",
+    "isoCode": "GQ",
+    "population": 1847549,
+    "capital": "Q3818",
+    "capitalLabel": "Malabo"
+  },
+  {
+    "id": "Q986",
+    "label": "Eritrea",
+    "isoCode": "ER",
+    "population": 3497000,
+    "capital": "Q3642",
+    "capitalLabel": "Asmara"
+  },
+  {
+    "id": "Q1000",
+    "label": "Gabon",
+    "isoCode": "GA",
+    "population": 2025137,
+    "capital": "Q3825",
+    "capitalLabel": "Libreville"
+  },
+  {
+    "id": "Q1005",
+    "label": "The Gambia",
+    "isoCode": "GM",
+    "population": 2639916,
+    "capital": "Q3726",
+    "capitalLabel": "Banjul"
+  },
+  {
+    "id": "Q1006",
+    "label": "Guinea",
+    "isoCode": "GN",
+    "population": 12717176,
+    "capital": "Q3733",
+    "capitalLabel": "Conakry"
+  },
+  {
+    "id": "Q1007",
+    "label": "Guinea-Bissau",
+    "isoCode": "GW",
+    "population": 1861283,
+    "capital": "Q3739",
+    "capitalLabel": "Bissau"
+  },
+  {
+    "id": "Q1008",
+    "label": "Ivory Coast",
+    "isoCode": "CI",
+    "population": 31165654,
+    "capital": "Q3768",
+    "capitalLabel": "Yamoussoukro"
+  },
+  {
+    "id": "Q1009",
+    "label": "Cameroon",
+    "isoCode": "CM",
+    "population": 28372687,
+    "capital": "Q3808",
+    "capitalLabel": "Yaoundé"
+  },
+  {
+    "id": "Q1011",
+    "label": "Cape Verde",
+    "isoCode": "CV",
+    "population": 555988,
+    "capital": "Q3751",
+    "capitalLabel": "Praia"
+  },
+  {
+    "id": "Q1013",
+    "label": "Lesotho",
+    "isoCode": "LS",
+    "population": 2007201,
+    "capital": "Q3909",
+    "capitalLabel": "Maseru"
+  },
+  {
+    "id": "Q1014",
+    "label": "Liberia",
+    "isoCode": "LR",
+    "population": 5214030,
+    "capital": "Q3748",
+    "capitalLabel": "Monrovia"
+  },
+  {
+    "id": "Q1016",
+    "label": "Libya",
+    "isoCode": "LY",
+    "population": 6678567,
+    "capital": "Q3579",
+    "capitalLabel": "Tripoli"
+  },
+  {
+    "id": "Q1019",
+    "label": "Madagascar",
+    "isoCode": "MG",
+    "population": 31964956,
+    "capital": "Q3915",
+    "capitalLabel": "Antananarivo"
+  },
+  {
+    "id": "Q1020",
+    "label": "Malawi",
+    "isoCode": "MW",
+    "population": 17563749,
+    "capital": "Q3876",
+    "capitalLabel": "Lilongwe"
+  },
+  {
+    "id": "Q1025",
+    "label": "Mauritania",
+    "isoCode": "MR",
+    "population": 4736139,
+    "capital": "Q3688",
+    "capitalLabel": "Nouakchott"
+  },
+  {
+    "id": "Q1027",
+    "label": "Mauritius",
+    "isoCode": "MU",
+    "population": 1264613,
+    "capital": "Q3929",
+    "capitalLabel": "Port Louis"
+  },
+  {
+    "id": "Q1028",
+    "label": "Morocco",
+    "isoCode": "MA",
+    "population": 36828330,
+    "capital": "Q3551",
+    "capitalLabel": "Rabat"
+  },
+  {
+    "id": "Q1028",
+    "label": "Morocco",
+    "isoCode": "MA",
+    "population": 37076584,
+    "capital": "Q3551",
+    "capitalLabel": "Rabat"
+  },
+  {
+    "id": "Q1029",
+    "label": "Mozambique",
+    "isoCode": "MZ",
+    "population": 29668834,
+    "capital": "Q3889",
+    "capitalLabel": "Maputo"
+  },
+  {
+    "id": "Q1030",
+    "label": "Namibia",
+    "isoCode": "NA",
+    "population": 2533794,
+    "capital": "Q3935",
+    "capitalLabel": "Windhoek"
+  },
+  {
+    "id": "Q1032",
+    "label": "Niger",
+    "isoCode": "NE",
+    "population": 21477348,
+    "capital": "Q3674",
+    "capitalLabel": "Niamey"
+  },
+  {
+    "id": "Q1033",
+    "label": "Nigeria",
+    "isoCode": "NG",
+    "population": 211400708,
+    "capital": "Q3787",
+    "capitalLabel": "Abuja"
+  },
+  {
+    "id": "Q1036",
+    "label": "Uganda",
+    "isoCode": "UG",
+    "population": 47123531,
+    "capital": "Q3894",
+    "capitalLabel": "Kampala"
+  },
+  {
+    "id": "Q1037",
+    "label": "Rwanda",
+    "isoCode": "RW",
+    "population": 14569341,
+    "capital": "Q3859",
+    "capitalLabel": "Kigali"
+  },
+  {
+    "id": "Q1039",
+    "label": "São Tomé and Príncipe",
+    "isoCode": "ST",
+    "population": 204327,
+    "capital": "Q3932",
+    "capitalLabel": "São Tomé"
+  },
+  {
+    "id": "Q1041",
+    "label": "Senegal",
+    "isoCode": "SN",
+    "population": 16876720,
+    "capital": "Q3718",
+    "capitalLabel": "Dakar"
+  },
+  {
+    "id": "Q1042",
+    "label": "Seychelles",
+    "isoCode": "SC",
+    "population": 119773,
+    "capital": "Q3940",
+    "capitalLabel": "Victoria"
+  },
+  {
+    "id": "Q1044",
+    "label": "Sierra Leone",
+    "isoCode": "SL",
+    "population": 7557212,
+    "capital": "Q3780",
+    "capitalLabel": "Freetown"
+  },
+  {
+    "id": "Q1045",
+    "label": "Somalia",
+    "isoCode": "SO",
+    "population": 11031386,
+    "capital": "Q2449",
+    "capitalLabel": "Mogadishu"
+  },
+  {
+    "id": "Q1049",
+    "label": "Sudan",
+    "isoCode": "SD",
+    "population": 40533330,
+    "capital": "Q1963",
+    "capitalLabel": "Khartoum"
+  },
+  {
+    "id": "Q26988",
+    "label": "Cook Islands",
+    "isoCode": "CK",
+    "population": 14222,
+    "capital": "Q170482",
+    "capitalLabel": "Avarua"
+  },
+  {
+    "id": "Q29999",
+    "label": "Kingdom of the Netherlands",
+    "isoCode": "NL",
+    "population": 17100715,
+    "capital": "Q727",
+    "capitalLabel": "Amsterdam"
+  },
+  {
+    "id": "Q34020",
+    "label": "Niue",
+    "isoCode": "NU",
+    "population": 1821,
+    "capital": "Q30966",
+    "capitalLabel": "Alofi"
+  },
+  {
+    "id": "Q165763",
+    "label": "Principality of Waldeck",
+    "population": 59000,
+    "capital": "Q498078",
+    "capitalLabel": "Bad Arolsen"
+  },
+  {
+    "id": "Q165763",
+    "label": "Principality of Waldeck",
+    "population": 59000,
+    "capital": "Q540107",
+    "capitalLabel": "Waldeck"
+  },
+  {
+    "id": "Q188736",
+    "label": "Bosnia"
+  },
+  {
+    "id": "Q219060",
+    "label": "Palestine",
+    "isoCode": "PS",
+    "population": 5227193,
+    "capital": "Q158119",
+    "capitalLabel": "Ramallah"
+  },
+  {
+    "id": "Q219060",
+    "label": "Palestine",
+    "isoCode": "PS",
+    "population": 5227193,
+    "capital": "Q212938",
+    "capitalLabel": "East Jerusalem"
+  },
+  {
+    "id": "Q756617",
+    "label": "Kingdom of Denmark",
+    "population": 5930987,
+    "capital": "Q1748",
+    "capitalLabel": "Copenhagen"
+  },
+  {
+    "id": "Q825489",
+    "label": "County Pyrmont"
+  },
+  {
+    "id": "Q1147441",
+    "label": "British North Borneo",
+    "population": 67062,
+    "capital": "Q23041",
+    "capitalLabel": "Kudat"
+  },
+  {
+    "id": "Q1147441",
+    "label": "British North Borneo",
+    "population": 285000,
+    "capital": "Q23041",
+    "capitalLabel": "Kudat"
+  },
+  {
+    "id": "Q1147441",
+    "label": "British North Borneo",
+    "population": 67062,
+    "capital": "Q137203",
+    "capitalLabel": "Sandakan"
+  },
+  {
+    "id": "Q1147441",
+    "label": "British North Borneo",
+    "population": 285000,
+    "capital": "Q137203",
+    "capitalLabel": "Sandakan"
+  },
+  {
+    "id": "Q1147441",
+    "label": "British North Borneo",
+    "population": 67062,
+    "capital": "Q137271",
+    "capitalLabel": "Q137271"
+  },
+  {
+    "id": "Q1147441",
+    "label": "British North Borneo",
+    "population": 285000,
+    "capital": "Q137271",
+    "capitalLabel": "Q137271"
+  },
+  {
+    "id": "Q107258515",
+    "label": "Pahlavi Iran",
+    "capital": "Q3616",
+    "capitalLabel": "Tehran"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 6037046,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 6045425,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 6064953,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 6097765,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 6207278,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 6265809,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1246",
+    "label": "Kosovo",
+    "isoCode": "XK",
+    "population": 1586659,
+    "capital": "Q25270",
+    "capitalLabel": "Prishtina"
+  },
+  {
+    "id": "Q21203",
+    "label": "Aruba",
+    "isoCode": "AW",
+    "population": 106739,
+    "capital": "Q131243",
+    "capitalLabel": "Oranjestad"
+  },
+  {
+    "id": "Q26273",
+    "label": "Sint Maarten",
+    "isoCode": "SX",
+    "population": 43847,
+    "capital": "Q30958",
+    "capitalLabel": "Philipsburg"
+  },
+  {
+    "id": "Q739",
+    "label": "Colombia",
+    "isoCode": "CO",
+    "population": 52321152,
+    "capital": "Q2841",
+    "capitalLabel": "Bogotá"
+  },
+  {
+    "id": "Q1050",
+    "label": "Eswatini",
+    "isoCode": "SZ",
+    "population": 1230506,
+    "capital": "Q3904",
+    "capitalLabel": "Mbabane"
+  },
+  {
+    "id": "Q1050",
+    "label": "Eswatini",
+    "isoCode": "SZ",
+    "population": 1230506,
+    "capital": "Q101418",
+    "capitalLabel": "Lobamba"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 5507777,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q1199",
+    "label": "Hesse",
+    "population": 5971816,
+    "capital": "Q1721",
+    "capitalLabel": "Wiesbaden"
+  },
+  {
+    "id": "Q730",
+    "label": "Suriname",
+    "isoCode": "SR",
+    "population": 563402,
+    "capital": "Q3001",
+    "capitalLabel": "Paramaribo"
+  },
+  {
+    "id": "Q733",
+    "label": "Paraguay",
+    "isoCode": "PY",
+    "population": 6811297,
+    "capital": "Q2933",
+    "capitalLabel": "Asunción"
+  },
+  {
+    "id": "Q734",
+    "label": "Guyana",
+    "isoCode": "GY",
+    "population": 777859,
+    "capital": "Q10717",
+    "capitalLabel": "Georgetown"
+  },
+  {
+    "id": "Q736",
+    "label": "Ecuador",
+    "isoCode": "EC",
+    "population": 16938986,
+    "capital": "Q2900",
+    "capitalLabel": "Quito"
+  },
+  {
+    "id": "Q16",
+    "label": "Canada",
+    "isoCode": "CA",
+    "population": 36991981,
+    "capital": "Q1930",
+    "capitalLabel": "Ottawa"
+  },
+  {
+    "id": "Q17",
+    "label": "Japan",
+    "isoCode": "JP",
+    "population": 123802000,
+    "capital": "Q1490",
+    "capitalLabel": "Tokyo"
+  },
+  {
+    "id": "Q20",
+    "label": "Norway",
+    "isoCode": "NO",
+    "population": 5594340,
+    "capital": "Q585",
+    "capitalLabel": "Oslo"
+  },
+  {
+    "id": "Q27",
+    "label": "Ireland",
+    "isoCode": "IE",
+    "population": 5149139,
+    "capital": "Q1761",
+    "capitalLabel": "Dublin"
+  },
+  {
+    "id": "Q28",
+    "label": "Hungary",
+    "isoCode": "HU",
+    "population": 9603634,
+    "capital": "Q1781",
+    "capitalLabel": "Budapest"
+  },
+  {
+    "id": "Q29",
+    "label": "Spain",
+    "isoCode": "ES",
+    "population": 48592909,
+    "capital": "Q2807",
+    "capitalLabel": "Madrid"
+  },
+  {
+    "id": "Q30",
+    "label": "United States",
+    "isoCode": "US",
+    "population": 340110988,
+    "capital": "Q61",
+    "capitalLabel": "Washington, D.C."
+  },
+  {
+    "id": "Q31",
+    "label": "Belgium",
+    "isoCode": "BE",
+    "population": 11825551,
+    "capital": "Q239",
+    "capitalLabel": "City of Brussels"
+  },
+  {
+    "id": "Q32",
+    "label": "Luxembourg",
+    "isoCode": "LU",
+    "population": 681987,
+    "capital": "Q1842",
+    "capitalLabel": "Luxembourg"
+  },
+  {
+    "id": "Q33",
+    "label": "Finland",
+    "isoCode": "FI",
+    "population": 5608218,
+    "capital": "Q1757",
+    "capitalLabel": "Helsinki"
+  },
+  {
+    "id": "Q34",
+    "label": "Sweden",
+    "isoCode": "SE",
+    "population": 10609460,
+    "capital": "Q1754",
+    "capitalLabel": "Stockholm"
+  },
+  {
+    "id": "Q35",
+    "label": "Denmark",
+    "isoCode": "DK",
+    "population": 5827463,
+    "capital": "Q1748",
+    "capitalLabel": "Copenhagen"
+  },
+  {
+    "id": "Q36",
+    "label": "Poland",
+    "isoCode": "PL",
+    "population": 37563071,
+    "capital": "Q270",
+    "capitalLabel": "Warsaw"
+  },
+  {
+    "id": "Q37",
+    "label": "Lithuania",
+    "isoCode": "LT",
+    "population": 2860002,
+    "capital": "Q216",
+    "capitalLabel": "Vilnius"
+  },
+  {
+    "id": "Q38",
+    "label": "Italy",
+    "isoCode": "IT",
+    "population": 58850717,
+    "capital": "Q220",
+    "capitalLabel": "Rome"
+  },
+  {
+    "id": "Q39",
+    "label": "Switzerland",
+    "isoCode": "CH",
+    "population": 8962300,
+    "capital": "Q70",
+    "capitalLabel": "Bern"
+  },
+  {
+    "id": "Q40",
+    "label": "Austria",
+    "isoCode": "AT",
+    "population": 8979894,
+    "capital": "Q1741",
+    "capitalLabel": "Vienna"
+  },
+  {
+    "id": "Q41",
+    "label": "Greece",
+    "isoCode": "GR",
+    "population": 10482487,
+    "capital": "Q1524",
+    "capitalLabel": "Athens"
+  },
+  {
+    "id": "Q43",
+    "label": "Turkey",
+    "isoCode": "TR",
+    "population": 85372377,
+    "capital": "Q3640",
+    "capitalLabel": "Ankara"
+  },
+  {
+    "id": "Q45",
+    "label": "Portugal",
+    "isoCode": "PT",
+    "population": 10347892,
+    "capital": "Q597",
+    "capitalLabel": "Lisbon"
+  },
+  {
+    "id": "Q55",
+    "label": "Netherlands",
+    "population": 17942942,
+    "capital": "Q727",
+    "capitalLabel": "Amsterdam"
+  },
+  {
+    "id": "Q77",
+    "label": "Uruguay",
+    "isoCode": "UY",
+    "population": 3444263,
+    "capital": "Q1335",
+    "capitalLabel": "Montevideo"
+  },
+  {
+    "id": "Q79",
+    "label": "Egypt",
+    "isoCode": "EG",
+    "population": 114535772,
+    "capital": "Q85",
+    "capitalLabel": "Cairo"
+  },
+  {
+    "id": "Q96",
+    "label": "Mexico",
+    "isoCode": "MX",
+    "population": 124777324,
+    "capital": "Q1489",
+    "capitalLabel": "Mexico City"
+  },
+  {
+    "id": "Q114",
+    "label": "Kenya",
+    "isoCode": "KE",
+    "population": 48468138,
+    "capital": "Q3870",
+    "capitalLabel": "Nairobi"
+  },
+  {
+    "id": "Q115",
+    "label": "Ethiopia",
+    "isoCode": "ET",
+    "population": 128691692,
+    "capital": "Q3624",
+    "capitalLabel": "Addis Ababa"
+  },
+  {
+    "id": "Q117",
+    "label": "Ghana",
+    "isoCode": "GH",
+    "population": 32833031,
+    "capital": "Q3761",
+    "capitalLabel": "Accra"
+  },
+  {
+    "id": "Q142",
+    "label": "France",
+    "isoCode": "FR",
+    "population": 68605616,
+    "capital": "Q90",
+    "capitalLabel": "Paris"
+  },
+  {
+    "id": "Q145",
+    "label": "United Kingdom",
+    "isoCode": "GB",
+    "population": 67326569,
+    "capital": "Q84",
+    "capitalLabel": "London"
+  },
+  {
+    "id": "Q148",
+    "label": "People's Republic of China",
+    "isoCode": "CN",
+    "population": 1442965000,
+    "capital": "Q956",
+    "capitalLabel": "Beijing"
+  },
+  {
+    "id": "Q155",
+    "label": "Brazil",
+    "isoCode": "BR",
+    "population": 203062512,
+    "capital": "Q2844",
+    "capitalLabel": "Brasília"
+  },
+  {
+    "id": "Q155",
+    "label": "Brazil",
+    "isoCode": "BR",
+    "population": 213421037,
+    "capital": "Q2844",
+    "capitalLabel": "Brasília"
+  },
+  {
+    "id": "Q159",
+    "label": "Russia",
+    "isoCode": "RU",
+    "population": 146119928,
+    "capital": "Q649",
+    "capitalLabel": "Moscow"
+  },
+  {
+    "id": "Q183",
+    "label": "Germany",
+    "isoCode": "DE",
+    "population": 83577140,
+    "capital": "Q64",
+    "capitalLabel": "Berlin"
+  },
+  {
+    "id": "Q184",
+    "label": "Belarus",
+    "isoCode": "BY",
+    "population": 9109280,
+    "capital": "Q2280",
+    "capitalLabel": "Minsk"
+  },
+  {
+    "id": "Q189",
+    "label": "Iceland",
+    "isoCode": "IS",
+    "population": 364260,
+    "capital": "Q1764",
+    "capitalLabel": "Reykjavík"
+  },
+  {
+    "id": "Q191",
+    "label": "Estonia",
+    "isoCode": "EE",
+    "population": 1369995,
+    "capital": "Q1770",
+    "capitalLabel": "Tallinn"
+  },
+  {
+    "id": "Q211",
+    "label": "Latvia",
+    "isoCode": "LV",
+    "population": 1856932,
+    "capital": "Q1773",
+    "capitalLabel": "Riga"
+  },
+  {
+    "id": "Q212",
+    "label": "Ukraine",
+    "isoCode": "UA",
+    "population": 41167335,
+    "capital": "Q1899",
+    "capitalLabel": "Kyiv"
+  },
+  {
+    "id": "Q213",
+    "label": "Czech Republic",
+    "isoCode": "CZ",
+    "population": 10909500,
+    "capital": "Q1085",
+    "capitalLabel": "Prague"
+  },
+  {
+    "id": "Q214",
+    "label": "Slovakia",
+    "isoCode": "SK",
+    "population": 5419451,
+    "capital": "Q1780",
+    "capitalLabel": "Bratislava"
+  },
+  {
+    "id": "Q215",
+    "label": "Slovenia",
+    "isoCode": "SI",
+    "population": 2066880,
+    "capital": "Q437",
+    "capitalLabel": "Ljubljana"
+  },
+  {
+    "id": "Q217",
+    "label": "Moldova",
+    "isoCode": "MD",
+    "population": 2409207,
+    "capital": "Q21197",
+    "capitalLabel": "Chișinău"
+  },
+  {
+    "id": "Q218",
+    "label": "Romania",
+    "isoCode": "RO",
+    "population": 19053815,
+    "capital": "Q19660",
+    "capitalLabel": "Bucharest"
+  },
+  {
+    "id": "Q219",
+    "label": "Bulgaria",
+    "isoCode": "BG",
+    "population": 6437360,
+    "capital": "Q472",
+    "capitalLabel": "Sofia"
+  },
+  {
+    "id": "Q221",
+    "label": "North Macedonia",
+    "isoCode": "MK",
+    "population": 1836713,
+    "capital": "Q384",
+    "capitalLabel": "Skopje"
+  },
+  {
+    "id": "Q222",
+    "label": "Albania",
+    "isoCode": "AL",
+    "population": 2811655,
+    "capital": "Q19689",
+    "capitalLabel": "Tirana"
+  },
+  {
+    "id": "Q223",
+    "label": "Greenland",
+    "isoCode": "GL",
+    "population": 56609,
+    "capital": "Q226",
+    "capitalLabel": "Nuuk"
+  },
+  {
+    "id": "Q224",
+    "label": "Croatia",
+    "isoCode": "HR",
+    "population": 3871833,
+    "capital": "Q1435",
+    "capitalLabel": "Zagreb"
+  },
+  {
+    "id": "Q225",
+    "label": "Bosnia and Herzegovina",
+    "isoCode": "BA",
+    "population": 3816459,
+    "capital": "Q11194",
+    "capitalLabel": "Sarajevo"
+  },
+  {
+    "id": "Q227",
+    "label": "Azerbaijan",
+    "isoCode": "AZ",
+    "population": 10180770,
+    "capital": "Q9248",
+    "capitalLabel": "Baku"
+  },
+  {
+    "id": "Q228",
+    "label": "Andorra",
+    "isoCode": "AD",
+    "population": 87486,
+    "capital": "Q1863",
+    "capitalLabel": "Andorra la Vella"
+  },
+  {
+    "id": "Q229",
+    "label": "Cyprus",
+    "isoCode": "CY",
+    "population": 1344976,
+    "capital": "Q3856",
+    "capitalLabel": "Nicosia"
+  },
+  {
+    "id": "Q230",
+    "label": "Georgia",
+    "isoCode": "GE",
+    "population": 3717100,
+    "capital": "Q994",
+    "capitalLabel": "Tbilisi"
+  },
+  {
+    "id": "Q232",
+    "label": "Kazakhstan",
+    "isoCode": "KZ",
+    "population": 20139914,
+    "capital": "Q1520",
+    "capitalLabel": "Astana"
+  },
+  {
+    "id": "Q233",
+    "label": "Malta",
+    "isoCode": "MT",
+    "population": 553214,
+    "capital": "Q23800",
+    "capitalLabel": "Valletta"
+  },
+  {
+    "id": "Q235",
+    "label": "Monaco",
+    "isoCode": "MC",
+    "population": 38423,
+    "capital": "Q3685392",
+    "capitalLabel": "Commune of Monaco"
+  },
+  {
+    "id": "Q236",
+    "label": "Montenegro",
+    "isoCode": "ME",
+    "population": 617213,
+    "capital": "Q23564",
+    "capitalLabel": "Podgorica"
+  },
+  {
+    "id": "Q236",
+    "label": "Montenegro",
+    "isoCode": "ME",
+    "population": 617213,
+    "capital": "Q173338",
+    "capitalLabel": "Cetinje"
+  },
+  {
+    "id": "Q237",
+    "label": "Vatican City",
+    "isoCode": "VA",
+    "population": 882
+  },
+  {
+    "id": "Q238",
+    "label": "San Marino",
+    "isoCode": "SM",
+    "population": 33600,
+    "capital": "Q1848",
+    "capitalLabel": "San Marino"
+  },
+  {
+    "id": "Q241",
+    "label": "Cuba",
+    "isoCode": "CU",
+    "population": 10985974,
+    "capital": "Q1563",
+    "capitalLabel": "Havana"
+  },
+  {
+    "id": "Q242",
+    "label": "Belize",
+    "isoCode": "BZ",
+    "population": 411106,
+    "capital": "Q3043",
+    "capitalLabel": "Belmopan"
+  },
+  {
+    "id": "Q244",
+    "label": "Barbados",
+    "isoCode": "BB",
+    "population": 303431,
+    "capital": "Q36168",
+    "capitalLabel": "Bridgetown"
+  },
+  {
+    "id": "Q252",
+    "label": "Indonesia",
+    "isoCode": "ID",
+    "population": 275439000,
+    "capital": "Q3630",
+    "capitalLabel": "Jakarta"
+  },
+  {
+    "id": "Q258",
+    "label": "South Africa",
+    "isoCode": "ZA",
+    "population": 62027503,
+    "capital": "Q3926",
+    "capitalLabel": "Pretoria"
+  },
+  {
+    "id": "Q258",
+    "label": "South Africa",
+    "isoCode": "ZA",
+    "population": 62027503,
+    "capital": "Q5465",
+    "capitalLabel": "Cape Town"
+  },
+  {
+    "id": "Q258",
+    "label": "South Africa",
+    "isoCode": "ZA",
+    "population": 62027503,
+    "capital": "Q37701",
+    "capitalLabel": "Bloemfontein"
+  },
+  {
+    "id": "Q262",
+    "label": "Algeria",
+    "isoCode": "DZ",
+    "population": 46164219,
+    "capital": "Q3561",
+    "capitalLabel": "Algiers"
+  },
+  {
+    "id": "Q265",
+    "label": "Uzbekistan",
+    "isoCode": "UZ",
+    "population": 34915100,
+    "capital": "Q269",
+    "capitalLabel": "Tashkent"
+  },
+  {
+    "id": "Q298",
+    "label": "Chile",
+    "isoCode": "CL",
+    "population": 19458000,
+    "capital": "Q2887",
+    "capitalLabel": "Santiago"
+  },
+  {
+    "id": "Q334",
+    "label": "Singapore",
+    "isoCode": "SG",
+    "population": 5866139,
+    "capital": "Q334",
+    "capitalLabel": "Singapore"
+  },
+  {
+    "id": "Q347",
+    "label": "Liechtenstein",
+    "isoCode": "LI",
+    "population": 37922,
+    "capital": "Q1844",
+    "capitalLabel": "Vaduz"
+  },
+  {
+    "id": "Q398",
+    "label": "Bahrain",
+    "isoCode": "BH",
+    "population": 1569666,
+    "capital": "Q3882",
+    "capitalLabel": "Manama"
+  },
+  {
+    "id": "Q399",
+    "label": "Armenia",
+    "isoCode": "AM",
+    "population": 2930450,
+    "capital": "Q1953",
+    "capitalLabel": "Yerevan"
+  },
+  {
+    "id": "Q403",
+    "label": "Serbia",
+    "isoCode": "RS",
+    "population": 6605168,
+    "capital": "Q3711",
+    "capitalLabel": "Belgrade"
+  },
+  {
+    "id": "Q408",
+    "label": "Australia",
+    "isoCode": "AU",
+    "population": 27309396,
+    "capital": "Q3114",
+    "capitalLabel": "Canberra"
+  },
+  {
+    "id": "Q414",
+    "label": "Argentina",
+    "isoCode": "AR",
+    "population": 47327407,
+    "capital": "Q1486",
+    "capitalLabel": "Buenos Aires"
+  },
+  {
+    "id": "Q419",
+    "label": "Peru",
+    "isoCode": "PE",
+    "population": 33726000,
+    "capital": "Q2868",
+    "capitalLabel": "Lima"
+  },
+  {
+    "id": "Q423",
+    "label": "North Korea",
+    "isoCode": "KP",
+    "population": 26418204,
+    "capital": "Q18808",
+    "capitalLabel": "Pyongyang"
+  },
+  {
+    "id": "Q424",
+    "label": "Cambodia",
+    "isoCode": "KH",
+    "population": 17423880,
+    "capital": "Q1850",
+    "capitalLabel": "Phnom Penh"
+  },
+  {
+    "id": "Q574",
+    "label": "Timor-Leste",
+    "isoCode": "TL",
+    "population": 1243235,
+    "capital": "Q9310",
+    "capitalLabel": "Dili"
+  },
+  {
+    "id": "Q657",
+    "label": "Chad",
+    "isoCode": "TD",
+    "population": 19319064,
+    "capital": "Q3659",
+    "capitalLabel": "N'Djamena"
+  },
+  {
+    "id": "Q664",
+    "label": "New Zealand",
+    "isoCode": "NZ",
+    "population": 5118700,
+    "capital": "Q23661",
+    "capitalLabel": "Wellington"
+  },
+  {
+    "id": "Q668",
+    "label": "India",
+    "isoCode": "IN",
+    "population": 1326093247,
+    "capital": "Q987",
+    "capitalLabel": "New Delhi"
+  },
+  {
+    "id": "Q672",
+    "label": "Tuvalu",
+    "isoCode": "TV",
+    "population": 10643,
+    "capital": "Q34126",
+    "capitalLabel": "Funafuti"
+  },
+  {
+    "id": "Q678",
+    "label": "Tonga",
+    "isoCode": "TO",
+    "population": 108020,
+    "capital": "Q38834",
+    "capitalLabel": "Nukuʻalofa"
+  },
+  {
+    "id": "Q683",
+    "label": "Samoa",
+    "isoCode": "WS",
+    "population": 200010,
+    "capital": "Q36260",
+    "capitalLabel": "Apia"
+  },
+  {
+    "id": "Q685",
+    "label": "Solomon Islands",
+    "isoCode": "SB",
+    "population": 611343,
+    "capital": "Q40921",
+    "capitalLabel": "Honiara"
+  },
+  {
+    "id": "Q686",
+    "label": "Vanuatu",
+    "isoCode": "VU",
+    "population": 300019,
+    "capital": "Q37806",
+    "capitalLabel": "Port Vila"
+  },
+  {
+    "id": "Q691",
+    "label": "Papua New Guinea",
+    "isoCode": "PG",
+    "population": 8935000,
+    "capital": "Q36526",
+    "capitalLabel": "Port Moresby"
+  },
+  {
+    "id": "Q695",
+    "label": "Palau",
+    "isoCode": "PW",
+    "population": 21729,
+    "capital": "Q515229",
+    "capitalLabel": "Ngerulmud"
+  },
+  {
+    "id": "Q697",
+    "label": "Nauru",
+    "isoCode": "NR",
+    "population": 13650,
+    "capital": "Q31026",
+    "capitalLabel": "Yaren District"
+  },
+  {
+    "id": "Q702",
+    "label": "Federated States of Micronesia",
+    "isoCode": "FM",
+    "population": 105544,
+    "capital": "Q42751",
+    "capitalLabel": "Palikir"
+  },
+  {
+    "id": "Q709",
+    "label": "Marshall Islands",
+    "isoCode": "MH",
+    "population": 53127,
+    "capital": "Q12919",
+    "capitalLabel": "Majuro"
+  },
+  {
+    "id": "Q710",
+    "label": "Kiribati",
+    "isoCode": "KI",
+    "population": 134518,
+    "capital": "Q2486",
+    "capitalLabel": "Tarawa"
+  },
+  {
+    "id": "Q710",
+    "label": "Kiribati",
+    "isoCode": "KI",
+    "population": 134518,
+    "capital": "Q131233",
+    "capitalLabel": "South Tarawa"
+  },
+  {
+    "id": "Q711",
+    "label": "Mongolia",
+    "isoCode": "MN",
+    "population": 3409939,
+    "capital": "Q23430",
+    "capitalLabel": "Ulaanbaatar"
+  },
+  {
+    "id": "Q712",
+    "label": "Fiji",
+    "isoCode": "FJ",
+    "population": 926276,
+    "capital": "Q38807",
+    "capitalLabel": "Suva"
+  },
+  {
+    "id": "Q717",
+    "label": "Venezuela",
+    "isoCode": "VE",
+    "population": 28515829,
+    "capital": "Q1533",
+    "capitalLabel": "Caracas"
+  }
+]

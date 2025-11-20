@@ -1,0 +1,134 @@
+[
+  {
+    "id": "P518",
+    "label": "applies to part",
+    "description": "part, aspect, or form of the item to which the claim applies",
+    "usageCount": 1000000
+  },
+  {
+    "id": "P518",
+    "label": "applies to part",
+    "description": "part, aspect, or form of the item to which the claim applies",
+    "usageCount": 990000
+  },
+  {
+    "id": "P518",
+    "label": "applies to part",
+    "description": "part, aspect, or form of the item to which the claim applies",
+    "usageCount": 980000
+  },
+  {
+    "id": "P518",
+    "label": "applies to part",
+    "description": "part, aspect, or form of the item to which the claim applies",
+    "usageCount": 970000
+  },
+  {
+    "id": "P580",
+    "label": "start time",
+    "description": "time an entity begins to exist or a statement starts being valid",
+    "usageCount": 960000
+  },
+  {
+    "id": "P582",
+    "label": "end time",
+    "description": "moment when an entity ceases to exist and a statement stops being entirely valid or no longer be true",
+    "usageCount": 950000
+  },
+  {
+    "id": "P585",
+    "label": "point in time",
+    "description": "date something took place, existed or a statement was true; for providing time use the \"refine date\" property (P4241)",
+    "usageCount": 940000
+  },
+  {
+    "id": "P642",
+    "label": "of (DEPRECATED)",
+    "description": "(Do not use. Find alternatives at WD:P642) qualifier stating that a statement applies within the scope of a particular item",
+    "usageCount": 930000
+  },
+  {
+    "id": "P805",
+    "label": "statement is subject of",
+    "description": "(qualifying) item that describes the relation identified in this statement",
+    "usageCount": 920000
+  },
+  {
+    "id": "P1001",
+    "label": "applies to jurisdiction",
+    "description": "the item (institution, law, public office, public register, etc) or statement belongs to or has power over or applies to the value (a territorial jurisdiction: a country, state, municipality, etc)",
+    "usageCount": 910000
+  },
+  {
+    "id": "P1013",
+    "label": "criterion used",
+    "description": "property by which a distinction or classification is made",
+    "usageCount": 900000
+  },
+  {
+    "id": "P1366",
+    "label": "replaced by",
+    "description": "other person or item which continues the item by replacing it in its role. Use P156 (\"followed by\") if the item is not replaced nor identical, but adds to the series (e.g. books in a series).",
+    "usageCount": 890000
+  },
+  {
+    "id": "P1319",
+    "label": "earliest date",
+    "description": "earliest date at which an event could have happened. Use as qualifier for other date properties",
+    "usageCount": 880000
+  },
+  {
+    "id": "P1326",
+    "label": "latest date",
+    "description": "latest possible time that something could have occurred. Use as qualifier for other date properties",
+    "usageCount": 870000
+  },
+  {
+    "id": "P1365",
+    "label": "replaces",
+    "description": "person, state or item replaced. Use \"structure replaces\" (P1398) for structures. Use \"follows\" (P155) if the previous item was not replaced or predecessor and successor are identical",
+    "usageCount": 860000
+  },
+  {
+    "id": "P1545",
+    "label": "series ordinal",
+    "description": "position of an item in its parent series (most frequently a 1-based index), generally to be used as a qualifier (different from \"rank\" defined as a class, and from \"ranking\" defined as a property for evaluating a quality)",
+    "usageCount": 850000
+  },
+  {
+    "id": "P1706",
+    "label": "together with",
+    "description": "qualifier to specify the item that this property is shared with",
+    "usageCount": 840000
+  },
+  {
+    "id": "P1810",
+    "label": "subject named as",
+    "description": "name by which a subject is recorded in a database, mentioned as a contributor of a work, or is referred to in a particular context",
+    "usageCount": 830000
+  },
+  {
+    "id": "P2241",
+    "label": "reason for deprecated rank",
+    "description": "qualifier to indicate why a particular statement should have deprecated rank",
+    "usageCount": 820000
+  },
+  {
+    "id": "P3831",
+    "label": "object of statement has role",
+    "description": "(qualifier) role held by the predicate value (object) of a statement in the context of that statement; for the role of the item the statement appears on (subject), use P2868",
+    "usageCount": 810000
+  },
+  {
+    "id": "P5102",
+    "label": "nature of statement",
+    "description": "(qualifier only) the underlying circumstances of this statement",
+    "usageCount": 800000
+  },
+  {
+    "id": "P7452",
+    "label": "reason for preferred rank",
+    "description": "qualifier to allow the reason to be indicated why a particular statement should be considered preferred",
+    "usageCount": 790000
+  }
+]

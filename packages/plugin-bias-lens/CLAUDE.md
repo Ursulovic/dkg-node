@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **@dkg/plugin-bias-lens** is a DKG plugin for detecting and analyzing bias in content from Grokipedia (compared against Wikipedia). It integrates with both MCP (Model Context Protocol) for AI agents and Express REST APIs.
 
+## Code Quality Standards
+
+**MANDATORY RULES - Zero Tolerance:**
+
+1. **No Code Comments**: Do NOT add code comments anywhere in the codebase. Code should be self-documenting through clear naming and structure.
+
+2. **No `any` Type**: NEVER use TypeScript `any` type. Always use proper type definitions, unknown, or generics.
+
+3. **Zero TypeScript Errors**: Always run `npm run check-types` and ensure there are zero TypeScript errors before completing any task.
+
+4. **Test Coverage**: Every new function, class, or feature MUST have corresponding test coverage. No untested code.
+
+5. **Passing Tests**: Always run `npm test` and ensure all tests pass before completing any task. If tests fail, fix them.
+
 ## Development Commands
 
 ### Daily Development
@@ -60,6 +74,60 @@ import { myTool } from "./my-tool.js";
 ```
 
 **Pattern**: Declare schema as `const` at file top, then reference in `.asTool()` call. This keeps schema definitions clean and reusable.
+
+### OpenAI Schema Validation Rules
+
+When creating Zod schemas for OpenAI's Structured Output API (used in `src/agents/bias-detector/schema.ts`), follow these critical rules:
+
+**1. No `.default()` in `.required()` Objects**
+
+OpenAI requires ALL properties in a `.required()` object to be explicitly required. Fields with `.default()` are treated as optional, causing validation errors.
+
+```typescript
+z.object({
+  field: z.string().default("value")
+}).required()
+```
+
+Instead, use `.describe()` for documentation without defaults:
+
+```typescript
+z.object({
+  field: z.string().describe("Description of the field")
+}).required()
+```
+
+**2. No `.url()` Validators**
+
+Zod's `.url()` generates JSON Schema with `format: "uri"`, which OpenAI's API doesn't support. Always use `.string()` only:
+
+```typescript
+url: z.string().describe("URL to the source")
+```
+
+**3. No Nested Schema References**
+
+OpenAI's Structured Output doesn't support nested `$ref` schema references. All schemas must be fully inlined at their usage point:
+
+```typescript
+factualErrors: z.array(
+  z.object({
+    claim: z.string().describe("The claim being evaluated"),
+    sources: z.array(
+      z.object({
+        name: z.string().describe("Source name"),
+        url: z.string().describe("Source URL"),
+      }).required()
+    ).describe("Supporting sources")
+  }).required()
+)
+```
+
+Do NOT create reusable schema constants and reference them with composition.
+
+**4. Always Test with Real API**
+
+After modifying schemas, always test with the actual OpenAI API (run `npx tsx ./run.ts`) to catch validation errors early. Schema errors only appear at runtime, not during TypeScript compilation.
 
 ## Architecture
 
@@ -447,7 +515,20 @@ openAPIRoute({
 })
 ```
 
-### 3. Environment Variables
+### 3. System Requirements
+
+**Development Prerequisites:**
+- **Git LFS** (Large File Storage) - Required for Wikidata cache files (~21.77 MB)
+  - Install: `brew install git-lfs` (macOS) or see detailed instructions in section 5 (Wikidata Query Tool)
+  - Setup: `git lfs install` (one-time)
+  - Verify: `git lfs ls-files` (should show `src/data/wikidata/*.json`)
+  - Without Git LFS: Run `npm run fetch-wikidata-cache` to generate cache locally
+
+**Runtime Dependencies:**
+- Node.js (compatible with the monorepo requirements)
+- npm (for package management)
+
+### 4. Environment Variables
 
 **Required for Vector Database:**
 - `PINECONE_API_KEY` - Pinecone API key (required for RAG functionality)
@@ -466,18 +547,19 @@ openAPIRoute({
 - `LANGSMITH_API_KEY` - LangSmith API key
 - `LANGSMITH_PROJECT=plugin-bias-lens` - Project name for trace organization
 
-### 4. Bias Detection Agent Architecture
+### 5. Bias Detection Agent Architecture
 
 The bias detection agent (`src/agents/bias-detector/`) implements a sophisticated fact-checking methodology:
 
 **Agent Tools** (`src/agents/bias-detector/tools/`):
 - **web-search.ts** - Tavily API for recent news, events, policy announcements, quotes
 - **google-scholar-search.ts** - SERPAPI for peer-reviewed papers, systematic reviews, academic consensus
-- **index.ts** - Exports array of all tools
+- **wikidata-query.ts** - Wikidata SPARQL endpoint for structured encyclopedia facts (dates, populations, locations, relationships)
 
 **Tool Selection Rules** (enforced by system prompt):
 - Scientific/medical/statistical claims → MUST use `google_scholar_search`
 - Claims citing specific studies → MUST use `google_scholar_search`
+- Structured encyclopedia facts (dates, populations, locations, relationships) → MUST use `wikidata_query`
 - Recent events/news/quotes → Use `web_search`
 - Fallback: `web_search` when Scholar returns no results
 
@@ -496,18 +578,148 @@ Every finding includes a `credibilityTier` from this hierarchy. Lower-tier sourc
 
 This prevents "citation inflation" where news coverage is mistaken for primary evidence.
 
-### 5. Current Implementation Status
+#### Wikidata Query Tool (`wikidata-query.ts`)
+
+The Wikidata query tool enables verification of structured encyclopedia facts against authoritative knowledge graph data.
+
+**Architecture:**
+- **PropertyResolver** - Fuzzy search (Fuse.js) over 13,000+ properties with API fallback
+- **ConstraintValidator** - Validates property-entity type compatibility using 77,000+ constraints
+- **EntityTypeResolver** - Determines entity types (Q5=human, Q515=city, etc.)
+- **Entity Resolution** - Searches Wikidata for Q-codes from natural language
+- **SPARQL Execution** - Queries Wikidata with 5s timeout and error handling
+
+**Wikidata Cache** (`src/data/wikidata/` - ~21.77 MB total, tracked with Git LFS):
+- `properties.json` - 13,054 properties with labels, descriptions, aliases (3.40 MB)
+- `constraints.json` - 77,591 property constraints for type validation (18.28 MB)
+- `entity-types.json` - 22 common entity classes (Q5, Q515, Q6256, etc.) (3.59 KB)
+- `qualifiers.json` - 22 common qualifiers (P585, P580, P582, etc.) (4.66 KB)
+- `countries.json` - 235 countries with ISO codes, populations, capitals (35.31 KB)
+- `units.json` - 500 units of measurement (meter, kilogram, etc.) (48.39 KB)
+
+**Git LFS Setup (Required for Development):**
+
+The Wikidata cache files (~21.77 MB) are tracked with Git LFS. Developers must install Git LFS before cloning or pulling the repository.
+
+**Installation:**
+```bash
+# macOS (Homebrew)
+brew install git-lfs
+
+# Ubuntu/Debian
+sudo apt-get install git-lfs
+
+# Fedora/RedHat
+sudo dnf install git-lfs
+
+# Windows (Chocolatey)
+choco install git-lfs
+
+# Or download from: https://git-lfs.github.com/
+```
+
+**Initial Setup (one-time):**
+```bash
+# Initialize Git LFS in your Git configuration
+git lfs install
+
+# Verify LFS is tracking the cache files
+git lfs ls-files
+# Should show: src/data/wikidata/*.json
+```
+
+**Cloning the Repository:**
+```bash
+# Git LFS files download automatically during clone
+git clone <repo-url>
+cd dkg-node/packages/plugin-bias-lens
+
+# Verify cache files are present and correct size
+ls -lh src/data/wikidata/
+# Should show ~21.77 MB total
+```
+
+**Updating the Cache:**
+```bash
+# Fetch latest Wikidata data (requires internet)
+npm run fetch-wikidata-cache
+
+# Commit the updated cache files
+git add src/data/wikidata/*.json
+git commit -m "chore: update Wikidata cache"
+
+# Git LFS handles large files automatically
+git push
+```
+
+**Troubleshooting:**
+
+If cache files appear as small text pointers instead of full files:
+```bash
+# Pull LFS files manually
+git lfs pull
+
+# Check LFS status
+git lfs status
+```
+
+If you cloned before installing Git LFS:
+```bash
+# Install Git LFS (see above)
+git lfs install
+
+# Fetch LFS files
+git lfs fetch
+git lfs checkout
+```
+
+**Without Git LFS:**
+If you cannot install Git LFS, you can generate the cache locally:
+```bash
+npm run fetch-wikidata-cache
+# Generates all cache files in src/data/wikidata/
+# Warning: Do not commit these files without LFS (will bloat repository)
+```
+
+**Usage Patterns:**
+- Founding dates: "When was Tesla Inc. founded?" → P571 (inception)
+- Population: "What is the population of Tokyo?" → P1082
+- CEO relationships: "Who is the CEO of Microsoft?" → P169
+- Geographic facts: "What is the capital of France?" → P36
+
+**Constraint Validation Example:**
+```typescript
+// Query: "What is the date of birth of Tesla Inc.?"
+// ❌ BLOCKED: P569 (date of birth) requires Q5 (human)
+// Tesla Inc. (Q478214) is Q4830453 (business)
+// ✅ SUGGESTED: Use P571 (inception) instead
+```
+
+**Fuzzy Property Matching:**
+- "founded" → finds P571 (inception)
+- "populaton" (typo) → finds P1082 (population)
+- "CEO" → finds P169 (chief executive officer)
+- Unknown properties → fallback to live Wikidata API search
+
+**Source Attribution:**
+- All results include Wikidata entity URLs (e.g., `https://www.wikidata.org/wiki/Q312`)
+- Classified as `credibilityTier: "government"` (Wikimedia Foundation)
+
+### 6. Current Implementation Status
 - ✅ Core infrastructure complete
 - ✅ Loaders implemented and tested (GrokipediaLoader, WikipediaLoader, ExternalAssetsLoader)
 - ✅ Vector database (PineconeRAG) implemented and tested
 - ✅ Content hash utility implemented and tested
 - ✅ Plugin registration working
 - ✅ External assets loading complete (PDF, HTML, media with Gemini)
-- ✅ Bias detection agent tools refactored into modular structure
+- ✅ Bias detection agent tools complete (web_search, google_scholar_search, wikidata_query)
+- ✅ Wikidata query tool with fuzzy search and constraint validation
+- ✅ Wikidata cache system (~21.77 MB) with Git LFS tracking
 - ⚠️ Bias detection agent integration incomplete
 - ⚠️ Plugin integration tests incomplete (TODO placeholders)
+- ⚠️ Wikidata query tool tests incomplete
 
-### 6. Namespace Pattern
+### 7. Namespace Pattern
 Plugins can use `.withNamespace()` to avoid naming collisions:
 ```typescript
 plugin.withNamespace("bias-lens", { middlewares: [...] })
