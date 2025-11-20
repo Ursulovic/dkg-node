@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **@dkg/plugin-bias-lens** is a DKG plugin for detecting and analyzing bias in content from Grokipedia (compared against Wikipedia). It integrates with both MCP (Model Context Protocol) for AI agents and Express REST APIs.
 
+## Code Quality Standards
+
+**MANDATORY RULES - Zero Tolerance:**
+
+1. **No Code Comments**: Do NOT add code comments anywhere in the codebase. Code should be self-documenting through clear naming and structure.
+
+2. **No `any` Type**: NEVER use TypeScript `any` type. Always use proper type definitions, unknown, or generics.
+
+3. **Zero TypeScript Errors**: Always run `npm run check-types` and ensure there are zero TypeScript errors before completing any task.
+
+4. **Test Coverage**: Every new function, class, or feature MUST have corresponding test coverage. No untested code.
+
+5. **Passing Tests**: Always run `npm test` and ensure all tests pass before completing any task. If tests fail, fix them.
+
 ## Development Commands
 
 ### Daily Development
@@ -26,9 +40,114 @@ The application requires two processes in sequence:
 ### Testing Specific Files
 ```bash
 npm test -- tests/loaders/grokipedia.spec.ts    # Test single file
+npm test -- tests/utils/hash.spec.ts            # Test hash utility
 ```
 
 **Important**: The test command uses `mocha --import=tsx` (NOT `--loader`). The `--loader` flag is deprecated and incompatible with tsx/Node.js v22+.
+
+### Adding New Agent Tools
+
+When adding tools to the bias detection agent:
+
+1. Create `src/agents/bias-detector/tools/{tool-name}.ts`:
+```typescript
+import { z } from "zod";
+import { ToolClass } from "@langchain/...";
+
+const toolSchema = z.object({
+  // Define schema
+});
+
+export const myTool = new ToolClass({
+  // Configuration
+}).asTool({
+  name: "tool-name",
+  description: "Detailed description for agent...",
+  schema: toolSchema,
+});
+```
+
+2. Export from `src/agents/bias-detector/tools/index.ts`:
+```typescript
+import { myTool } from "./my-tool.js";
+// Add to tools array
+```
+
+**Pattern**: Declare schema as `const` at file top, then reference in `.asTool()` call. This keeps schema definitions clean and reusable.
+
+### OpenAI Schema Validation Rules
+
+When creating Zod schemas for OpenAI's Structured Output API (used in `src/agents/bias-detector/schema.ts`), follow these critical rules:
+
+**1. No `.default()` in `.required()` Objects**
+
+OpenAI requires ALL properties in a `.required()` object to be explicitly required. Fields with `.default()` are treated as optional, causing validation errors.
+
+```typescript
+z.object({
+  field: z.string().default("value")
+}).required()
+```
+
+Instead, use `.describe()` for documentation without defaults:
+
+```typescript
+z.object({
+  field: z.string().describe("Description of the field")
+}).required()
+```
+
+**2. No `.url()` Validators**
+
+Zod's `.url()` generates JSON Schema with `format: "uri"`, which OpenAI's API doesn't support. Always use `.string()` only:
+
+```typescript
+url: z.string().describe("URL to the source")
+```
+
+**3. No Nested Schema References**
+
+OpenAI's Structured Output doesn't support nested `$ref` schema references. All schemas must be fully inlined at their usage point:
+
+```typescript
+factualErrors: z.array(
+  z.object({
+    claim: z.string().describe("The claim being evaluated"),
+    sources: z.array(
+      z.object({
+        name: z.string().describe("Source name"),
+        url: z.string().describe("Source URL"),
+      }).required()
+    ).describe("Supporting sources")
+  }).required()
+)
+```
+
+Do NOT create reusable schema constants and reference them with composition.
+
+**4. Optional Fields Must Use `.nullish()` or `.nullable().optional()`**
+
+OpenAI's Structured Output API does not support `.optional()` alone. Optional fields must be explicitly nullable:
+
+```typescript
+reason: z.string().optional()
+```
+
+Instead, use `.nullish()` (shorthand for `.nullable().optional()`):
+
+```typescript
+reason: z.string().nullish().describe("Explanation if query cannot be answered")
+```
+
+Or use `.nullable().optional()` explicitly:
+
+```typescript
+reason: z.string().nullable().optional().describe("Explanation")
+```
+
+**5. Always Test with Real API**
+
+After modifying schemas, always test with the actual OpenAI API (run `npx tsx ./run.ts`) to catch validation errors early. Schema errors only appear at runtime, not during TypeScript compilation.
 
 ## Architecture
 
@@ -40,6 +159,45 @@ This plugin uses a **dual-registration architecture** where everything is expose
 2. **HTTP Endpoint**: `api.get("/find-bias-in-grokipedia-page", ...)` - REST clients call this
 
 Both channels invoke the same business logic (`findBiasesInGrokipediaPage`). This design allows the plugin to work in any deployment context.
+
+### Content Hash Utility
+
+**Standalone utility** (`src/utils/hash.ts`) for content versioning and provenance tracking:
+
+```typescript
+import { generateSourceVersions } from "./utils/hash.js";
+
+const versions = await generateSourceVersions(
+  "https://grokipedia.com/page/COVID-19",
+  "https://en.wikipedia.org/wiki/COVID-19"
+);
+```
+
+**Key Features:**
+- Fetches raw HTML from both URLs in parallel
+- Calculates SHA-256 hashes of raw HTML content (not markdown)
+- Fetches Wikipedia revision ID from Wikipedia API for exact version tracking
+- Uses single timestamp for both sources (ensures consistency)
+- Completely independent of loaders (accepts URLs directly)
+
+**Output Structure:**
+```typescript
+{
+  grokipedia: {
+    url: string,
+    accessedAt: string,      // ISO 8601 timestamp
+    pageHash: string         // "sha256:..."
+  },
+  wikipedia: {
+    url: string,
+    accessedAt: string,      // Same timestamp as grokipedia
+    pageHash: string,        // "sha256:..."
+    revisionId: string       // Wikipedia revision ID
+  }
+}
+```
+
+This enables **audit trails**: any bias report can be re-verified against exact page versions using the revision ID and content hash.
 
 ### Plugin Entry Point (`src/index.ts`)
 
@@ -73,6 +231,17 @@ Both loaders follow the same pattern but have different metadata:
 - Returns: `WikipediaDocument[]` with metadata: `{ source: string }`
 - Adds UUID `id` to each document
 - Custom Turndown rules convert relative links to absolute and citations to `[[n]]` format
+
+**Preprocessing Pipeline (Both Loaders):**
+Both loaders apply identical preprocessing to ensure consistent markdown output:
+1. Remove navigation elements (Wikipedia navboxes, Grokipedia menus)
+2. Convert relative URLs to absolute (`/wiki/Page` → `https://en.wikipedia.org/wiki/Page`)
+3. Convert protocol-relative URLs (`//cdn.example.com` → `https://cdn.example.com`)
+4. Flatten table structures and convert to GitHub-flavored markdown
+5. Convert citations to `[[n]]` format
+6. Remove Wikipedia-specific metadata (sortable table keys, hidden elements)
+
+This creates a **unified content representation** that downstream agents consume consistently.
 
 **ExternalAssetsLoader** (`src/loaders/external.ts`):
 - Loads external content (PDFs, HTML pages, images, video, audio) from URLs found in articles
@@ -278,14 +447,14 @@ export type LinkType =
 
 ### Test Structure
 
-Five test files with different purposes:
+Six test files with different purposes:
 
 1. **`tests/loaders/grokipedia.spec.ts`** ✅ Complete
    - Real integration tests against live grokipedia.com
    - URL validation tests (invalid formats, wrong domains)
 
 2. **`tests/loaders/wikipedia.spec.ts`** ✅ Complete
-   - Real network tests via Jina AI
+   - Real network integration tests
    - UUID format validation (RFC 4122 v4)
    - Unique ID generation verification
 
@@ -305,7 +474,15 @@ Five test files with different purposes:
    - Uses Sinon to stub all external API calls (no real network requests)
    - Fast execution (<1 second)
 
-5. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
+5. **`tests/utils/hash.spec.ts`** ✅ Complete
+   - Real integration tests with Wikipedia API
+   - Tests SHA-256 hash calculation (deterministic, handles unicode)
+   - Tests Wikipedia title extraction from various URL formats
+   - Tests Wikipedia revision ID fetching
+   - Tests complete sourceVersions generation with real HTML fetching
+   - Validates timestamp consistency and hash format
+
+6. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
    - Contains TODO placeholders that must be replaced
    - Infrastructure is set up correctly (MCP server/client, Express app)
    - See PLUGIN_TESTING_GUIDE.md for requirements
@@ -347,7 +524,7 @@ According to `packages/PLUGIN_TESTING_GUIDE.md`, all plugins must have:
 
 ### 1. Loader Error Handling Asymmetry
 - **GrokipediaLoader**: Strict URL validation (throws synchronously on invalid URLs)
-- **WikipediaLoader**: No URL validation (accepts any string, relies on Jina AI error handling)
+- **WikipediaLoader**: No URL validation (accepts any string, relies on fetch error handling)
 
 ### 2. OpenAPI Auto-Documentation
 The plugin uses `openAPIRoute()` wrapper which generates Swagger documentation from Zod schemas:
@@ -358,26 +535,211 @@ openAPIRoute({
 })
 ```
 
-### 3. Environment Variables
+### 3. System Requirements
+
+**Development Prerequisites:**
+- **Git LFS** (Large File Storage) - Required for Wikidata cache files (~21.77 MB)
+  - Install: `brew install git-lfs` (macOS) or see detailed instructions in section 5 (Wikidata Query Tool)
+  - Setup: `git lfs install` (one-time)
+  - Verify: `git lfs ls-files` (should show `src/data/wikidata/*.json`)
+  - Without Git LFS: Run `npm run fetch-wikidata-cache` to generate cache locally
+
+**Runtime Dependencies:**
+- Node.js (compatible with the monorepo requirements)
+- npm (for package management)
+
+### 4. Environment Variables
 
 **Required for Vector Database:**
 - `PINECONE_API_KEY` - Pinecone API key (required for RAG functionality)
 - `PINECONE_INDEX` - Pinecone index name (required for RAG functionality)
 - `OPENAI_API_KEY` - OpenAI API key for embeddings (required for RAG functionality)
 
+**Required for Bias Detection Agent:**
+- `SERPAPI_API_KEY` - Google Scholar API (peer-reviewed source verification)
+- `TAVILY_API_KEY` - Web search API (news, events, quotes verification)
+
 **Required for ExternalAssetsLoader:**
 - `GOOGLE_API_KEY` - Google Gemini API key (required for media interpretation: images, video, audio)
 
-### 4. Current Implementation Status
+**Optional for Observability:**
+- `LANGSMITH_TRACING=true` - Enable LangSmith tracing
+- `LANGSMITH_API_KEY` - LangSmith API key
+- `LANGSMITH_PROJECT=plugin-bias-lens` - Project name for trace organization
+
+### 5. Bias Detection Agent Architecture
+
+The bias detection agent (`src/agents/bias-detector/`) implements a sophisticated fact-checking methodology:
+
+**Agent Tools** (`src/agents/bias-detector/tools/`):
+- **web-search.ts** - Tavily API for recent news, events, policy announcements, quotes
+- **google-scholar-search.ts** - SERPAPI for peer-reviewed papers, systematic reviews, academic consensus
+- **wikidata-query.ts** - Wikidata SPARQL endpoint for structured encyclopedia facts (dates, populations, locations, relationships)
+
+**Tool Selection Rules** (enforced by system prompt):
+- Scientific/medical/statistical claims → MUST use `google_scholar_search`
+- Claims citing specific studies → MUST use `google_scholar_search`
+- Structured encyclopedia facts (dates, populations, locations, relationships) → MUST use `wikidata_query`
+- Recent events/news/quotes → Use `web_search`
+- Fallback: `web_search` when Scholar returns no results
+
+**Evidence Hierarchy** (affects confidence scoring):
+```
+peer-reviewed > systematic-review > government > academic-institution >
+major-news-outlet > think-tank > blog-opinion
+```
+
+Every finding includes a `credibilityTier` from this hierarchy. Lower-tier sources reduce confidence scores even when claims are verified.
+
+**Critical Pattern**: The agent is taught to distinguish between:
+- Peer-reviewed paper in journal (peer-reviewed tier)
+- News article ABOUT research (blog-opinion tier)
+- Editorial in journal (blog-opinion tier)
+
+This prevents "citation inflation" where news coverage is mistaken for primary evidence.
+
+#### Wikidata Query Tool (`wikidata-query.ts`)
+
+The Wikidata query tool enables verification of structured encyclopedia facts against authoritative knowledge graph data.
+
+**Architecture:**
+- **PropertyResolver** - Fuzzy search (Fuse.js) over 13,000+ properties with API fallback
+- **ConstraintValidator** - Validates property-entity type compatibility using 77,000+ constraints
+- **EntityTypeResolver** - Determines entity types (Q5=human, Q515=city, etc.)
+- **Entity Resolution** - Searches Wikidata for Q-codes from natural language
+- **SPARQL Execution** - Queries Wikidata with 5s timeout and error handling
+
+**Wikidata Cache** (`src/data/wikidata/` - ~21.77 MB total, tracked with Git LFS):
+- `properties.json` - 13,054 properties with labels, descriptions, aliases (3.40 MB)
+- `constraints.json` - 77,591 property constraints for type validation (18.28 MB)
+- `entity-types.json` - 22 common entity classes (Q5, Q515, Q6256, etc.) (3.59 KB)
+- `qualifiers.json` - 22 common qualifiers (P585, P580, P582, etc.) (4.66 KB)
+- `countries.json` - 235 countries with ISO codes, populations, capitals (35.31 KB)
+- `units.json` - 500 units of measurement (meter, kilogram, etc.) (48.39 KB)
+
+**Git LFS Setup (Required for Development):**
+
+The Wikidata cache files (~21.77 MB) are tracked with Git LFS. Developers must install Git LFS before cloning or pulling the repository.
+
+**Installation:**
+```bash
+# macOS (Homebrew)
+brew install git-lfs
+
+# Ubuntu/Debian
+sudo apt-get install git-lfs
+
+# Fedora/RedHat
+sudo dnf install git-lfs
+
+# Windows (Chocolatey)
+choco install git-lfs
+
+# Or download from: https://git-lfs.github.com/
+```
+
+**Initial Setup (one-time):**
+```bash
+# Initialize Git LFS in your Git configuration
+git lfs install
+
+# Verify LFS is tracking the cache files
+git lfs ls-files
+# Should show: src/data/wikidata/*.json
+```
+
+**Cloning the Repository:**
+```bash
+# Git LFS files download automatically during clone
+git clone <repo-url>
+cd dkg-node/packages/plugin-bias-lens
+
+# Verify cache files are present and correct size
+ls -lh src/data/wikidata/
+# Should show ~21.77 MB total
+```
+
+**Updating the Cache:**
+```bash
+# Fetch latest Wikidata data (requires internet)
+npm run fetch-wikidata-cache
+
+# Commit the updated cache files
+git add src/data/wikidata/*.json
+git commit -m "chore: update Wikidata cache"
+
+# Git LFS handles large files automatically
+git push
+```
+
+**Troubleshooting:**
+
+If cache files appear as small text pointers instead of full files:
+```bash
+# Pull LFS files manually
+git lfs pull
+
+# Check LFS status
+git lfs status
+```
+
+If you cloned before installing Git LFS:
+```bash
+# Install Git LFS (see above)
+git lfs install
+
+# Fetch LFS files
+git lfs fetch
+git lfs checkout
+```
+
+**Without Git LFS:**
+If you cannot install Git LFS, you can generate the cache locally:
+```bash
+npm run fetch-wikidata-cache
+# Generates all cache files in src/data/wikidata/
+# Warning: Do not commit these files without LFS (will bloat repository)
+```
+
+**Usage Patterns:**
+- Founding dates: "When was Tesla Inc. founded?" → P571 (inception)
+- Population: "What is the population of Tokyo?" → P1082
+- CEO relationships: "Who is the CEO of Microsoft?" → P169
+- Geographic facts: "What is the capital of France?" → P36
+
+**Constraint Validation Example:**
+```typescript
+// Query: "What is the date of birth of Tesla Inc.?"
+// ❌ BLOCKED: P569 (date of birth) requires Q5 (human)
+// Tesla Inc. (Q478214) is Q4830453 (business)
+// ✅ SUGGESTED: Use P571 (inception) instead
+```
+
+**Fuzzy Property Matching:**
+- "founded" → finds P571 (inception)
+- "populaton" (typo) → finds P1082 (population)
+- "CEO" → finds P169 (chief executive officer)
+- Unknown properties → fallback to live Wikidata API search
+
+**Source Attribution:**
+- All results include Wikidata entity URLs (e.g., `https://www.wikidata.org/wiki/Q312`)
+- Classified as `credibilityTier: "government"` (Wikimedia Foundation)
+
+### 6. Current Implementation Status
 - ✅ Core infrastructure complete
 - ✅ Loaders implemented and tested (GrokipediaLoader, WikipediaLoader, ExternalAssetsLoader)
 - ✅ Vector database (PineconeRAG) implemented and tested
+- ✅ Content hash utility implemented and tested
 - ✅ Plugin registration working
 - ✅ External assets loading complete (PDF, HTML, media with Gemini)
-- ⚠️ Bias detection is a placeholder (returns "0 biases")
+- ✅ Bias detection agent tools complete (web_search, google_scholar_search, wikidata_query)
+- ✅ Wikidata query tool with fuzzy search and constraint validation
+- ✅ Wikidata cache system (~21.77 MB) with Git LFS tracking
+- ⚠️ Bias detection agent integration incomplete
 - ⚠️ Plugin integration tests incomplete (TODO placeholders)
+- ⚠️ Wikidata query tool tests incomplete
 
-### 5. Namespace Pattern
+### 7. Namespace Pattern
 Plugins can use `.withNamespace()` to avoid naming collisions:
 ```typescript
 plugin.withNamespace("bias-lens", { middlewares: [...] })

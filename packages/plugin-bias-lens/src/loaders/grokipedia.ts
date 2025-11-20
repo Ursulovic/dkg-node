@@ -4,12 +4,12 @@ import { load as cheerioLoad, type CheerioAPI } from "cheerio";
 import TurndownService from "turndown";
 import { tables } from "@joplin/turndown-plugin-gfm";
 
-interface GrokipediaMetadata {
+export interface GrokipediaMetadata {
   source: string;
   title: string;
 }
 
-type GrokipediaDocument = Document<GrokipediaMetadata> & { id: string };
+export type GrokipediaDocument = Document<GrokipediaMetadata> & { id: string };
 
 export class GrokipediaLoader {
   static baseUrl = "https://grokipedia.com";

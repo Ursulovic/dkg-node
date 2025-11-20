@@ -11,27 +11,36 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "npx mocha --import=tsx 'tests/**/*.spec.ts'",
-    "reset-vector-db": "tsx scripts/reset-vector-db.ts"
+    "reset-vector-db": "tsx scripts/reset-vector-db.ts",
+    "fetch-wikidata-cache": "tsx scripts/fetch-wikidata-cache.ts",
+    "update-wikidata-cache": "npm run fetch-wikidata-cache",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@dkg/plugin-swagger": "^0.0.2",
     "@dkg/plugins": "^0.0.2",
     "@joplin/turndown-plugin-gfm": "^1.0.64",
+    "@langchain/community": "^1.0.4",
     "@langchain/core": "^1.0.5",
+    "@langchain/google-genai": "^1.0.1",
     "@langchain/openai": "^1.1.1",
-    "@langchain/pinecone": "^1.0.0",
-    "@langchain/textsplitters": "^1.0.0",
+    "@langchain/tavily": "^1.0.0",
     "@pinecone-database/pinecone": "^5.1.2",
     "cheerio": "^1.1.2",
+    "dotenv": "^16.4.5",
+    "faiss-node": "^0.5.1",
+    "fuse.js": "^7.1.0",
+    "langchain": "^1.0.4",
     "langsmith": "^0.3.75",
     "turndown": "^7.2.2",
-    "zod": "^4.1.12"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
     "@types/sinon": "^21.0.0",
     "@types/turndown": "^5.0.6",
+    "patch-package": "^8.0.1",
     "sinon": "^21.0.0",
     "tsup": "^8.5.0"
   }

@@ -4,21 +4,18 @@ import { load as cheerioLoad, type CheerioAPI } from "cheerio";
 import TurndownService from "turndown";
 import { tables } from "@joplin/turndown-plugin-gfm";
 
-interface WikipediaMetadata {
+export interface WikipediaMetadata {
   source: string;
 }
 
-type WikipediaDocument = Document<WikipediaMetadata> & { id: string };
+export type WikipediaDocument = Document<WikipediaMetadata> & { id: string };
 
 export class WikipediaLoader {
   static baseUrl = "https://en.wikipedia.org";
   private turndownService: TurndownService;
 
   constructor() {
-    this.turndownService = new TurndownService({
-      headingStyle: "atx",
-      codeBlockStyle: "fenced",
-    });
+    this.turndownService = new TurndownService();
 
     // Remove style tags to prevent CSS from appearing in markdown
     this.turndownService.remove("style");
@@ -156,7 +153,7 @@ export class WikipediaLoader {
       {
         id: randomUUID(),
         metadata: {
-          source: url,
+          source: url.toString(),
         },
         pageContent: markdown,
       },

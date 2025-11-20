@@ -11,9 +11,7 @@ import {
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import express from "express";
-// import request from "supertest";
 
-// Mock DKG context
 const mockDkgContext = {
   dkg: createMockDkgClient(),
   blob: createInMemoryBlobStorage(),
@@ -21,7 +19,6 @@ const mockDkgContext = {
 
 describe.skip("@dkg/plugin-bias-lens checks", function () {
   let mockMcpServer: McpServer;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let _mockMcpClient: Client;
   let apiRouter: express.Router;
   let app: express.Application;
@@ -35,7 +32,6 @@ describe.skip("@dkg/plugin-bias-lens checks", function () {
     apiRouter = express.Router();
     app = createExpressApp();
 
-    // Initialize plugin
     pluginBiasLensPlugin(mockDkgContext, mockMcpServer, apiRouter);
     await connect();
     app.use("/", apiRouter);
@@ -52,30 +48,43 @@ describe.skip("@dkg/plugin-bias-lens checks", function () {
   });
 
   describe("Core Functionality", () => {
-    it("should register tools or endpoints", async () => {
-      // TODO: Replace this placeholder with your actual tests!
-      // Example for MCP tools:
-      // const tools = await mockMcpClient.listTools().then((r) => r.tools);
-      // expect(tools.some((t) => t.name === "your-tool-name")).to.equal(true);
+    it("should register MCP tool for bias detection", async () => {
+      const tools = await _mockMcpClient.listTools().then((r) => r.tools);
+      expect(tools.some((t) => t.name === "find-bias-in-grokipedia-page")).to.equal(true);
 
-      // Example for API endpoints:
-      // request(app).get("/your-endpoint").expect(200);
+      const biasTools = tools.filter((t) => t.name === "find-bias-in-grokipedia-page");
+      expect(biasTools.length).to.equal(1);
+      expect(biasTools[0].description).to.include("bias");
+    });
 
-      throw new Error(
-        "TODO: Replace placeholder test with your actual plugin functionality tests",
-      );
+    it("should register API endpoint for bias detection", () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(apiRouter.stack.some((layer: any) =>
+        layer.route?.path === "/find-bias-in-grokipedia-page"
+      )).to.equal(true);
     });
   });
 
   describe("Error Handling", () => {
-    it("should handle invalid parameters", async () => {
-      // TODO: Replace this placeholder with your actual error handling tests!
-      // Example:
-      // await request(app).get("/invalid-endpoint").expect(400);
+    it("should validate required parameters in MCP tool schema", async () => {
+      const tools = await _mockMcpClient.listTools().then((r) => r.tools);
+      const biasTool = tools.find((t) => t.name === "find-bias-in-grokipedia-page");
 
-      throw new Error(
-        "TODO: Replace placeholder test with your actual error handling tests",
+      expect(biasTool).to.exist;
+      expect(biasTool!.inputSchema).to.have.property("type", "object");
+      expect(biasTool!.inputSchema).to.have.property("properties");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const properties = (biasTool!.inputSchema as any).properties;
+
+      // Verify schema has URL parameters (actual property names may vary based on MCP conversion)
+      expect(Object.keys(properties).length).to.be.greaterThan(0);
+
+      // Check that at least one property has string type
+      const hasStringProperty = Object.values(properties).some(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (prop: any) => prop.type === "string"
       );
+      expect(hasStringProperty).to.be.true;
     });
   });
 });

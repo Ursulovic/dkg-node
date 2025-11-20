@@ -1,0 +1,32 @@
+diff --git a/node_modules/@langchain/community/dist/tools/wikipedia_query_run.cjs b/node_modules/@langchain/community/dist/tools/wikipedia_query_run.cjs
+index 1234567..abcdefg 100644
+--- a/node_modules/@langchain/community/dist/tools/wikipedia_query_run.cjs
++++ b/node_modules/@langchain/community/dist/tools/wikipedia_query_run.cjs
+@@ -92,7 +92,10 @@ class WikipediaQueryRun extends Tool {
+ 			const page = searchResults.query.search[i].title;
+ 			const pageDetails = await this._fetchPage(page, true);
+ 			if (pageDetails) {
+-				const summary = `Page: ${page}\nSummary: ${pageDetails.extract}`;
++				const encodedTitle = page.replace(/ /g, '_');
++				const baseWikiUrl = this.baseUrl.replace('/w/api.php', '');
++				const pageUrl = `${baseWikiUrl}/wiki/${encodedTitle}`;
++				const summary = `Page: ${page}\nURL: ${pageUrl}\nSummary: ${pageDetails.extract}`;
+ 				summaries.push(summary);
+ 			}
+ 		}
+diff --git a/node_modules/@langchain/community/dist/tools/wikipedia_query_run.js b/node_modules/@langchain/community/dist/tools/wikipedia_query_run.js
+index 1234567..abcdefg 100644
+--- a/node_modules/@langchain/community/dist/tools/wikipedia_query_run.js
++++ b/node_modules/@langchain/community/dist/tools/wikipedia_query_run.js
+@@ -92,7 +92,10 @@ class WikipediaQueryRun extends Tool {
+ 			const page = searchResults.query.search[i].title;
+ 			const pageDetails = await this._fetchPage(page, true);
+ 			if (pageDetails) {
+-				const summary = `Page: ${page}\nSummary: ${pageDetails.extract}`;
++				const encodedTitle = page.replace(/ /g, '_');
++				const baseWikiUrl = this.baseUrl.replace('/w/api.php', '');
++				const pageUrl = `${baseWikiUrl}/wiki/${encodedTitle}`;
++				const summary = `Page: ${page}\nURL: ${pageUrl}\nSummary: ${pageDetails.extract}`;
+ 				summaries.push(summary);
+ 			}
+ 		}
