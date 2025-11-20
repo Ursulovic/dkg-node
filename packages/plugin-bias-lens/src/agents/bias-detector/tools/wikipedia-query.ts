@@ -2,8 +2,8 @@ import { WikipediaQueryRun } from "@langchain/community/tools/wikipedia_query_ru
 import z from "zod";
 
 export const wikipediaSearchTool = new WikipediaQueryRun({
-  topKResults: 7,
-  maxDocContentLength: 5000,
+  topKResults: 5,
+  maxDocContentLength: 4000,
 }).asTool({
   name: "wikipedia_query",
   description: "Use when you want to query wikipedia with natural language",
