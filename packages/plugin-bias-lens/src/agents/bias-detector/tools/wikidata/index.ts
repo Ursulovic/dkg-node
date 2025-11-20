@@ -2,45 +2,51 @@ import { z } from 'zod';
 import { DynamicStructuredTool } from '@langchain/core/tools';
 import { wikidataQueryHandler } from './handler';
 
-const wikidataQuerySchema = z.object({
-  entity: z
+const textToWikidataSparqlSchema = z.object({
+  query: z
     .string()
     .describe(
-      'The exact name of the entity to query (person, organization, location, etc.). Examples: "George Floyd", "Tesla Inc", "Paris", "Mount Everest", "Elon Musk", "Microsoft"',
-    ),
-  property: z
-    .string()
-    .describe(
-      'The property to query about the entity. Use descriptive names like: "inception" (founding date), "date of birth", "date of death", "population", "area", "height", "chief executive officer" (CEO), "founder", "headquarters location", "capital", "country of citizenship" (nationality), "occupation". Fuzzy matching supported.',
+      'Natural language question about a Wikidata entity. Be specific about both the entity and what you want to know. Examples: "When did George Floyd die?", "What is the population of Tokyo?", "Who founded Tesla?", "What is the cause of death of George Floyd?"',
     ),
 });
 
-export const wikidataQueryTool = new DynamicStructuredTool({
-  name: 'wikidata_query',
-  description: `Query Wikidata's structured knowledge base for factual verification of encyclopedia-style claims.
+export const textToWikidataSparqlTool = new DynamicStructuredTool({
+  name: 'text_to_wikidata_sparql',
+  description: `Natural language interface to Wikidata's knowledge graph for verifying encyclopedia-style factual claims.
 
-Provide the entity name and property separately for precise lookups.
+Ask questions in plain English and get authoritative answers from Wikidata's structured knowledge base.
 
-Use for:
-1. Dates: entity="Tesla Inc", property="inception" (founding date)
-2. Personal facts: entity="Einstein", property="date of birth"
-3. Numerical facts: entity="Tokyo", property="population"
-4. Relationships: entity="Microsoft", property="chief executive officer"
-5. Geographic data: entity="France", property="area"
-6. Personal attributes: entity="Marie Curie", property="occupation"
+WHEN TO USE:
+- Verifying dates (births, deaths, founding dates, historical events)
+- Checking biographical facts (occupation, nationality, education)
+- Validating relationships (CEO of company, capital of country, founder of organization)
+- Confirming numerical facts (population, area, height, distance)
+- Geographic data (location, coordinates, elevation)
 
-Features:
-- Separate entity and property inputs (no parsing ambiguity)
-- Fuzzy property matching (handles typos and variations)
-- Automatic entity type validation
-- Authoritative structured data with provenance
+EXAMPLES:
+✓ "When was Tesla founded?" → Returns inception date with Wikidata source
+✓ "What is the cause of death of George Floyd?" → Returns medical cause with references
+✓ "Who is the CEO of Microsoft?" → Returns current CEO with verification
+✓ "What is the population of Paris?" → Returns latest population data
+✓ "Where was Albert Einstein born?" → Returns birthplace
 
-NOT for:
-- Scientific research findings (use google_scholar_search)
-- Recent news/events (use web_search)
-- Opinions or subjective claims
+HOW IT WORKS:
+- Accepts natural language queries (no need to parse entity/property yourself)
+- Handles entity resolution automatically (finds Q-codes)
+- Generates valid SPARQL queries using AI
+- Returns structured data with Wikidata URLs for verification
+- Gracefully handles ambiguous or unanswerable queries
 
-Returns structured facts with Wikidata entity URLs and references.`,
-  schema: wikidataQuerySchema,
+NOT FOR:
+- Scientific research findings → Use google_scholar_search instead
+- Recent news/events → Use web_search instead
+- Opinions or subjective claims → Not verifiable in knowledge graphs
+- Complex aggregations → Single fact lookups only
+
+RELIABILITY:
+- Never returns hard errors for valid questions
+- Provides helpful error messages for clarification
+- All results include Wikidata entity URLs for manual verification`,
+  schema: textToWikidataSparqlSchema,
   func: wikidataQueryHandler,
 });

@@ -7,7 +7,8 @@ import systemPrompt from "./prompt";
 import responseFormat from "./schema";
 import { webSearchTool } from "./tools/web-search";
 import { googleScholarSearchTool } from "./tools/google-scholar-search";
-import { wikidataQueryTool } from "./tools/wikidata";
+// import { textToWikidataSparqlTool } from "./tools/wikidata"; - WIP
+import { wikipediaSearchTool } from "./tools/wikipedia-query";
 
 const model = new ChatOpenAI({
   model: "gpt-4.1",
@@ -19,7 +20,7 @@ const model = new ChatOpenAI({
 export default createAgent({
   name: "bias-detector",
   model,
-  tools: [webSearchTool, googleScholarSearchTool, wikidataQueryTool],
+  tools: [webSearchTool, googleScholarSearchTool, wikipediaSearchTool],
   contextSchema: z.object({}),
   responseFormat,
   systemPrompt,

@@ -125,7 +125,27 @@ factualErrors: z.array(
 
 Do NOT create reusable schema constants and reference them with composition.
 
-**4. Always Test with Real API**
+**4. Optional Fields Must Use `.nullish()` or `.nullable().optional()`**
+
+OpenAI's Structured Output API does not support `.optional()` alone. Optional fields must be explicitly nullable:
+
+```typescript
+reason: z.string().optional()
+```
+
+Instead, use `.nullish()` (shorthand for `.nullable().optional()`):
+
+```typescript
+reason: z.string().nullish().describe("Explanation if query cannot be answered")
+```
+
+Or use `.nullable().optional()` explicitly:
+
+```typescript
+reason: z.string().nullable().optional().describe("Explanation")
+```
+
+**5. Always Test with Real API**
 
 After modifying schemas, always test with the actual OpenAI API (run `npx tsx ./run.ts`) to catch validation errors early. Schema errors only appear at runtime, not during TypeScript compilation.
 

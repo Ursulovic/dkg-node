@@ -23,20 +23,12 @@ export interface EntityClass {
 }
 
 export interface WikidataQueryInput {
-  entity: string;
-  property: string;
+  query: string;
 }
 
 export interface WikidataQueryResult {
   success: boolean;
-  data?: {
-    property: string;
-    value: string | number;
-    qualifiers?: Record<string, unknown>;
-    wikidataEntityId: string;
-    wikidataUrl: string;
-    references?: string[];
-  };
+  response: string;
   error?: string;
 }
 
@@ -50,7 +42,7 @@ export interface SparqlBinding {
   type: string;
   value: string;
   datatype?: string;
-  'xml:lang'?: string;
+  "xml:lang"?: string;
 }
 
 export interface SparqlResult {

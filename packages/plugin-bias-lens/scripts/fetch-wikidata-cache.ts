@@ -1,5 +1,10 @@
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import "dotenv/config";
+
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { Document } from "@langchain/core/documents";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { FaissStore } from "@langchain/community/vectorstores/faiss";
 
 interface WikidataProperty {
   id: string;
@@ -52,23 +57,26 @@ async function sparqlQuery(query: string): Promise<unknown> {
   const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'plugin-bias-lens/1.0 (https://github.com/origintrail/dkg-node)',
+      "User-Agent":
+        "plugin-bias-lens/1.0 (https://github.com/origintrail/dkg-node)",
     },
   });
 
   if (!response.ok) {
-    throw new Error(`SPARQL query failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `SPARQL query failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();
 }
 
 function extractId(uri: string): string {
-  return uri.split('/').pop() || '';
+  return uri.split("/").pop() || "";
 }
 
 async function fetchAllProperties(): Promise<WikidataProperty[]> {
-  console.log('Fetching all properties...');
+  console.log("Fetching all properties...");
 
   const query = `
     PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -92,13 +100,15 @@ async function fetchAllProperties(): Promise<WikidataProperty[]> {
     id: extractId(binding.p.value),
     label: binding.pLabel.value,
     description: binding.description?.value,
-    aliases: binding.aliases?.value ? binding.aliases.value.split('|').filter(Boolean) : [],
+    aliases: binding.aliases?.value
+      ? binding.aliases.value.split("|").filter(Boolean)
+      : [],
     datatype: extractId(binding.datatype.value),
   }));
 }
 
 async function fetchPropertyConstraints(): Promise<PropertyConstraint[]> {
-  console.log('Fetching property constraints...');
+  console.log("Fetching property constraints...");
 
   const query = `
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -146,42 +156,48 @@ async function fetchPropertyConstraints(): Promise<PropertyConstraint[]> {
     propertyId: extractId(binding.property.value),
     constraintType: extractId(binding.constraintType.value),
     constraintTypeLabel: binding.constraintTypeLabel.value,
-    subjectTypes: binding.subjectTypes?.value?.split('|').map(extractId).filter(Boolean),
-    valueTypes: binding.valueTypes?.value?.split('|').map(extractId).filter(Boolean),
+    subjectTypes: binding.subjectTypes?.value
+      ?.split("|")
+      .map(extractId)
+      .filter(Boolean),
+    valueTypes: binding.valueTypes?.value
+      ?.split("|")
+      .map(extractId)
+      .filter(Boolean),
     formatPattern: binding.formatPattern?.value,
   }));
 }
 
 async function fetchEntityClasses(): Promise<EntityClass[]> {
-  console.log('Fetching common entity classes...');
+  console.log("Fetching common entity classes...");
 
   const commonClasses = [
-    'Q5',
-    'Q515',
-    'Q6256',
-    'Q4830453',
-    'Q3918',
-    'Q11173',
-    'Q16521',
-    'Q523',
-    'Q3918',
-    'Q891723',
-    'Q3024240',
-    'Q95074',
-    'Q15632617',
-    'Q7187',
-    'Q8502',
-    'Q12136',
-    'Q4167410',
-    'Q27',
-    'Q43229',
-    'Q11424',
+    "Q5",
+    "Q515",
+    "Q6256",
+    "Q4830453",
+    "Q3918",
+    "Q11173",
+    "Q16521",
+    "Q523",
+    "Q3918",
+    "Q891723",
+    "Q3024240",
+    "Q95074",
+    "Q15632617",
+    "Q7187",
+    "Q8502",
+    "Q12136",
+    "Q4167410",
+    "Q27",
+    "Q43229",
+    "Q11424",
   ];
 
   const query = `
     SELECT ?class ?classLabel ?description
     WHERE {
-      VALUES ?class { ${commonClasses.map((id) => `wd:${id}`).join(' ')} }
+      VALUES ?class { ${commonClasses.map((id) => `wd:${id}`).join(" ")} }
       OPTIONAL { ?class schema:description ?description FILTER (LANG(?description) = "en") }
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
@@ -198,35 +214,35 @@ async function fetchEntityClasses(): Promise<EntityClass[]> {
 }
 
 async function fetchCommonQualifiers(): Promise<Qualifier[]> {
-  console.log('Fetching common qualifiers...');
+  console.log("Fetching common qualifiers...");
 
   const commonQualifiers = [
-    'P585',
-    'P580',
-    'P582',
-    'P1319',
-    'P1326',
-    'P518',
-    'P642',
-    'P1706',
-    'P3831',
-    'P1365',
-    'P1366',
-    'P1545',
-    'P2241',
-    'P7452',
-    'P5102',
-    'P1810',
-    'P805',
-    'P1013',
-    'P518',
-    'P1001',
+    "P585",
+    "P580",
+    "P582",
+    "P1319",
+    "P1326",
+    "P518",
+    "P642",
+    "P1706",
+    "P3831",
+    "P1365",
+    "P1366",
+    "P1545",
+    "P2241",
+    "P7452",
+    "P5102",
+    "P1810",
+    "P805",
+    "P1013",
+    "P518",
+    "P1001",
   ];
 
   const query = `
     SELECT ?qualifier ?qualifierLabel ?description
     WHERE {
-      VALUES ?qualifier { ${commonQualifiers.map((id) => `wd:${id}`).join(' ')} }
+      VALUES ?qualifier { ${commonQualifiers.map((id) => `wd:${id}`).join(" ")} }
       OPTIONAL { ?qualifier schema:description ?description FILTER (LANG(?description) = "en") }
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
@@ -243,7 +259,7 @@ async function fetchCommonQualifiers(): Promise<Qualifier[]> {
 }
 
 async function fetchCountries(): Promise<Country[]> {
-  console.log('Fetching all countries...');
+  console.log("Fetching all countries...");
 
   const query = `
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -265,14 +281,16 @@ async function fetchCountries(): Promise<Country[]> {
     id: extractId(binding.country.value),
     label: binding.countryLabel.value,
     isoCode: binding.iso?.value,
-    population: binding.population ? parseInt(binding.population.value, 10) : undefined,
+    population: binding.population
+      ? parseInt(binding.population.value, 10)
+      : undefined,
     capital: binding.capital ? extractId(binding.capital.value) : undefined,
     capitalLabel: binding.capitalLabel?.value,
   }));
 }
 
 async function fetchCommonUnits(): Promise<Unit[]> {
-  console.log('Fetching common units of measurement...');
+  console.log("Fetching common units of measurement...");
 
   const query = `
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -299,11 +317,133 @@ async function fetchCommonUnits(): Promise<Unit[]> {
   }));
 }
 
+function convertToDocuments(data: any[], type: string): Document[] {
+  switch (type) {
+    case "property": {
+      return (data as WikidataProperty[]).map(
+        (prop) =>
+          new Document({
+            pageContent: `${prop.label}${prop.description ? `: ${prop.description}` : ""}${
+              prop.aliases.length > 0
+                ? `. Also known as: ${prop.aliases.join(", ")}`
+                : ""
+            }`,
+            metadata: {
+              id: prop.id,
+              type: "property",
+              label: prop.label,
+              description: prop.description,
+              aliases: prop.aliases,
+              datatype: prop.datatype,
+            },
+          }),
+      );
+    }
+    case "constraint": {
+      return (data as PropertyConstraint[]).map(
+        (constraint) =>
+          new Document({
+            pageContent: `Property ${constraint.propertyId} has constraint: ${constraint.constraintTypeLabel}${
+              constraint.subjectTypes
+                ? `. Valid for entity types: ${constraint.subjectTypes.join(", ")}`
+                : ""
+            }${
+              constraint.valueTypes
+                ? `. Valid value types: ${constraint.valueTypes.join(", ")}`
+                : ""
+            }`,
+            metadata: {
+              type: "constraint",
+              propertyId: constraint.propertyId,
+              constraintType: constraint.constraintType,
+              constraintTypeLabel: constraint.constraintTypeLabel,
+              subjectTypes: constraint.subjectTypes,
+              valueTypes: constraint.valueTypes,
+              formatPattern: constraint.formatPattern,
+            },
+          }),
+      );
+    }
+    case "entity-type": {
+      return (data as EntityClass[]).map(
+        (entityClass) =>
+          new Document({
+            pageContent: `${entityClass.label}${entityClass.description ? `: ${entityClass.description}` : ""}`,
+            metadata: {
+              id: entityClass.id,
+              type: "entity-type",
+              label: entityClass.label,
+              description: entityClass.description,
+              instanceCount: entityClass.instanceCount,
+            },
+          }),
+      );
+    }
+    case "qualifier": {
+      return (data as Qualifier[]).map(
+        (qualifier) =>
+          new Document({
+            pageContent: `${qualifier.label}${qualifier.description ? `: ${qualifier.description}` : ""}`,
+            metadata: {
+              id: qualifier.id,
+              type: "qualifier",
+              label: qualifier.label,
+              description: qualifier.description,
+              usageCount: qualifier.usageCount,
+            },
+          }),
+      );
+    }
+    case "country": {
+      return (data as Country[]).map(
+        (country) =>
+          new Document({
+            pageContent: `${country.label}${country.isoCode ? ` (${country.isoCode})` : ""}${
+              country.population ? `. Population: ${country.population}` : ""
+            }${country.capitalLabel ? `. Capital: ${country.capitalLabel}` : ""}`,
+            metadata: {
+              id: country.id,
+              type: "country",
+              label: country.label,
+              isoCode: country.isoCode,
+              population: country.population,
+              capital: country.capital,
+              capitalLabel: country.capitalLabel,
+            },
+          }),
+      );
+    }
+    case "unit": {
+      return (data as Unit[]).map(
+        (unit) =>
+          new Document({
+            pageContent: `${unit.label}${unit.symbol ? ` (${unit.symbol})` : ""}${
+              unit.description ? `: ${unit.description}` : ""
+            }`,
+            metadata: {
+              id: unit.id,
+              type: "unit",
+              label: unit.label,
+              description: unit.description,
+              symbol: unit.symbol,
+            },
+          }),
+      );
+    }
+    default:
+      return [];
+  }
+}
+
 async function main() {
   try {
-    const outputDir = join(process.cwd(), 'src/data/wikidata');
+    const outputDir = join(
+      process.cwd(),
+      "src/agents/bias-detector/tools/wikidata",
+    );
     mkdirSync(outputDir, { recursive: true });
 
+    console.log("\n=== Fetching Wikidata ===");
     const properties = await fetchAllProperties();
     const constraints = await fetchPropertyConstraints();
     const entityClasses = await fetchEntityClasses();
@@ -311,48 +451,43 @@ async function main() {
     const countries = await fetchCountries();
     const units = await fetchCommonUnits();
 
-    const files = [
-      { name: 'properties.json', data: properties },
-      { name: 'constraints.json', data: constraints },
-      { name: 'entity-types.json', data: entityClasses },
-      { name: 'qualifiers.json', data: qualifiers },
-      { name: 'countries.json', data: countries },
-      { name: 'units.json', data: units },
+    console.log("\n=== Converting to Documents ===");
+    const documents: Document[] = [
+      ...convertToDocuments(properties, "property"),
+      ...convertToDocuments(constraints, "constraint"),
+      ...convertToDocuments(entityClasses, "entity-type"),
+      ...convertToDocuments(qualifiers, "qualifier"),
+      ...convertToDocuments(countries, "country"),
+      ...convertToDocuments(units, "unit"),
     ];
 
-    console.log('\n=== Cache Statistics ===');
-    for (const { name, data } of files) {
-      const filePath = join(outputDir, name);
-      const json = JSON.stringify(data, null, 2);
-      writeFileSync(filePath, json);
+    console.log(`\n✓ Created ${documents.length} documents`);
+    console.log(`  - Properties: ${properties.length}`);
+    console.log(`  - Constraints: ${constraints.length}`);
+    console.log(`  - Entity Types: ${entityClasses.length}`);
+    console.log(`  - Qualifiers: ${qualifiers.length}`);
+    console.log(`  - Countries: ${countries.length}`);
+    console.log(`  - Units: ${units.length}`);
 
-      const sizeKB = (json.length / 1024).toFixed(2);
-      const sizeMB = (json.length / 1024 / 1024).toFixed(2);
-      console.log(
-        `✓ ${name.padEnd(20)} - ${Array.isArray(data) ? data.length : 'N/A'} items - ${
-          parseFloat(sizeMB) >= 1 ? `${sizeMB} MB` : `${sizeKB} KB`
-        }`,
-      );
-    }
+    console.log("\n=== Creating Vector Index ===");
+    console.log("Embedding documents (this may take a few minutes)...");
 
-    const totalSize = files.reduce(
-      (sum, { data }) => sum + JSON.stringify(data, null, 2).length,
-      0,
+    const embeddings = new OpenAIEmbeddings({
+      modelName: "text-embedding-3-small",
+    });
+
+    const vectorStore = await FaissStore.fromDocuments(documents, embeddings);
+
+    const indexPath = join(outputDir, "wikidata-index");
+    await vectorStore.save(indexPath);
+
+    console.log(`\n✓ Vector index saved to ${indexPath}`);
+    console.log("\n✓ Wikidata cache generated successfully!");
+    console.log(
+      "\nℹ️  The old JSON files in src/data/wikidata/ can now be deleted.",
     );
-    const totalMB = (totalSize / 1024 / 1024).toFixed(2);
-
-    console.log('\n=== Total Cache Size ===');
-    console.log(`${totalMB} MB`);
-
-    if (parseFloat(totalMB) > 5) {
-      console.log('\n⚠️  Cache size exceeds 5 MB. Consider using Git LFS:');
-      console.log('   git lfs track "src/data/wikidata/*.json"');
-      console.log('   git add .gitattributes');
-    }
-
-    console.log(`\n✓ Wikidata cache generated successfully in ${outputDir}`);
   } catch (error) {
-    console.error('Error fetching Wikidata cache:', error);
+    console.error("Error fetching Wikidata cache:", error);
     process.exit(1);
   }
 }

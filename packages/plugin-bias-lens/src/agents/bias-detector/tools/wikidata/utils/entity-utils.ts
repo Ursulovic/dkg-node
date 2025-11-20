@@ -1,19 +1,24 @@
-import type { EntityResolution } from '../types';
+import type { EntityResolution } from "../types";
 
-export async function resolveEntity(entityName: string): Promise<EntityResolution | null> {
+export async function resolveEntity(
+  entityName: string,
+): Promise<EntityResolution | null> {
   const params = new URLSearchParams({
-    action: 'wbsearchentities',
-    format: 'json',
-    language: 'en',
-    type: 'item',
+    action: "wbsearchentities",
+    format: "json",
+    language: "en",
+    type: "item",
     search: entityName,
-    limit: '1',
+    limit: "1",
   });
 
   try {
-    const response = await fetch(`https://www.wikidata.org/w/api.php?${params}`);
-    const data: { search?: { id: string; label: string; description?: string }[] } =
-      await response.json();
+    const response = await fetch(
+      `https://www.wikidata.org/w/api.php?${params}`,
+    );
+    const data: {
+      search?: { id: string; label: string; description?: string }[];
+    } = await response.json();
 
     if (data.search && data.search[0]) {
       return {
