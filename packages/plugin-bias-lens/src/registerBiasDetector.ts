@@ -1,6 +1,3 @@
-// import { setMaxListeners } from "events";
-// setMaxListeners(0);
-
 import { type DkgPlugin } from "@dkg/plugins";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
 
@@ -12,7 +9,7 @@ import { GrokipediaLoader } from "./loaders/grokipedia";
 const title = "Detect Bias";
 const name = "detect-bias";
 const description =
-  "Runs a deep analysis of Grokipedia page against given Wikipedia page and produces high-quality bias report knowledge asset. You will receive this knowledge asset as valid JSONLD and offer user to save it to DKG using your existing tools. When offering user to save it to DKG you need to ask whether this is a public or private note and all relevant questions needed for saving to DKG operation. Do not change the given JSONLD except setting public/private. Note: You can use this tool directly if user pastes you both urls, also if user pastes just a single grokipedia/wikipedia url call the research-topic topic tool with a query that includes given url.";
+  "Runs a deep analysis of Grokipedia page against given Wikipedia page and produceshigh-quality bias report knowledge asset. You will receive this knowledge asset as valid JSONLD and offer user to save it to DKG using your existing tools. When offering user to save it to DKG you need to ask whether this is a public or private note and all relevant questions needed for saving to DKG operation. Do not change the given JSONLD except setting public/private. Note: You can use this tool directly if user pastes you both urls, also if user pastes just a single grokipedia/wikipedia url call the research-topic topic tool with a query that includes given url.";
 const inputSchema = {
   grokipediaUrl: z.string().describe("Grokipedia URL to analyze for bias"),
   wikipediaUrl: z
