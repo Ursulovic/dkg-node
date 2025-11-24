@@ -1,10 +1,18 @@
-import type { SparqlResult, WikidataQueryResult } from '../types';
+import type { SparqlResult } from '../types';
+
+interface WikidataResponseData {
+  property: string;
+  value: string | number;
+  wikidataEntityId: string;
+  wikidataUrl: string;
+  references: unknown[];
+}
 
 export function parseWikidataResponse(
   sparqlResult: SparqlResult,
   entityId: string,
   propertyLabel: string,
-): WikidataQueryResult['data'] | null {
+): WikidataResponseData | null {
   if (!sparqlResult.results.bindings || sparqlResult.results.bindings.length === 0) {
     return null;
   }

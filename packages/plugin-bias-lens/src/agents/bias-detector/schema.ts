@@ -128,6 +128,26 @@ const BiasDetectionReportSchema = z
                       .describe(
                         "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
                       ),
+                    authors: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Comma-separated author names (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    snippet: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Abstract or summary text (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    totalCitations: z
+                      .number()
+                      .int()
+                      .nonnegative()
+                      .nullish()
+                      .describe(
+                        "Total citation count (from Google Scholar). Higher citations = stronger evidence. Null for non-Scholar sources.",
+                      ),
                   })
                   .required(),
               )
@@ -135,10 +155,17 @@ const BiasDetectionReportSchema = z
               .describe(
                 "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
               ),
-            toolUsed: z
-              .enum(["google_scholar_search", "web_search", "both"])
+            toolsUsed: z
+              .array(
+                z.enum([
+                  "google_scholar_search",
+                  "web_search",
+                  "wikipedia_query",
+                ]),
+              )
+              .min(1)
               .describe(
-                "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
+                "Array of verification tools used for this claim: google_scholar_search for scientific claims, web_search for news/events, wikipedia_query for encyclopedia facts. Multiple tools indicate cross-verification.",
               ),
             section: z
               .string()
@@ -198,6 +225,26 @@ const BiasDetectionReportSchema = z
                       .describe(
                         "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
                       ),
+                    authors: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Comma-separated author names (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    snippet: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Abstract or summary text (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    totalCitations: z
+                      .number()
+                      .int()
+                      .nonnegative()
+                      .nullish()
+                      .describe(
+                        "Total citation count (from Google Scholar). Higher citations = stronger evidence. Null for non-Scholar sources.",
+                      ),
                   })
                   .required(),
               )
@@ -205,10 +252,17 @@ const BiasDetectionReportSchema = z
               .describe(
                 "Array of authoritative sources supporting this finding. Multiple sources strengthen verification.",
               ),
-            toolUsed: z
-              .enum(["google_scholar_search", "web_search", "both"])
+            toolsUsed: z
+              .array(
+                z.enum([
+                  "google_scholar_search",
+                  "web_search",
+                  "wikipedia_query",
+                ]),
+              )
+              .min(1)
               .describe(
-                "Which verification tool was used: google_scholar_search for scientific claims, web_search for news/events, both for controversial topics",
+                "Array of verification tools used for this claim: google_scholar_search for scientific claims, web_search for news/events, wikipedia_query for encyclopedia facts. Multiple tools indicate cross-verification.",
               ),
             section: z
               .string()
@@ -264,6 +318,26 @@ const BiasDetectionReportSchema = z
                       ])
                       .describe(
                         "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+                      ),
+                    authors: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Comma-separated author names (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    snippet: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Abstract or summary text (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    totalCitations: z
+                      .number()
+                      .int()
+                      .nonnegative()
+                      .nullish()
+                      .describe(
+                        "Total citation count (from Google Scholar). Higher citations = stronger evidence. Null for non-Scholar sources.",
                       ),
                   })
                   .required(),
@@ -326,6 +400,26 @@ const BiasDetectionReportSchema = z
                       ])
                       .describe(
                         "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion",
+                      ),
+                    authors: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Comma-separated author names (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    snippet: z
+                      .string()
+                      .nullish()
+                      .describe(
+                        "Abstract or summary text (from Google Scholar). Null for non-Scholar sources.",
+                      ),
+                    totalCitations: z
+                      .number()
+                      .int()
+                      .nonnegative()
+                      .nullish()
+                      .describe(
+                        "Total citation count (from Google Scholar). Higher citations = stronger evidence. Null for non-Scholar sources.",
                       ),
                   })
                   .required(),

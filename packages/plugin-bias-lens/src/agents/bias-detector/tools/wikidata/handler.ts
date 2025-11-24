@@ -91,6 +91,7 @@ export async function wikidataQueryHandler(
     console.error("Wikidata query handler error:", error);
     return {
       success: false,
+      response: "",
       error:
         "An unexpected error occurred while processing your query. Please try again or rephrase your question.",
     };
