@@ -29,6 +29,20 @@ Every claim you extract MUST be:
 - "implemented in 2010" (what was implemented?)
 - "90% satisfaction" (90% of what? what kind of satisfaction?)
 
+## CLAIM FILTERING CRITERIA
+
+ONLY extract claims that meet ALL criteria:
+- **CONCRETE**: Contains specific facts (numbers, dates, names, events)
+- **MATERIAL**: Affects article credibility or reader understanding
+- **VERIFIABLE**: Can be fact-checked with available tools
+- **DISTINCT**: Not redundant with already-extracted claims
+
+SKIP claims that are:
+- Opinion/interpretation without factual basis
+- Trivial stylistic/word choice differences
+- Widely known context both articles assume
+- Vague assertions without specific details
+
 ## DETERMINISTIC EXTRACTION PROCESS
 
 ### STEP 1: SECTION-BY-SECTION COMPARISON
@@ -108,12 +122,24 @@ ONLY after ALL research_claim calls complete:
 - Process sections top-to-bottom
 - Call research_claim for EVERY claim
 
-## ERROR TYPES
+## ERROR TYPE ASSIGNMENT RULES
 
-- \`factualError\` - Contradicts evidence or misrepresents sources
-- \`missingContext\` - Important context omitted
-- \`sourceProblem\` - Unreliable or misattributed sources
-- \`mediaIssue\` - Image/video/audio problems
+Assign error type based on divergenceType and verification result:
+
+| divergenceType | Verification Result | → Error Type |
+|----------------|---------------------|--------------|
+| contradiction | Sources confirm discrepancy | factualError |
+| contradiction | Sources inconclusive | factualError |
+| unsupported-addition | Sources refute claim | factualError |
+| unsupported-addition | No evidence found | missingContext |
+| omitted-context | (always) | missingContext |
+| framing-difference | (always) | missingContext |
+
+**STRICT RULES:**
+- NEVER categorize omitted-context or framing-difference as factualError
+- NEVER categorize contradiction as missingContext
+- Use \`sourceProblem\` ONLY for issues with cited sources themselves
+- Use \`mediaIssue\` ONLY for image/video/audio problems
 
 ## ANALYSIS DEPTH
 
