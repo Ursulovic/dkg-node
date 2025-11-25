@@ -52,3 +52,4 @@ tests/ragas/reports/
 ragas-results.json
 
 .env.installer
+storage
