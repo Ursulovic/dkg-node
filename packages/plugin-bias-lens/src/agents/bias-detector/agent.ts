@@ -12,17 +12,41 @@ import { LLMResponseJsonSchema } from "./schema.js";
 
 import { createResearchClaimTool } from "../claim-researcher/agent.js";
 import { DEPTH_CONFIGS, type AnalysisDepth } from "../../types/depth.js";
+import { type CostTracker } from "../../utils/costTracker.js";
 
-const model = new ChatOpenAI({
-  model: "gpt-4.1",
-  temperature: 0,
-  cache: true,
-  reasoning: { effort: "none" },
-});
+const MODEL_NAME = "gpt-4.1";
 
-export function createBiasDetectorAgent(depth: AnalysisDepth = "medium") {
+function createModel(costTracker?: CostTracker) {
+  return new ChatOpenAI({
+    model: MODEL_NAME,
+    temperature: 0,
+    cache: true,
+    reasoning: { effort: "none" },
+    callbacks: costTracker
+      ? [
+          {
+            handleLLMEnd(output) {
+              const usage = output.llmOutput?.tokenUsage;
+              if (usage) {
+                costTracker.trackTokens(MODEL_NAME, {
+                  inputTokens: usage.promptTokens ?? 0,
+                  outputTokens: usage.completionTokens ?? 0,
+                });
+              }
+            },
+          },
+        ]
+      : undefined,
+  });
+}
+
+export function createBiasDetectorAgent(
+  depth: AnalysisDepth = "medium",
+  costTracker?: CostTracker
+) {
   const config = DEPTH_CONFIGS[depth];
-  const researchClaimTool = createResearchClaimTool(depth);
+  const researchClaimTool = createResearchClaimTool(depth, costTracker);
+  const model = createModel(costTracker);
 
   return createAgent({
     name: "bias-detector",
