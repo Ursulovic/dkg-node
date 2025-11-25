@@ -323,74 +323,37 @@ For ClaimResearch about media content:
 
 ---
 
-### STEP 5: SECTION ANALYSIS COMPILATION (5-10 minutes)
-
-**Create section-level breakdown** linking findings to specific article sections.
-
-For each section of the Grokipedia article:
-
-1. **Identify which claims belong to this section** (using the "section" field from ClaimResearch)
-2. **List verified accurate claims** (if any)
-3. **Count issues by type:**
-   - factualErrors: count of false claims in this section
-   - missingContext: count of context issues in this section
-   - sourceProblems: count of source problems in this section
-   - mediaIssues: count of media problems in this section
-
-**Output structure:**
-\`\`\`
-sectionAnalysis: [
-  {
-    sectionName: "Introduction",
-    verifiedClaims: ["Claim that was accurate", "Another accurate claim"],
-    issueCount: {
-      factualErrors: 2,
-      missingContext: 1,
-      sourceProblems: 0,
-      mediaIssues: 0
-    }
-  },
-  // ... repeat for each section
-]
-\`\`\`
-
-**This creates a heat map** showing which sections have the most problems.
-
----
-
-### STEP 6: CONTENT SIMILARITY ANALYSIS (5-10 minutes)
+### STEP 5: CONTENT SIMILARITY ANALYSIS (5-10 minutes)
 
 **Compare Grokipedia and Wikipedia** to assess overall alignment.
 
+**NOTE: The system automatically computes semanticSimilarity and lengthRatio using embeddings. You only need to fill the fields below.**
+
 Calculate and describe:
 
-1. **semanticSimilarity (0.0-1.0)**
-   - Do they cover the same topics and themes?
-   - Do they reach similar conclusions?
-   - How much do the narratives align?
+1. **overallAlignment (0.0-1.0)**
+   - Your overall assessment of content alignment
+   - Consider both meaning and structure
+   - 0.0 = completely different, 1.0 = identical
 
-2. **structuralSimilarity (0.0-1.0)**
-   - Do they have similar section organization?
-   - Do they cover topics in similar order?
-   - How much does the structure match?
-
-3. **lengthRatio**
-   - Calculate: Grokipedia length / Wikipedia length
-   - Example: 1.5 means Grokipedia is 50% longer
-
-4. **alignmentDescription**
+2. **alignmentDescription**
    - "High alignment" (0.8-1.0): Very similar content and structure
    - "Moderate alignment" (0.5-0.79): Some divergence but recognizable similarity
    - "Low alignment" (0.2-0.49): Significant differences in content or structure
    - "No alignment" (0.0-0.19): Completely different articles
 
-5. **interpretation**
-   - Explain what the similarity scores mean
-   - Note whether divergence is concerning (e.g., "Grokipedia's lower semantic similarity is concerning because it omits key scientific evidence")
+3. **structuralSimilarity (0.0-1.0)**
+   - Do they have similar section organization?
+   - Do they cover topics in similar order?
+   - How much does the structure match?
+
+4. **interpretation**
+   - Explain what your alignment assessment means
+   - Note whether divergence is concerning (e.g., "Grokipedia's divergence is concerning because it omits key scientific evidence")
 
 ---
 
-### STEP 7: EXECUTIVE SUMMARY & BIAS ASSESSMENT (5-10 minutes)
+### STEP 6: EXECUTIVE SUMMARY & BIAS ASSESSMENT (5-10 minutes)
 
 **Synthesize all findings into executive summary.**
 
@@ -414,7 +377,7 @@ Calculate and describe:
 
 ---
 
-### STEP 8: OVERALL ASSESSMENT (5 minutes)
+### STEP 7: OVERALL ASSESSMENT (5 minutes)
 
 **Calculate aggregate statistics.**
 
@@ -436,7 +399,7 @@ Calculate and describe:
 
 ---
 
-### STEP 9: FINAL QUALITY CHECK
+### STEP 8: FINAL QUALITY CHECK
 
 **Before submitting your bias report, verify:**
 
@@ -453,8 +416,7 @@ Calculate and describe:
 - [ ] Extracted and verified ALL significant factual claims
 - [ ] Called research_claim for EVERY extracted claim
 - [ ] Categorized all ClaimResearch results into appropriate sections
-- [ ] Created sectionAnalysis for all major article sections
-- [ ] Calculated contentSimilarity metrics
+- [ ] Filled contentSimilarity fields (overallAlignment, alignmentDescription, structuralSimilarity, interpretation)
 - [ ] Set biasLevel in executiveSummary (none/low/moderate/high/severe)
 - [ ] Wrote clear executiveSummary overview and keyPatterns
 - [ ] Calculated overallAssessment statistics
@@ -472,18 +434,18 @@ Calculate and describe:
 
 ## Output Requirements
 
-Your output MUST be valid JSON-LD conforming to the BiasDetectionReport schema.
+Your output MUST be valid JSON-LD conforming to the LLMResponseSchema.
 
 **Key requirements:**
 - **factualErrors**: Array of ClaimResearch objects for false/fabricated claims
 - **missingContext**: Array of ClaimResearch objects for omissions/cherry-picking
 - **sourceProblems**: Array documenting unreliable sources
 - **mediaIssues**: Array documenting image/video/audio problems
-- **sectionAnalysis**: Section-by-section breakdown with issue counts
-- **contentSimilarity**: Comparison metrics with Wikipedia
+- **contentSimilarity**: Must include overallAlignment, alignmentDescription, structuralSimilarity, interpretation (semanticSimilarity and lengthRatio are computed by system)
 - **executiveSummary**: Must include biasLevel (none/low/moderate/high/severe), overview, and keyPatterns
 - **overallAssessment**: Aggregate statistics and overallBiasConfidence
-- **provenance**: Tool usage tracking (list research_claim in toolsUsed)
+
+**NOTE:** The system automatically adds analysisDate, provenance, and computed similarity metrics after your response.
 
 **Every finding came from research_claim tool** - make sure to preserve the sources, confidence scores, credibilityTier classifications, and toolsUsed fields from the ClaimResearch results.
 
@@ -530,23 +492,18 @@ research_claim({claim: "Study Y found 85% desistance", urlsExtractedFromSource: 
 - sourceProblems: Results 14, 20 (2 unreliable sources)
 - mediaIssues: Result 22 (1 misattributed image)
 
-### STEP 5: Section analysis
-- "Introduction": 2 factualErrors, 1 missingContext
-- "Scientific Evidence": 3 factualErrors, 4 missingContext, 1 sourceProblems
-- ... (continue for all sections)
-
-### STEP 6: Content similarity
-- semanticSimilarity: 0.4 (significantly different narratives)
-- structuralSimilarity: 0.6 (similar sections but different emphasis)
-- lengthRatio: 1.2
+### STEP 5: Content similarity
+- overallAlignment: 0.4 (significantly different overall)
 - alignmentDescription: "Low alignment"
+- structuralSimilarity: 0.6 (similar sections but different emphasis)
+- interpretation: "The divergence is concerning as Grokipedia omits key scientific evidence..."
 
-### STEP 7: Executive summary
+### STEP 6: Executive summary
 - biasLevel: "high" (14 total issues across 20 claims)
 - overview: "Significant bias through selective citation of outdated research..."
 - keyPatterns: ["Cherry-picking statistics", "Omission of recent systematic reviews"]
 
-### STEP 8: Overall assessment
+### STEP 7: Overall assessment
 - totalFactualErrors: 5
 - totalMissingContext: 6
 - totalSourceProblems: 2

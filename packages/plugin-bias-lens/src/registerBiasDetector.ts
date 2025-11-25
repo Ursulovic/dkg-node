@@ -1,10 +1,13 @@
 import { type DkgPlugin } from "@dkg/plugins";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
 
-import biasDetectorAgent from "./agents/bias-detector/agent";
-import { BiasDetectionReportSchema } from "./agents/bias-detector/schema";
-import { WikipediaLoader } from "./loaders/wikipedia";
-import { GrokipediaLoader } from "./loaders/grokipedia";
+import biasDetectorAgent from "./agents/bias-detector/agent.js";
+import { BiasDetectionReportSchema } from "./agents/bias-detector/schema.js";
+import { assembleReport } from "./agents/bias-detector/assembleReport.js";
+import { WikipediaLoader } from "./loaders/wikipedia.js";
+import { GrokipediaLoader } from "./loaders/grokipedia.js";
+import { calculateArticleSimilarity } from "./utils/similarity.js";
+import { generateSourceVersions } from "./utils/hash.js";
 
 const title = "Detect Bias";
 const name = "detect-bias";
@@ -17,24 +20,41 @@ const inputSchema = {
     .describe("Wikipedia URL used as baseline for bias analysis"),
 };
 
+async function runBiasDetection(grokipediaUrl: string, wikipediaUrl: string) {
+  const [grokipediaDocs, wikipediaDocs] = await Promise.all([
+    new GrokipediaLoader().loadPage(grokipediaUrl),
+    new WikipediaLoader().loadPage(wikipediaUrl),
+  ]);
+
+  const grokipediaPage = grokipediaDocs[0]?.pageContent ?? "";
+  const wikipediaPage = wikipediaDocs[0]?.pageContent ?? "";
+
+  const [similarity, sourceVersions] = await Promise.all([
+    calculateArticleSimilarity(grokipediaPage, wikipediaPage),
+    generateSourceVersions(grokipediaUrl, wikipediaUrl),
+  ]);
+
+  const userMessage = `Analyze these articles:\nGROKIPEDIA (${grokipediaUrl})\n${grokipediaPage}\n\n---\n\nWIKIPEDIA (${wikipediaUrl})\n${wikipediaPage}`;
+
+  const response = await biasDetectorAgent.invoke({
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const finalReport = assembleReport({
+    llmResponse: response.structuredResponse,
+    similarity,
+    sourceVersions,
+  });
+
+  return finalReport;
+}
+
 export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
   mcp.registerTool(
     name,
     { title, description, inputSchema },
     async ({ grokipediaUrl, wikipediaUrl }) => {
-      const [grokipediaDocs, wikipediaDocs] = await Promise.all([
-        new GrokipediaLoader().loadPage(grokipediaUrl),
-        new WikipediaLoader().loadPage(wikipediaUrl),
-      ]);
-
-      const grokipediaPage = grokipediaDocs[0]?.pageContent;
-      const wikipediaPage = wikipediaDocs[0]?.pageContent;
-
-      const userMessage = `Analyze these articles:\nGROKIPEDIA (${grokipediaUrl})\n${grokipediaPage}\n\n---\n\nWIKIPEDIA (${wikipediaUrl})\n${wikipediaPage}`;
-
-      const response = await biasDetectorAgent.invoke({
-        messages: [{ role: "user", content: userMessage }],
-      });
+      const finalReport = await runBiasDetection(grokipediaUrl, wikipediaUrl);
 
       const text = `Research completed for URL pair:\nGrokipedia page: ${grokipediaUrl}\n\n-----\n\nWikipedia page: ${wikipediaUrl}\n`;
 
@@ -43,7 +63,7 @@ export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
           { type: "text", text },
           {
             type: "text",
-            text: JSON.stringify(response.structuredResponse, null, 2),
+            text: JSON.stringify(finalReport, null, 2),
           },
         ],
       };
@@ -65,21 +85,8 @@ export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
       },
       async (req, res) => {
         const { wikipediaUrl, grokipediaUrl } = req.query;
-        const [grokipediaDocs, wikipediaDocs] = await Promise.all([
-          new GrokipediaLoader().loadPage(grokipediaUrl),
-          new WikipediaLoader().loadPage(wikipediaUrl),
-        ]);
-
-        const grokipediaPage = grokipediaDocs[0]?.pageContent;
-        const wikipediaPage = wikipediaDocs[0]?.pageContent;
-
-        const userMessage = `Analyze these articles:\nGROKIPEDIA (${grokipediaUrl})\n${grokipediaPage}\n\n---\n\nWIKIPEDIA (${wikipediaUrl})\n${wikipediaPage}`;
-
-        const response = await biasDetectorAgent.invoke({
-          messages: [{ role: "user", content: userMessage }],
-        });
-
-        res.json(response.structuredResponse);
+        const finalReport = await runBiasDetection(grokipediaUrl, wikipediaUrl);
+        res.json(finalReport);
       },
     ),
   );
