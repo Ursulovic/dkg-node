@@ -20,10 +20,18 @@ const webSearchSchema = z
       ),
     searchDepth: z
       .enum(["basic", "advanced"])
-      .describe("Depth of search: 'basic' for quick results, 'advanced' for deeper analysis."),
-    includeImages: z.boolean().describe("Whether to include query-related images in the response."),
-    timeRange: z.enum(["day", "week", "month", "year"]).describe("Time range for results."),
-    topic: z.enum(["general", "news", "finance"]).describe("Topic category for the search."),
+      .describe(
+        "Depth of search: 'basic' for quick results, 'advanced' for deeper analysis.",
+      ),
+    includeImages: z
+      .boolean()
+      .describe("Whether to include query-related images in the response."),
+    timeRange: z
+      .enum(["day", "week", "month", "year"])
+      .describe("Time range for results."),
+    topic: z
+      .enum(["general", "news", "finance"])
+      .describe("Topic category for the search."),
   })
   .required();
 

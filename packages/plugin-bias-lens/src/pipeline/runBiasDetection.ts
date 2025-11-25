@@ -12,7 +12,9 @@ import { calculateArticleSimilarity } from "../utils/similarity.js";
 import { generateSourceVersions } from "../utils/hash.js";
 import { formatAsJsonLd } from "../utils/jsonldFormatter.js";
 import { CostTracker } from "../utils/costTracker.js";
+import { getTracUsdRate } from "../utils/priceManager.js";
 import type { AnalysisDepth } from "../types/depth.js";
+import { reportStore } from "../store/index.js";
 
 const LANGSMITH_PROJECT = process.env.LANGSMITH_PROJECT ?? "plugin-bias-lens";
 
@@ -20,7 +22,7 @@ export async function runBiasDetection(
   grokipediaUrl: string,
   wikipediaUrl: string,
   analysisDepth: AnalysisDepth = "medium"
-): Promise<BiasReportKnowledgeAsset> {
+): Promise<{ id: string; knowledgeAsset: BiasReportKnowledgeAsset }> {
   const costTracker = new CostTracker();
 
   const tracedDetection = traceable(
@@ -80,5 +82,25 @@ export async function runBiasDetection(
     costUSD: costs.totalUSD,
   });
 
-  return knowledgeAsset;
+  const reportIri = intermediateReport["@id"] || "";
+  const articleTitle =
+    intermediateReport.articleTitle ?? "Unknown Article";
+
+  const tracUsdRate = await getTracUsdRate();
+  const costTrac = costs.totalUSD / tracUsdRate;
+  const privateAccessFee = costTrac * 2.0;
+
+  await reportStore.save(knowledgeAsset, {
+    id: reportIri,
+    grokipediaUrl,
+    wikipediaUrl,
+    title: articleTitle,
+    biasLevel: intermediateReport.executiveSummary.biasLevel,
+    analysisDepth,
+    costUsd: costs.totalUSD,
+    costTrac,
+    privateAccessFee,
+  });
+
+  return { id: reportIri, knowledgeAsset };
 }

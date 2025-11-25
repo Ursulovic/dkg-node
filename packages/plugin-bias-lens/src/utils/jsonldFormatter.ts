@@ -278,7 +278,7 @@ async function formatAsJsonLd(
       prov: "http://www.w3.org/ns/prov#",
     },
     "@type": "Review",
-    "@id": null,
+    "@id": report["@id"] ?? null,
     itemReviewed: {
       "@type": "Article",
       url: report.grokipediaUrl,
@@ -369,7 +369,7 @@ async function formatAsJsonLd(
       "@vocab": "https://schema.org/",
       prov: "http://www.w3.org/ns/prov#",
     },
-    "@id": null,
+    "@id": report["@id"] ?? null,
     hasPart: [
       ...report.factualErrors.map(convertFactualErrorToClaimReview),
       ...report.missingContext.map(convertMissingContextToClaimReview),

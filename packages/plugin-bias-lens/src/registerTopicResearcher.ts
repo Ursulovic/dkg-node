@@ -6,8 +6,20 @@ import { TopicUrlPairSchema } from "./agents/topic-researcher/schema";
 
 const title = "Research Topic";
 const name = "research-topic";
-const description =
-  "Researches Grokipedia and Wikipedia and returns valid pages url pair. If user pastes just a single url you should add it to the query with a request to find other url in pair. Remember: after you get pages url pair, ask user if they want to proceed to use BiasLens plugin to check Grokipedia page for bias. Also give a heads up to the user that this process will last about 1-2 minutes.";
+const description = `Researches a topic to find matching Grokipedia and Wikipedia page URLs.
+
+**When to use:** User wants to research a topic but doesn't have the exact URLs yet.
+
+**Input:** A topic query (e.g., "climate change", "COVID-19 vaccines", or a single URL to find its pair)
+
+**Output:** Returns URL pair with page summaries.
+
+**Next step:** After receiving the URL pair, ask the user:
+1. "Would you like me to run bias detection on these pages?"
+2. "What analysis depth would you prefer?"
+   - **low**: Quick scan (~1 min, 5-10 claims, lower cost)
+   - **medium**: Balanced analysis (~2 min, 15-25 claims, moderate cost) [default]
+   - **high**: Comprehensive review (~3-5 min, all claims, higher cost)`;
 const inputSchema = {
   q: z.string().describe("User query to find corresponding pages for"),
 };

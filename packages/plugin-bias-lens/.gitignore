@@ -1,3 +1,4 @@
 run.ts
 traces/
+storage/
 src/agents/bias-detector/tools/wikidata/wikidata-index/

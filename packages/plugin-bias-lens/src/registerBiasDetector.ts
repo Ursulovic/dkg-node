@@ -7,8 +7,34 @@ import type { AnalysisDepth } from "./types/depth.js";
 
 const title = "Detect Bias";
 const name = "detect-bias";
-const description =
-  "Runs a deep analysis of Grokipedia page against given Wikipedia page and produces a JSON-LD compliant bias report knowledge asset. The report is split into public (free summary with ratings and metrics) and private (detailed claim reviews, paid via x402). You will receive this knowledge asset and offer user to save it to DKG using your existing tools. When offering user to save it to DKG you need to ask whether this is a public or private note and all relevant questions needed for saving to DKG operation. Note: You can use this tool directly if user pastes you both urls, also if user pastes just a single grokipedia/wikipedia url call the research-topic topic tool with a query that includes given url.";
+const description = `Analyzes a Grokipedia page against Wikipedia to detect bias and produce a detailed report.
+
+**When to use:** User has both Grokipedia and Wikipedia URLs and wants bias analysis.
+
+**Input:**
+- grokipediaUrl: The Grokipedia page to analyze
+- wikipediaUrl: The Wikipedia baseline for comparison
+- analysisDepth: "low" | "medium" | "high" (affects cost and thoroughness)
+
+**Output:** Returns a JSON-LD bias report with:
+- **Report IRI**: Unique identifier (e.g., https://bias-lens.neuroweb.ai/report/{uuid})
+- **PUBLIC part** (free): Summary, bias rating (1-5), issue counts, cost breakdown
+- **PRIVATE part** (paid via x402): Detailed claim reviews with citations
+
+**After receiving the report, inform the user:**
+1. Bias level and summary
+2. Number of issues found (factual errors, missing context, etc.)
+3. Analysis costs (USD and TRAC)
+4. Report has been saved with IRI: {reportIri}
+5. Ask: "Would you like to publish this report to DKG? (This will make it permanent and shareable)"
+
+**To publish the report:**
+Use 'save-bias-report' tool with the report IRI. This will:
+1. Fetch the report content from storage (no need to stream JSON-LD!)
+2. Publish to DKG
+3. Return the UAL and DKG Explorer link
+
+**Important:** The report is temporarily stored in memory. Publishing to DKG makes it permanent.`;
 
 const inputSchema = {
   grokipediaUrl: z.string().describe("Grokipedia URL to analyze for bias"),
@@ -19,7 +45,7 @@ const inputSchema = {
     .enum(["low", "medium", "high"])
     .default("medium")
     .describe(
-      "Analysis depth: low (quick, top 5-10 claims), medium (balanced, top 15-25 claims), high (comprehensive, all claims)"
+      "Analysis depth: low (quick, top 5-10 claims), medium (balanced, top 15-25 claims), high (comprehensive, all claims)",
     ),
 };
 
@@ -29,9 +55,13 @@ export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
     { title, description, inputSchema },
     async ({ grokipediaUrl, wikipediaUrl, analysisDepth }) => {
       const depth = (analysisDepth ?? "medium") as AnalysisDepth;
-      const knowledgeAsset = await runBiasDetection(grokipediaUrl, wikipediaUrl, depth);
+      const { id, knowledgeAsset } = await runBiasDetection(
+        grokipediaUrl,
+        wikipediaUrl,
+        depth,
+      );
 
-      const text = `Research completed for URL pair:\nGrokipedia page: ${grokipediaUrl}\nWikipedia page: ${wikipediaUrl}\nAnalysis depth: ${depth}\n\nThe report contains:\n- PUBLIC part: Free summary with bias rating, metrics, and issue counts\n- PRIVATE part: Detailed claim reviews with citations (accessible via x402 payment)\n`;
+      const text = `Bias analysis completed!\n\nReport ID: ${id}\nGrokipedia page: ${grokipediaUrl}\nWikipedia page: ${wikipediaUrl}\nAnalysis depth: ${depth}\n\nThe report contains:\n- PUBLIC part: Free summary with bias rating, metrics, and issue counts\n- PRIVATE part: Detailed claim reviews with citations (accessible via x402 payment)\n\nThe report has been saved with ID: ${id}`;
 
       return {
         content: [
@@ -61,7 +91,11 @@ export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
       async (req, res) => {
         const { wikipediaUrl, grokipediaUrl, analysisDepth } = req.query;
         const depth = (analysisDepth ?? "medium") as AnalysisDepth;
-        const knowledgeAsset = await runBiasDetection(grokipediaUrl, wikipediaUrl, depth);
+        const { knowledgeAsset } = await runBiasDetection(
+          grokipediaUrl,
+          wikipediaUrl,
+          depth,
+        );
         res.json(knowledgeAsset);
       },
     ),
