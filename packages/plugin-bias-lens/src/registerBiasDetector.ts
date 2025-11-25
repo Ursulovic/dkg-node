@@ -1,7 +1,7 @@
 import { type DkgPlugin } from "@dkg/plugins";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
 
-import biasDetectorAgent from "./agents/bias-detector/agent.js";
+import { createBiasDetectorAgent } from "./agents/bias-detector/agent.js";
 import {
   BiasReportKnowledgeAssetSchema,
 } from "./agents/bias-detector/schema.js";
@@ -11,6 +11,7 @@ import { GrokipediaLoader } from "./loaders/grokipedia.js";
 import { calculateArticleSimilarity } from "./utils/similarity.js";
 import { generateSourceVersions } from "./utils/hash.js";
 import { splitReportForDKG } from "./utils/reportSplitter.js";
+import type { AnalysisDepth } from "./types/depth.js";
 
 const title = "Detect Bias";
 const name = "detect-bias";
@@ -22,9 +23,20 @@ const inputSchema = {
   wikipediaUrl: z
     .string()
     .describe("Wikipedia URL used as baseline for bias analysis"),
+  analysisDepth: z
+    .enum(["low", "medium", "high"])
+    .default("medium")
+    .describe(
+      "Analysis depth: low (quick, top 5-10 claims), medium (balanced, top 15-25 claims), high (comprehensive, all claims)"
+    ),
 };
 
-async function runBiasDetection(grokipediaUrl: string, wikipediaUrl: string) {
+async function runBiasDetection(
+  grokipediaUrl: string,
+  wikipediaUrl: string,
+  analysisDepth: AnalysisDepth = "medium"
+) {
+  const biasDetectorAgent = createBiasDetectorAgent(analysisDepth);
   const [grokipediaDocs, wikipediaDocs] = await Promise.all([
     new GrokipediaLoader().loadPage(grokipediaUrl),
     new WikipediaLoader().loadPage(wikipediaUrl),
@@ -59,10 +71,11 @@ export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
   mcp.registerTool(
     name,
     { title, description, inputSchema },
-    async ({ grokipediaUrl, wikipediaUrl }) => {
-      const knowledgeAsset = await runBiasDetection(grokipediaUrl, wikipediaUrl);
+    async ({ grokipediaUrl, wikipediaUrl, analysisDepth }) => {
+      const depth = (analysisDepth ?? "medium") as AnalysisDepth;
+      const knowledgeAsset = await runBiasDetection(grokipediaUrl, wikipediaUrl, depth);
 
-      const text = `Research completed for URL pair:\nGrokipedia page: ${grokipediaUrl}\nWikipedia page: ${wikipediaUrl}\n\nThe report contains:\n- PUBLIC part: Free summary with bias rating, metrics, and issue counts\n- PRIVATE part: Detailed claim reviews with citations (accessible via x402 payment)\n`;
+      const text = `Research completed for URL pair:\nGrokipedia page: ${grokipediaUrl}\nWikipedia page: ${wikipediaUrl}\nAnalysis depth: ${depth}\n\nThe report contains:\n- PUBLIC part: Free summary with bias rating, metrics, and issue counts\n- PRIVATE part: Detailed claim reviews with citations (accessible via x402 payment)\n`;
 
       return {
         content: [
@@ -90,8 +103,9 @@ export const registerBiasDetector: DkgPlugin = (_, mcp, api) => {
         },
       },
       async (req, res) => {
-        const { wikipediaUrl, grokipediaUrl } = req.query;
-        const knowledgeAsset = await runBiasDetection(grokipediaUrl, wikipediaUrl);
+        const { wikipediaUrl, grokipediaUrl, analysisDepth } = req.query;
+        const depth = (analysisDepth ?? "medium") as AnalysisDepth;
+        const knowledgeAsset = await runBiasDetection(grokipediaUrl, wikipediaUrl, depth);
         res.json(knowledgeAsset);
       },
     ),
