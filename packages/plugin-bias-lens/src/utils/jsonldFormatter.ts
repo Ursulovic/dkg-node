@@ -11,32 +11,30 @@ import type {
   CredibilityTier,
 } from "../agents/bias-detector/schema.js";
 import { mapBiasLevelToRating, mapConfidenceToRating } from "./ratingMapper.js";
+import { getTracUsdRate } from "./priceManager.js";
 
-interface SplitterConfig {
+interface FormatterConfig {
   publisherName: string;
   publisherWalletAddress: string;
   agentVersion: string;
-  publishingCost: number;
   readCostMultiplier: number;
   tracUsdRate: number;
 }
 
-const DEFAULT_CONFIG: SplitterConfig = {
+const DEFAULT_CONFIG: FormatterConfig = {
   publisherName: "ConsensusLens",
   publisherWalletAddress: "0x0000000000000000000000000000000000000000",
   agentVersion: "2.0",
-  publishingCost: 0.5,
   readCostMultiplier: 2.0,
   tracUsdRate: 0.5,
 };
 
-function getConfig(): SplitterConfig {
+function getConfig(): FormatterConfig {
   return {
     publisherName: process.env.PUBLISHER_NAME ?? DEFAULT_CONFIG.publisherName,
     publisherWalletAddress:
       process.env.PUBLISHER_WALLET_ADDRESS ?? DEFAULT_CONFIG.publisherWalletAddress,
     agentVersion: process.env.AGENT_VERSION ?? DEFAULT_CONFIG.agentVersion,
-    publishingCost: Number(process.env.PUBLISHING_COST) || DEFAULT_CONFIG.publishingCost,
     readCostMultiplier:
       Number(process.env.READ_COST_MULTIPLIER) || DEFAULT_CONFIG.readCostMultiplier,
     tracUsdRate: Number(process.env.TRAC_USD_RATE) || DEFAULT_CONFIG.tracUsdRate,
@@ -45,13 +43,13 @@ function getConfig(): SplitterConfig {
 
 function createPropertyValue(
   propertyID: string,
-  value: number | string,
+  value: number | string | boolean,
   description?: string
-): { "@type": "PropertyValue"; propertyID: string; value: number | string; description?: string } {
+): { "@type": "PropertyValue"; propertyID: string; value: number | string | boolean; description?: string } {
   const result: {
     "@type": "PropertyValue";
     propertyID: string;
-    value: number | string;
+    value: number | string | boolean;
     description?: string;
   } = {
     "@type": "PropertyValue",
@@ -256,13 +254,12 @@ interface AnalysisMetrics {
   tokenUsage: number;
   costUSD: number;
   traceId?: string;
-  traceUrl?: string;
 }
 
-function splitReportForDKG(
+async function formatAsJsonLd(
   report: BiasDetectionReport,
   metrics?: AnalysisMetrics
-): BiasReportKnowledgeAsset {
+): Promise<BiasReportKnowledgeAsset> {
   const config = getConfig();
   const totalIssues =
     report.overallAssessment.totalFactualErrors +
@@ -271,14 +268,14 @@ function splitReportForDKG(
     report.overallAssessment.totalMediaIssues;
 
   const costUSD = metrics?.costUSD ?? 0;
-  const costTRAC = costUSD / config.tracUsdRate;
-  const calculatedReadCost = (config.publishingCost + costTRAC) * config.readCostMultiplier;
+  const tracUsdRate = await getTracUsdRate();
+  const costTRAC = costUSD / tracUsdRate;
+  const calculatedReadCost = costTRAC * config.readCostMultiplier;
 
   const publicReport: PublicBiasReport = {
     "@context": {
       "@vocab": "https://schema.org/",
       prov: "http://www.w3.org/ns/prov#",
-      x402: "https://x402.org/payment#",
     },
     "@type": "Review",
     "@id": null,
@@ -294,9 +291,11 @@ function splitReportForDKG(
     publisher: {
       "@type": "Organization",
       name: config.publisherName,
-      "x402:walletAddress": config.publisherWalletAddress,
-      "x402:paymentNetwork": "otp:20430",
-      "x402:paymentToken": "TRAC",
+      additionalProperty: [
+        createPropertyValue("walletAddress", config.publisherWalletAddress),
+        createPropertyValue("paymentNetwork", "otp:20430"),
+        createPropertyValue("paymentToken", "TRAC"),
+      ],
     },
     reviewRating: mapBiasLevelToRating(report.executiveSummary.biasLevel),
     reviewBody: report.executiveSummary.overview,
@@ -340,17 +339,17 @@ function splitReportForDKG(
         report.overallAssessment.overallBiasConfidence,
         "Confidence that significant bias exists (0-1)"
       ),
+      createPropertyValue("tokenUsage", metrics?.tokenUsage ?? 0),
+      createPropertyValue("costUSD", costUSD),
+      createPropertyValue("tracUsdRate", tracUsdRate, "TRAC/USD exchange rate used"),
+      createPropertyValue("costTRAC", costTRAC),
+      createPropertyValue("readCostMultiplier", config.readCostMultiplier),
+      createPropertyValue("calculatedReadCost", calculatedReadCost),
+      createPropertyValue("privateContentAvailable", totalIssues > 0),
+      createPropertyValue("privateAccessFee", calculatedReadCost),
+      createPropertyValue("privateAccessFeeToken", "TRAC"),
+      ...(metrics?.traceId ? [createPropertyValue("traceId", metrics.traceId)] : []),
     ],
-    "x402:analysisMetadata": {
-      tokenUsage: metrics?.tokenUsage ?? 0,
-      costUSD,
-      costTRAC,
-      publishingCost: config.publishingCost,
-      readCostMultiplier: config.readCostMultiplier,
-      calculatedReadCost,
-      traceId: metrics?.traceId,
-      traceUrl: metrics?.traceUrl,
-    },
     "prov:wasGeneratedBy": {
       "@type": "prov:Activity",
       "prov:wasAssociatedWith": {
@@ -362,8 +361,6 @@ function splitReportForDKG(
       description: report.provenance?.verificationMethod,
     },
     "prov:used": buildProvUsed(report),
-    "x402:privateContentAvailable": totalIssues > 0,
-    "x402:privateAccessFee": `${calculatedReadCost.toFixed(2)} TRAC`,
     datePublished: report.analysisDate,
   };
 
@@ -371,7 +368,6 @@ function splitReportForDKG(
     "@context": {
       "@vocab": "https://schema.org/",
       prov: "http://www.w3.org/ns/prov#",
-      x402: "https://x402.org/payment#",
     },
     "@id": null,
     hasPart: [
@@ -446,15 +442,15 @@ function buildProvUsed(
   return entities;
 }
 
-function setKnowledgeAssetId(
+function setUAL(
   asset: BiasReportKnowledgeAsset,
-  assetId: string
+  ual: string
 ): BiasReportKnowledgeAsset {
   return {
-    public: { ...asset.public, "@id": assetId },
-    private: { ...asset.private, "@id": assetId },
+    public: { ...asset.public, "@id": ual },
+    private: { ...asset.private, "@id": ual },
   };
 }
 
-export { splitReportForDKG, setKnowledgeAssetId, getConfig };
-export type { SplitterConfig, AnalysisMetrics };
+export { formatAsJsonLd, setUAL, getConfig };
+export type { FormatterConfig, AnalysisMetrics };

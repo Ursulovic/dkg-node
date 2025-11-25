@@ -31,13 +31,14 @@ Reports are split at publish time to enable monetization:
 │                    BiasReportKnowledgeAsset                 │
 ├─────────────────────────────┬───────────────────────────────┤
 │         PUBLIC              │           PRIVATE             │
-│        (Free)               │        (Paid via x402)        │
+│        (Free)               │         (Paid)                │
 ├─────────────────────────────┼───────────────────────────────┤
 │ • Bias rating (1-5)         │ • Detailed ClaimReviews       │
 │ • Executive summary         │ • Full source citations       │
 │ • Issue counts              │ • Per-claim confidence        │
 │ • Similarity metrics        │ • Section-level attribution   │
 │ • Provenance metadata       │ • Tool usage per claim        │
+│ • Payment info (publisher)  │                               │
 └─────────────────────────────┴───────────────────────────────┘
 ```
 
@@ -49,8 +50,7 @@ Reports are split at publish time to enable monetization:
 {
   "@context": {
     "@vocab": "https://schema.org/",
-    "prov": "http://www.w3.org/ns/prov#",
-    "x402": "https://x402.org/payment#"
+    "prov": "http://www.w3.org/ns/prov#"
   }
 }
 ```
@@ -59,12 +59,12 @@ Reports are split at publish time to enable monetization:
 |-----------|---------|----------|
 | `schema.org` (default) | Core vocabulary | `Review`, `ClaimReview`, `Rating`, `Article` |
 | `prov:` | W3C Provenance Ontology | `prov:wasGeneratedBy`, `prov:used`, `prov:Entity` |
-| `x402:` | Payment protocol | `x402:walletAddress`, `x402:privateAccessFee` |
 
-**Why no custom namespace?** We avoided `bias:` namespace in favor of `schema.org` + `additionalProperty` pattern. This ensures:
+**Why no custom namespace?** We use `schema.org` + `additionalProperty` pattern for all custom fields including payment information. This ensures:
 - Maximum interoperability with existing tools
 - No namespace registration required
 - Validators understand the structure
+- Valid JSON-LD that passes standard validators
 
 ## Key Type Mappings
 
@@ -139,31 +139,37 @@ Metrics without direct schema.org mappings use the `additionalProperty` pattern:
 {
   "additionalProperty": [
     { "@type": "PropertyValue", "propertyID": "semanticSimilarity", "value": 0.72 },
-    { "@type": "PropertyValue", "propertyID": "totalFactualErrors", "value": 5 }
+    { "@type": "PropertyValue", "propertyID": "totalFactualErrors", "value": 5 },
+    { "@type": "PropertyValue", "propertyID": "privateContentAvailable", "value": true },
+    { "@type": "PropertyValue", "propertyID": "privateAccessFee", "value": "1.0 TRAC" }
   ]
 }
 ```
 
-## Payment Integration (x402)
+## Payment Integration
 
-Payment fields use the x402 namespace for micropayment routing:
+Payment fields use the `additionalProperty` pattern on the publisher for clean schema.org compliance:
 
 ```json
 {
   "publisher": {
     "@type": "Organization",
     "name": "ConsensusLens",
-    "x402:walletAddress": "0x1234...5678",
-    "x402:paymentNetwork": "otp:20430",
-    "x402:paymentToken": "TRAC"
+    "additionalProperty": [
+      { "@type": "PropertyValue", "propertyID": "walletAddress", "value": "0x1234...5678" },
+      { "@type": "PropertyValue", "propertyID": "paymentNetwork", "value": "otp:20430" },
+      { "@type": "PropertyValue", "propertyID": "paymentToken", "value": "TRAC" }
+    ]
   },
-  "x402:analysisMetadata": {
-    "tokenUsage": 45000,
-    "costUSD": 0.065,
-    "costTRAC": 0.13
-  },
-  "x402:privateContentAvailable": true,
-  "x402:privateAccessFee": "1.0 TRAC"
+  "additionalProperty": [
+    { "@type": "PropertyValue", "propertyID": "tokenUsage", "value": 45000 },
+    { "@type": "PropertyValue", "propertyID": "costUSD", "value": 0.065 },
+    { "@type": "PropertyValue", "propertyID": "costTRAC", "value": 0.13 },
+    { "@type": "PropertyValue", "propertyID": "readCostMultiplier", "value": 10 },
+    { "@type": "PropertyValue", "propertyID": "calculatedReadCost", "value": 1.3 },
+    { "@type": "PropertyValue", "propertyID": "privateContentAvailable", "value": true },
+    { "@type": "PropertyValue", "propertyID": "privateAccessFee", "value": "1.0 TRAC" }
+  ]
 }
 ```
 
@@ -175,8 +181,7 @@ Payment fields use the x402 namespace for micropayment routing:
 {
   "@context": {
     "@vocab": "https://schema.org/",
-    "prov": "http://www.w3.org/ns/prov#",
-    "x402": "https://x402.org/payment#"
+    "prov": "http://www.w3.org/ns/prov#"
   },
   "@type": "Review",
   "@id": "did:dkg:otp:20430/consensus-lens/asset-123",
@@ -199,8 +204,19 @@ Payment fields use the x402 namespace for micropayment routing:
     "numberOfItems": 8,
     "description": "5 factual errors, 3 missing context issues"
   },
-  "x402:privateContentAvailable": true,
-  "x402:privateAccessFee": "1.0 TRAC"
+  "publisher": {
+    "@type": "Organization",
+    "name": "ConsensusLens",
+    "additionalProperty": [
+      { "@type": "PropertyValue", "propertyID": "walletAddress", "value": "0x1234...5678" },
+      { "@type": "PropertyValue", "propertyID": "paymentNetwork", "value": "otp:20430" },
+      { "@type": "PropertyValue", "propertyID": "paymentToken", "value": "TRAC" }
+    ]
+  },
+  "additionalProperty": [
+    { "@type": "PropertyValue", "propertyID": "privateContentAvailable", "value": true },
+    { "@type": "PropertyValue", "propertyID": "privateAccessFee", "value": "1.0 TRAC" }
+  ]
 }
 ```
 
@@ -208,7 +224,10 @@ Payment fields use the x402 namespace for micropayment routing:
 
 ```json
 {
-  "@context": { ... },
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "prov": "http://www.w3.org/ns/prov#"
+  },
   "@id": "did:dkg:otp:20430/consensus-lens/asset-123",
   "hasPart": [
     {
@@ -240,4 +259,6 @@ Payment fields use the x402 namespace for micropayment routing:
 |------|---------|
 | `src/agents/bias-detector/schema.ts` | Zod schemas for validation |
 | `src/utils/ratingMapper.ts` | biasLevel → Rating conversion |
-| `src/utils/reportSplitter.ts` | Public/private split logic |
+| `src/utils/jsonldFormatter.ts` | Public/private split and JSON-LD formatting |
+| `src/utils/jsonldValidator.ts` | JSON-LD validation using jsonld.js |
+| `src/agents/bias-detector/enrichResponse.ts` | Transform LLM response to full report |

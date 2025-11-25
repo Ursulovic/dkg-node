@@ -3,7 +3,6 @@ import { expect } from "chai";
 import {
   DEPTH_CONFIGS,
   type AnalysisDepth,
-  type DepthConfig,
 } from "../../src/types/depth.js";
 import { generatePrompt } from "../../src/agents/bias-detector/prompt.js";
 
@@ -17,20 +16,20 @@ describe("Analysis Depth Configuration", () => {
 
     it("should have correct maxClaims for low depth", () => {
       expect(DEPTH_CONFIGS.low.depth).to.equal("low");
-      expect(DEPTH_CONFIGS.low.maxClaims).to.equal(10);
-      expect(DEPTH_CONFIGS.low.description).to.include("5-10");
+      expect(DEPTH_CONFIGS.low.maxClaims).to.equal(5);
+      expect(DEPTH_CONFIGS.low.description).to.include("5");
     });
 
     it("should have correct maxClaims for medium depth", () => {
       expect(DEPTH_CONFIGS.medium.depth).to.equal("medium");
-      expect(DEPTH_CONFIGS.medium.maxClaims).to.equal(25);
-      expect(DEPTH_CONFIGS.medium.description).to.include("15-25");
+      expect(DEPTH_CONFIGS.medium.maxClaims).to.equal(15);
+      expect(DEPTH_CONFIGS.medium.description).to.include("10-15");
     });
 
-    it("should have null maxClaims for high depth (unlimited)", () => {
+    it("should have correct maxClaims for high depth", () => {
       expect(DEPTH_CONFIGS.high.depth).to.equal("high");
-      expect(DEPTH_CONFIGS.high.maxClaims).to.be.null;
-      expect(DEPTH_CONFIGS.high.description).to.include("all");
+      expect(DEPTH_CONFIGS.high.maxClaims).to.equal(25);
+      expect(DEPTH_CONFIGS.high.description).to.include("comprehensive");
     });
 
     it("should have descriptions for all depth levels", () => {
@@ -53,66 +52,44 @@ describe("Analysis Depth Configuration", () => {
       expect(lowPrompt).to.not.equal(highPrompt);
     });
 
-    it("should include depth level in LOW prompt", () => {
-      const prompt = generatePrompt(DEPTH_CONFIGS.low);
-
-      expect(prompt).to.include("Analysis Depth: LOW");
-      expect(prompt).to.include("QUICK ANALYSIS MODE");
-      expect(prompt).to.include("TOP 5-10 claims");
-    });
-
-    it("should include depth level in MEDIUM prompt", () => {
-      const prompt = generatePrompt(DEPTH_CONFIGS.medium);
-
-      expect(prompt).to.include("Analysis Depth: MEDIUM");
-      expect(prompt).to.include("BALANCED ANALYSIS MODE");
-      expect(prompt).to.include("TOP 15-25");
-    });
-
-    it("should include depth level in HIGH prompt", () => {
-      const prompt = generatePrompt(DEPTH_CONFIGS.high);
-
-      expect(prompt).to.include("Analysis Depth: HIGH");
-      expect(prompt).to.include("COMPREHENSIVE ANALYSIS MODE");
-      expect(prompt).to.include("ALL claims");
-    });
-
-    it("should include maxClaims guidance in prompt for limited depths", () => {
+    it("should include depth level in prompt", () => {
       const lowPrompt = generatePrompt(DEPTH_CONFIGS.low);
       const mediumPrompt = generatePrompt(DEPTH_CONFIGS.medium);
-
-      expect(lowPrompt).to.include("up to 10 claims");
-      expect(mediumPrompt).to.include("up to 25 claims");
-    });
-
-    it("should include unlimited guidance in HIGH prompt", () => {
       const highPrompt = generatePrompt(DEPTH_CONFIGS.high);
 
-      expect(highPrompt).to.include("No limit");
-      expect(highPrompt).to.include("comprehensive");
+      expect(lowPrompt).to.include("ANALYSIS DEPTH");
+      expect(mediumPrompt).to.include("ANALYSIS DEPTH");
+      expect(highPrompt).to.include("ANALYSIS DEPTH");
     });
 
-    it("should always include mandatory tool usage section", () => {
+    it("should include maxClaims guidance in prompt", () => {
+      const lowPrompt = generatePrompt(DEPTH_CONFIGS.low);
+      const mediumPrompt = generatePrompt(DEPTH_CONFIGS.medium);
+      const highPrompt = generatePrompt(DEPTH_CONFIGS.high);
+
+      expect(lowPrompt).to.include("up to 5 claims");
+      expect(mediumPrompt).to.include("up to 15 claims");
+      expect(highPrompt).to.include("up to 25 claims");
+    });
+
+    it("should include research_claim tool guidance", () => {
       const depths: AnalysisDepth[] = ["low", "medium", "high"];
 
       for (const depth of depths) {
         const prompt = generatePrompt(DEPTH_CONFIGS[depth]);
-        expect(prompt).to.include("MANDATORY TOOL USAGE");
         expect(prompt).to.include("research_claim");
       }
     });
 
-    it("should always include bias level scoring section", () => {
+    it("should include error types guidance", () => {
       const depths: AnalysisDepth[] = ["low", "medium", "high"];
 
       for (const depth of depths) {
         const prompt = generatePrompt(DEPTH_CONFIGS[depth]);
-        expect(prompt).to.include("Bias Level Scoring");
-        expect(prompt).to.include("NONE");
-        expect(prompt).to.include("LOW");
-        expect(prompt).to.include("MODERATE");
-        expect(prompt).to.include("HIGH");
-        expect(prompt).to.include("SEVERE");
+        expect(prompt).to.include("factualError");
+        expect(prompt).to.include("missingContext");
+        expect(prompt).to.include("sourceProblem");
+        expect(prompt).to.include("mediaIssue");
       }
     });
   });

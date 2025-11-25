@@ -2,19 +2,19 @@ import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
 import {
-  splitReportForDKG,
-  setKnowledgeAssetId,
-} from "../../src/utils/reportSplitter.js";
+  formatAsJsonLd,
+  setUAL,
+} from "../../src/utils/jsonldFormatter.js";
+import { clearPriceCache } from "../../src/utils/priceManager.js";
 import type { BiasDetectionReport } from "../../src/agents/bias-detector/schema.js";
 
-describe("Report Splitter Utility", () => {
+describe("JSON-LD Formatter Utility", () => {
   let sandbox: sinon.SinonSandbox;
 
   const createMockReport = (overrides?: Partial<BiasDetectionReport>): BiasDetectionReport => ({
     "@context": {
       "@vocab": "https://schema.org/",
-      bias: "https://bias.example.org/",
-      schema: "https://schema.org/",
+      prov: "http://www.w3.org/ns/prov#",
     },
     "@type": "BiasDetectionReport",
     articleTitle: "Test Article",
@@ -88,63 +88,68 @@ describe("Report Splitter Utility", () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
+    clearPriceCache();
+    sandbox.stub(global, "fetch").resolves({
+      ok: true,
+      json: async () => ({ origintrail: { usd: 0.5 } }),
+    } as Response);
   });
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  describe("splitReportForDKG", () => {
-    it("should return public and private parts", () => {
+  describe("formatAsJsonLd", () => {
+    it("should return public and private parts", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result).to.have.property("public");
       expect(result).to.have.property("private");
     });
 
-    it("should set correct @context in public part", () => {
+    it("should set correct @context in public part (without x402)", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public["@context"]["@vocab"]).to.equal("https://schema.org/");
       expect(result.public["@context"].prov).to.equal("http://www.w3.org/ns/prov#");
-      expect(result.public["@context"].x402).to.equal("https://x402.org/payment#");
+      expect(result.public["@context"]).to.not.have.property("x402");
     });
 
-    it("should set @type to Review in public part", () => {
+    it("should set @type to Review in public part", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public["@type"]).to.equal("Review");
     });
 
-    it("should set @id to null initially", () => {
+    it("should set @id to null initially", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public["@id"]).to.be.null;
       expect(result.private["@id"]).to.be.null;
     });
 
-    it("should map itemReviewed correctly", () => {
+    it("should map itemReviewed correctly", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public.itemReviewed["@type"]).to.equal("Article");
       expect(result.public.itemReviewed.url).to.equal(report.grokipediaUrl);
       expect(result.public.itemReviewed.name).to.equal(report.articleTitle);
     });
 
-    it("should map isBasedOn to Wikipedia URL", () => {
+    it("should map isBasedOn to Wikipedia URL", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public.isBasedOn["@type"]).to.equal("Article");
       expect(result.public.isBasedOn.url).to.equal(report.wikipediaUrl);
     });
 
-    it("should map biasLevel to reviewRating", () => {
+    it("should map biasLevel to reviewRating", async () => {
       const report = createMockReport({
         executiveSummary: {
           overview: "Test",
@@ -152,7 +157,7 @@ describe("Report Splitter Utility", () => {
           keyPatterns: []
         }
       });
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public.reviewRating["@type"]).to.equal("Rating");
       expect(result.public.reviewRating.ratingValue).to.equal(2);
@@ -160,21 +165,21 @@ describe("Report Splitter Utility", () => {
       expect(result.public.reviewRating.worstRating).to.equal(1);
     });
 
-    it("should map overview to reviewBody", () => {
+    it("should map overview to reviewBody", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public.reviewBody).to.equal(report.executiveSummary.overview);
     });
 
-    it("should map keyPatterns to keywords", () => {
+    it("should map keyPatterns to keywords", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public.keywords).to.deep.equal(report.executiveSummary.keyPatterns);
     });
 
-    it("should calculate negativeNotes correctly", () => {
+    it("should calculate negativeNotes correctly", async () => {
       const report = createMockReport({
         overallAssessment: {
           overallBiasConfidence: 0.8,
@@ -184,7 +189,7 @@ describe("Report Splitter Utility", () => {
           totalMediaIssues: 0,
         },
       });
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public.negativeNotes["@type"]).to.equal("ItemList");
       expect(result.public.negativeNotes.numberOfItems).to.equal(6);
@@ -193,9 +198,9 @@ describe("Report Splitter Utility", () => {
       expect(result.public.negativeNotes.description).to.include("1 source problem");
     });
 
-    it("should include all additionalProperty metrics", () => {
+    it("should include all additionalProperty metrics", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       const propIds = result.public.additionalProperty.map((p) => p.propertyID);
 
@@ -206,22 +211,26 @@ describe("Report Splitter Utility", () => {
       expect(propIds).to.include("totalFactualErrors");
       expect(propIds).to.include("totalMissingContext");
       expect(propIds).to.include("overallBiasConfidence");
+      expect(propIds).to.include("privateContentAvailable");
+      expect(propIds).to.include("privateAccessFee");
     });
 
-    it("should include x402:analysisMetadata", () => {
+    it("should include payment metadata in additionalProperty", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
-      expect(result.public["x402:analysisMetadata"]).to.have.property("tokenUsage");
-      expect(result.public["x402:analysisMetadata"]).to.have.property("costUSD");
-      expect(result.public["x402:analysisMetadata"]).to.have.property("costTRAC");
-      expect(result.public["x402:analysisMetadata"]).to.have.property("publishingCost");
-      expect(result.public["x402:analysisMetadata"]).to.have.property("readCostMultiplier");
+      const propIds = result.public.additionalProperty.map((p) => p.propertyID);
+
+      expect(propIds).to.include("tokenUsage");
+      expect(propIds).to.include("costUSD");
+      expect(propIds).to.include("costTRAC");
+      expect(propIds).to.include("readCostMultiplier");
+      expect(propIds).to.include("calculatedReadCost");
     });
 
-    it("should include prov:wasGeneratedBy", () => {
+    it("should include prov:wasGeneratedBy", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public["prov:wasGeneratedBy"]["@type"]).to.equal("prov:Activity");
       expect(result.public["prov:wasGeneratedBy"]["prov:wasAssociatedWith"]["@type"]).to.equal(
@@ -230,9 +239,9 @@ describe("Report Splitter Utility", () => {
       expect(result.public["prov:wasGeneratedBy"]["prov:used"]).to.be.an("array");
     });
 
-    it("should include prov:used with source versions", () => {
+    it("should include prov:used with source versions", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.public["prov:used"]).to.be.an("array");
       expect(result.public["prov:used"].length).to.equal(2);
@@ -245,10 +254,13 @@ describe("Report Splitter Utility", () => {
       expect(grokEntity?.identifier).to.equal("sha256:abc123");
     });
 
-    it("should set x402:privateContentAvailable based on issues count", () => {
+    it("should set privateContentAvailable based on issues count", async () => {
       const reportWithIssues = createMockReport();
-      const resultWithIssues = splitReportForDKG(reportWithIssues);
-      expect(resultWithIssues.public["x402:privateContentAvailable"]).to.be.true;
+      const resultWithIssues = await formatAsJsonLd(reportWithIssues);
+      const privateAvailable = resultWithIssues.public.additionalProperty.find(
+        (p) => p.propertyID === "privateContentAvailable"
+      );
+      expect(privateAvailable?.value).to.be.true;
 
       const reportNoIssues = createMockReport({
         factualErrors: [],
@@ -260,13 +272,16 @@ describe("Report Splitter Utility", () => {
           totalMediaIssues: 0,
         },
       });
-      const resultNoIssues = splitReportForDKG(reportNoIssues);
-      expect(resultNoIssues.public["x402:privateContentAvailable"]).to.be.false;
+      const resultNoIssues = await formatAsJsonLd(reportNoIssues);
+      const privateAvailableNo = resultNoIssues.public.additionalProperty.find(
+        (p) => p.propertyID === "privateContentAvailable"
+      );
+      expect(privateAvailableNo?.value).to.be.false;
     });
 
-    it("should convert factualErrors to ClaimReviews in private part", () => {
+    it("should convert factualErrors to ClaimReviews in private part", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.private.hasPart).to.be.an("array");
       expect(result.private.hasPart.length).to.equal(1);
@@ -278,9 +293,9 @@ describe("Report Splitter Utility", () => {
       expect(claimReview.reviewAspect).to.equal("factualError");
     });
 
-    it("should include citations in private ClaimReviews", () => {
+    it("should include citations in private ClaimReviews", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       const claimReview = result.private.hasPart[0];
       expect(claimReview.citation).to.be.an("array");
@@ -293,9 +308,9 @@ describe("Report Splitter Utility", () => {
       expect(citation.citation).to.equal(100);
     });
 
-    it("should include prov:wasGeneratedBy with toolsUsed in private ClaimReviews", () => {
+    it("should include prov:wasGeneratedBy with toolsUsed in private ClaimReviews", async () => {
       const report = createMockReport();
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       const claimReview = result.private.hasPart[0];
       expect(claimReview["prov:wasGeneratedBy"]["@type"]).to.equal("prov:Activity");
@@ -304,7 +319,7 @@ describe("Report Splitter Utility", () => {
       ]);
     });
 
-    it("should handle reports with multiple issue types", () => {
+    it("should handle reports with multiple issue types", async () => {
       const report = createMockReport({
         factualErrors: [
           {
@@ -352,32 +367,56 @@ describe("Report Splitter Utility", () => {
           totalMediaIssues: 0,
         },
       });
-      const result = splitReportForDKG(report);
+      const result = await formatAsJsonLd(report);
 
       expect(result.private.hasPart.length).to.equal(2);
       expect(result.private.hasPart[0].reviewAspect).to.equal("factualError");
       expect(result.private.hasPart[1].reviewAspect).to.equal("missingContext");
     });
+
+    it("should include publisher with additionalProperty for payment info", async () => {
+      const report = createMockReport();
+      const result = await formatAsJsonLd(report);
+
+      expect(result.public.publisher["@type"]).to.equal("Organization");
+      expect(result.public.publisher.name).to.be.a("string");
+      expect(result.public.publisher.additionalProperty).to.be.an("array");
+
+      const walletProp = result.public.publisher.additionalProperty?.find(
+        (p) => p.propertyID === "walletAddress"
+      );
+      expect(walletProp).to.exist;
+
+      const networkProp = result.public.publisher.additionalProperty?.find(
+        (p) => p.propertyID === "paymentNetwork"
+      );
+      expect(networkProp?.value).to.equal("otp:20430");
+
+      const tokenProp = result.public.publisher.additionalProperty?.find(
+        (p) => p.propertyID === "paymentToken"
+      );
+      expect(tokenProp?.value).to.equal("TRAC");
+    });
   });
 
-  describe("setKnowledgeAssetId", () => {
-    it("should set @id on both public and private parts", () => {
+  describe("setUAL", () => {
+    it("should set @id on both public and private parts", async () => {
       const report = createMockReport();
-      const asset = splitReportForDKG(report);
-      const assetId = "did:dkg:otp:20430/paranet/asset-123";
+      const asset = await formatAsJsonLd(report);
+      const ual = "did:dkg:otp:20430/paranet/asset-123";
 
-      const result = setKnowledgeAssetId(asset, assetId);
+      const result = setUAL(asset, ual);
 
-      expect(result.public["@id"]).to.equal(assetId);
-      expect(result.private["@id"]).to.equal(assetId);
+      expect(result.public["@id"]).to.equal(ual);
+      expect(result.private["@id"]).to.equal(ual);
     });
 
-    it("should not modify the original asset", () => {
+    it("should not modify the original asset", async () => {
       const report = createMockReport();
-      const asset = splitReportForDKG(report);
-      const assetId = "did:dkg:otp:20430/paranet/asset-456";
+      const asset = await formatAsJsonLd(report);
+      const ual = "did:dkg:otp:20430/paranet/asset-456";
 
-      setKnowledgeAssetId(asset, assetId);
+      setUAL(asset, ual);
 
       expect(asset.public["@id"]).to.be.null;
       expect(asset.private["@id"]).to.be.null;

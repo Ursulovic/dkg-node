@@ -285,90 +285,9 @@ const htmlPages = await loader.loadHTML(htmlLinks, sourceUrl);
 const media = await loader.loadMedia(mediaLinks, sourceUrl);
 ```
 
-### Vector Database (RAG Utility)
-
-**PineconeRAG** (`src/vectordb/pinecone.ts`):
-- Cloud-based vector store using Pinecone for semantic search
-- Enables Retrieval Augmented Generation (RAG) for bias detection agents
-- Global caching across all users (hackathon-friendly)
-- Uses OpenAI embeddings (`text-embedding-3-large`)
-
-**Key Features:**
-- **Automatic Chunking**: Documents are automatically split into chunks (default: 1000 chars with 200 char overlap) before embedding to avoid token limits
-- **Deduplication**: Automatically skips re-indexing documents with same source URL
-- **Filtered Retrieval**: Filter by `source`, `title`, `documentType`, or any combination
-- **Semantic Search**: Returns top-k relevant documents based on query similarity
-- **Type-Safe**: Extends document metadata with `documentType`, `indexedAt` fields
-- **Extensible**: Filter interface designed to accommodate future document types
-
-**Environment Variables Required:**
-- `PINECONE_API_KEY` - Pinecone API key
-- `PINECONE_INDEX` - Pinecone index name
-- `OPENAI_API_KEY` - OpenAI API key for embeddings
-
-**Usage Example:**
-```typescript
-import { PineconeRAG } from "./vectordb";
-
-// Default configuration (1000 char chunks, 200 char overlap, 1024 dimensions)
-const rag = new PineconeRAG();
-
-// Custom configuration
-const ragCustom = new PineconeRAG({
-  chunkSize: 500,      // Smaller chunks
-  chunkOverlap: 50,    // Less overlap
-  dimensions: 3072,    // Custom embedding dimensions (must match Pinecone index)
-});
-
-// Upsert documents (with automatic chunking and deduplication)
-const result = await rag.upsert(documents);
-// result: { cached: ["url1"], indexed: ["url2"] }
-// Large documents are automatically split into chunks before embedding
-
-// Semantic search with filtering (single field)
-const results = await rag.retrieve("climate change", {
-  filter: { source: "https://grokipedia.com/wiki/Climate" },
-  k: 5
-});
-
-// Filter by multiple fields
-const grokResults = await rag.retrieve("query", {
-  filter: {
-    documentType: "grokipedia",
-    title: "Climate Change"
-  }
-});
-
-// Check if URL already indexed
-const exists = await rag.isIndexed("https://example.com/article");
-```
-
-**Testing Note:** All Pinecone and OpenAI calls are mocked in tests using Sinon to avoid real API calls and ensure fast, deterministic test execution.
-
 ### Observability
 
-The plugin automatically supports **LangSmith observability** for tracing and monitoring RAG operations. LangChain components (embeddings, vector stores, etc.) automatically send traces to LangSmith when enabled.
-
-**What gets traced:**
-- Document upserting (chunking, embedding generation, vector store operations)
-- Semantic search queries
-- OpenAI embedding API calls
-- Pinecone vector database operations
-
-**Trace Tags and Metadata:**
-
-All `upsert()` operations are automatically tagged for easy filtering in LangSmith:
-- **Tag: `indexing`** - Identifies all indexing operations
-- **Tag: Document source URLs** - Each trace tagged with the source URLs being processed
-- **Metadata:**
-  - `documentCount` - Total documents in the batch
-  - `cachedCount` - Documents already indexed (skipped)
-  - `indexedCount` - New documents indexed
-  - `documentTypes` - Types of documents processed (grokipedia, wikipedia)
-
-Example LangSmith UI filtering:
-- Filter by tag `"indexing"` to see all RAG indexing operations
-- Filter by tag `"https://grokipedia.com/page/Climate_change"` to see traces for that specific page
+The plugin automatically supports **LangSmith observability** for tracing and monitoring agent operations. LangChain components automatically send traces to LangSmith when enabled.
 
 **Setup (Optional):**
 
@@ -382,7 +301,7 @@ LANGSMITH_PROJECT=plugin-bias-lens  # Optional: organize traces by project
 
 Get your API key from [LangSmith Settings](https://smith.langchain.com/settings).
 
-**No code changes required** - tracing works automatically once environment variables are set. View traces in the [LangSmith UI](https://smith.langchain.com) to debug, monitor performance, and analyze RAG operations.
+**No code changes required** - tracing works automatically once environment variables are set. View traces in the [LangSmith UI](https://smith.langchain.com) to debug and monitor agent operations.
 
 ### Type System
 
@@ -447,7 +366,7 @@ export type LinkType =
 
 ### Test Structure
 
-Six test files with different purposes:
+Five test files with different purposes:
 
 1. **`tests/loaders/grokipedia.spec.ts`** ✅ Complete
    - Real integration tests against live grokipedia.com
@@ -468,13 +387,7 @@ Six test files with different purposes:
    - Tests unified interface (`loadLinks`) with mixed link types
    - Fast execution (<5 seconds)
 
-4. **`tests/vectordb/pinecone.spec.ts`** ✅ Complete
-   - Comprehensive unit tests with mocked Pinecone/OpenAI calls
-   - Tests: Core Functionality, Error Handling, Deduplication, Filtering
-   - Uses Sinon to stub all external API calls (no real network requests)
-   - Fast execution (<1 second)
-
-5. **`tests/utils/hash.spec.ts`** ✅ Complete
+4. **`tests/utils/hash.spec.ts`** ✅ Complete
    - Real integration tests with Wikipedia API
    - Tests SHA-256 hash calculation (deterministic, handles unicode)
    - Tests Wikipedia title extraction from various URL formats
@@ -482,7 +395,7 @@ Six test files with different purposes:
    - Tests complete sourceVersions generation with real HTML fetching
    - Validates timestamp consistency and hash format
 
-6. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
+5. **`tests/plugin-bias-lens.spec.ts`** ⚠️ Has placeholder tests
    - Contains TODO placeholders that must be replaced
    - Infrastructure is set up correctly (MCP server/client, Express app)
    - See PLUGIN_TESTING_GUIDE.md for requirements
@@ -550,12 +463,8 @@ openAPIRoute({
 
 ### 4. Environment Variables
 
-**Required for Vector Database:**
-- `PINECONE_API_KEY` - Pinecone API key (required for RAG functionality)
-- `PINECONE_INDEX` - Pinecone index name (required for RAG functionality)
-- `OPENAI_API_KEY` - OpenAI API key for embeddings (required for RAG functionality)
-
 **Required for Bias Detection Agent:**
+- `OPENAI_API_KEY` - OpenAI API key (for GPT-4 and embeddings)
 - `SERPAPI_API_KEY` - Google Scholar API (peer-reviewed source verification)
 - `TAVILY_API_KEY` - Web search API (news, events, quotes verification)
 
@@ -728,7 +637,6 @@ npm run fetch-wikidata-cache
 ### 6. Current Implementation Status
 - ✅ Core infrastructure complete
 - ✅ Loaders implemented and tested (GrokipediaLoader, WikipediaLoader, ExternalAssetsLoader)
-- ✅ Vector database (PineconeRAG) implemented and tested
 - ✅ Content hash utility implemented and tested
 - ✅ Plugin registration working
 - ✅ External assets loading complete (PDF, HTML, media with Gemini)
@@ -792,20 +700,16 @@ If tests fail to run or show experimental loader warnings:
 - `@dkg/plugin-swagger` - OpenAPI/Swagger integration
 - `@langchain/core` - Document base class
 - `@langchain/community` - CheerioWebBaseLoader
-- `@langchain/pinecone` - Pinecone vector store integration
-- `@langchain/openai` - OpenAI embeddings for RAG
-- `@pinecone-database/pinecone` - Pinecone client SDK
+- `@langchain/openai` - OpenAI embeddings
 - `cheerio` - HTML parsing
 - `zod` - Schema validation
 
 ### Why These Dependencies
 - No direct blockchain imports (DKG access via injected context)
 - LangChain ecosystem for document handling (maintains compatibility with AI chains)
-- Pinecone for cloud-based vector search with global caching
-- OpenAI for semantic embeddings (text-embedding-3-large)
 - Zod for runtime validation + OpenAPI schema generation
 
 ## References
 
-- Testing standards: `/Users/jaksamalisic/origintrail/dkg-node/packages/PLUGIN_TESTING_GUIDE.md`
+- Testing standards: `packages/PLUGIN_TESTING_GUIDE.md` (in monorepo root)
 - Example plugin: `packages/plugin-example/tests/addition.spec.ts`

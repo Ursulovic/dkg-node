@@ -1,12 +1,16 @@
 import { z } from "zod";
 
-import { createAgent } from "langchain";
+import {
+  createAgent,
+  toolCallLimitMiddleware,
+  type ResponseFormat,
+} from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 
 import { generatePrompt } from "./prompt.js";
-import responseFormat from "./schema.js";
+import { LLMResponseJsonSchema } from "./schema.js";
 
-import { researchClaimTool } from "../claim-researcher/agent.js";
+import { createResearchClaimTool } from "../claim-researcher/agent.js";
 import { DEPTH_CONFIGS, type AnalysisDepth } from "../../types/depth.js";
 
 const model = new ChatOpenAI({
@@ -18,14 +22,22 @@ const model = new ChatOpenAI({
 
 export function createBiasDetectorAgent(depth: AnalysisDepth = "medium") {
   const config = DEPTH_CONFIGS[depth];
+  const researchClaimTool = createResearchClaimTool(depth);
 
   return createAgent({
     name: "bias-detector",
     model,
     tools: [researchClaimTool],
     contextSchema: z.object({}),
-    responseFormat,
+    responseFormat: LLMResponseJsonSchema as ResponseFormat,
     systemPrompt: generatePrompt(config),
+    middleware: [
+      toolCallLimitMiddleware({
+        toolName: "research_claim",
+        runLimit: config.maxClaims + 5,
+        exitBehavior: "continue",
+      }),
+    ],
   });
 }
 

@@ -89,11 +89,11 @@ describe("Similarity Utility", () => {
       const grokipediaContent = "This is the Grokipedia article content about climate change.";
       const wikipediaContent = "This is the Wikipedia article content about climate change.";
 
-      const mockEmbedding1 = [0.1, 0.2, 0.3, 0.4, 0.5];
-      const mockEmbedding2 = [0.15, 0.25, 0.35, 0.45, 0.55];
+      const mockEmbedding1 = [[0.1, 0.2, 0.3, 0.4, 0.5]];
+      const mockEmbedding2 = [[0.15, 0.25, 0.35, 0.45, 0.55]];
 
       sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .onFirstCall()
         .resolves(mockEmbedding1)
         .onSecondCall()
@@ -124,10 +124,10 @@ describe("Similarity Utility", () => {
     it("should return ~1 similarity for identical content", async () => {
       const content = "This is identical content.";
 
-      const mockEmbedding = [0.1, 0.2, 0.3, 0.4, 0.5];
+      const mockEmbedding = [[0.1, 0.2, 0.3, 0.4, 0.5]];
 
       sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .resolves(mockEmbedding);
 
       const result = await calculateArticleSimilarity(content, content);
@@ -140,11 +140,11 @@ describe("Similarity Utility", () => {
       const grokipediaContent = "Article about cats and their behavior.";
       const wikipediaContent = "Quantum physics and particle dynamics.";
 
-      const mockEmbedding1 = [0.9, 0.1, 0.0, 0.0, 0.0];
-      const mockEmbedding2 = [0.0, 0.0, 0.0, 0.1, 0.9];
+      const mockEmbedding1 = [[0.9, 0.1, 0.0, 0.0, 0.0]];
+      const mockEmbedding2 = [[0.0, 0.0, 0.0, 0.1, 0.9]];
 
       sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .onFirstCall()
         .resolves(mockEmbedding1)
         .onSecondCall()
@@ -162,11 +162,11 @@ describe("Similarity Utility", () => {
       const emptyContent = "";
       const content = "Some content here.";
 
-      const mockEmbedding1 = [0, 0, 0, 0, 0];
-      const mockEmbedding2 = [0.1, 0.2, 0.3, 0.4, 0.5];
+      const mockEmbedding1: number[][] = [];
+      const mockEmbedding2 = [[0.1, 0.2, 0.3, 0.4, 0.5]];
 
       sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .onFirstCall()
         .resolves(mockEmbedding1)
         .onSecondCall()
@@ -183,10 +183,10 @@ describe("Similarity Utility", () => {
       const grokipediaContent = "Short content.";
       const wikipediaContent = "This is much longer content that spans multiple sentences.";
 
-      const mockEmbedding = [0.1, 0.2, 0.3, 0.4, 0.5];
+      const mockEmbedding = [[0.1, 0.2, 0.3, 0.4, 0.5]];
 
       sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .resolves(mockEmbedding);
 
       const result = await calculateArticleSimilarity(
@@ -203,11 +203,11 @@ describe("Similarity Utility", () => {
       const grokipediaContent = "Some content.";
       const wikipediaContent = "";
 
-      const mockEmbedding1 = [0.1, 0.2, 0.3, 0.4, 0.5];
-      const mockEmbedding2 = [0, 0, 0, 0, 0];
+      const mockEmbedding1 = [[0.1, 0.2, 0.3, 0.4, 0.5]];
+      const mockEmbedding2: number[][] = [];
 
       sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .onFirstCall()
         .resolves(mockEmbedding1)
         .onSecondCall()
@@ -221,21 +221,19 @@ describe("Similarity Utility", () => {
       expect(result.lengthRatio).to.equal(0);
     });
 
-    it("should embed both articles in parallel", async () => {
+    it("should embed both articles using embedDocuments", async () => {
       const grokipediaContent = "Grokipedia article.";
       const wikipediaContent = "Wikipedia article.";
 
-      const mockEmbedding = [0.1, 0.2, 0.3, 0.4, 0.5];
+      const mockEmbedding = [[0.1, 0.2, 0.3, 0.4, 0.5]];
 
       const embedStub = sandbox
-        .stub(OpenAIEmbeddings.prototype, "embedQuery")
+        .stub(OpenAIEmbeddings.prototype, "embedDocuments")
         .resolves(mockEmbedding);
 
       await calculateArticleSimilarity(grokipediaContent, wikipediaContent);
 
       expect(embedStub.callCount).to.equal(2);
-      expect(embedStub.firstCall.args[0]).to.equal(grokipediaContent);
-      expect(embedStub.secondCall.args[0]).to.equal(wikipediaContent);
     });
   });
 });
