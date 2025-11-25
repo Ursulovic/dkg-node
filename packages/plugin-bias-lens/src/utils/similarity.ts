@@ -1,7 +1,10 @@
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { type CostTracker } from "./costTracker.js";
 
 const CHUNK_SIZE = 6000;
+const EMBEDDING_MODEL = "text-embedding-3-large";
+const CHARS_PER_TOKEN_ESTIMATE = 4;
 
 interface SimilarityResult {
   cosineSimilarity: number;
@@ -59,7 +62,8 @@ function averageEmbeddings(embeddings: number[][]): number[] {
 
 export async function calculateArticleSimilarity(
   grokipediaContent: string,
-  wikipediaContent: string
+  wikipediaContent: string,
+  costTracker?: CostTracker
 ): Promise<SimilarityResult> {
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: CHUNK_SIZE,
@@ -67,7 +71,7 @@ export async function calculateArticleSimilarity(
   });
 
   const embeddings = new OpenAIEmbeddings({
-    model: "text-embedding-3-large",
+    model: EMBEDDING_MODEL,
   });
 
   const [grokChunks, wikiChunks] = await Promise.all([
@@ -79,6 +83,17 @@ export async function calculateArticleSimilarity(
     embeddings.embedDocuments(grokChunks),
     embeddings.embedDocuments(wikiChunks),
   ]);
+
+  if (costTracker) {
+    const totalChars =
+      grokChunks.reduce((sum, chunk) => sum + chunk.length, 0) +
+      wikiChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const estimatedTokens = Math.ceil(totalChars / CHARS_PER_TOKEN_ESTIMATE);
+    costTracker.trackTokens(EMBEDDING_MODEL, {
+      inputTokens: estimatedTokens,
+      outputTokens: 0,
+    });
+  }
 
   const grokipediaEmbedding = averageEmbeddings(grokEmbeddings);
   const wikipediaEmbedding = averageEmbeddings(wikiEmbeddings);

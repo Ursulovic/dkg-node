@@ -579,6 +579,7 @@ const ReportContextSchema = z
 const BiasDetectionReportSchema = z
   .object({
     "@context": ReportContextSchema,
+    "@id": z.string().optional().describe("Unique identifier IRI for this report"),
     "@type": z
       .literal("BiasDetectionReport")
       .describe("JSON-LD type identifier for this report"),

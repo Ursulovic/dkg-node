@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type {
   LLMResponse,
   LLMError,
@@ -22,7 +23,10 @@ interface EnrichResponseInput {
 function calculateOverallConfidence(errors: LLMError[]): number {
   if (errors.length === 0) return 0;
 
-  const totalConfidence = errors.reduce((sum, error) => sum + error.confidence, 0);
+  const totalConfidence = errors.reduce(
+    (sum, error) => sum + error.confidence,
+    0,
+  );
   const avgConfidence = totalConfidence / errors.length;
 
   const errorCountFactor = Math.min(errors.length / 10, 1);
@@ -68,7 +72,9 @@ function extractMediaIssues(errors: LLMError[]): MediaIssue[] {
     }));
 }
 
-export function enrichResponse(input: EnrichResponseInput): BiasDetectionReport {
+export function enrichResponse(
+  input: EnrichResponseInput,
+): BiasDetectionReport {
   const {
     llmResponse,
     similarity,
@@ -77,6 +83,10 @@ export function enrichResponse(input: EnrichResponseInput): BiasDetectionReport 
     wikipediaUrl,
     articleTitle,
   } = input;
+
+  const reportId = randomUUID();
+  const reportIri = `https://bias-lens.neuroweb.ai/report/${reportId}`;
+  console.log("Report", reportIri);
 
   const factualErrors = extractFactualErrors(llmResponse.errors);
   const missingContext = extractMissingContext(llmResponse.errors);
@@ -96,6 +106,7 @@ export function enrichResponse(input: EnrichResponseInput): BiasDetectionReport 
       "@vocab": "https://schema.org/",
       prov: "http://www.w3.org/ns/prov#",
     },
+    "@id": reportIri,
     "@type": "BiasDetectionReport",
     articleTitle,
     grokipediaUrl,
@@ -116,7 +127,8 @@ export function enrichResponse(input: EnrichResponseInput): BiasDetectionReport 
       alignmentDescription: llmResponse.contentSimilarity.alignmentDescription,
       textSimilarity: {
         semanticSimilarity: similarity.cosineSimilarity,
-        structuralSimilarity: llmResponse.contentSimilarity.structuralSimilarity,
+        structuralSimilarity:
+          llmResponse.contentSimilarity.structuralSimilarity,
         lengthRatio: similarity.lengthRatio,
       },
       interpretation: llmResponse.contentSimilarity.interpretation,
