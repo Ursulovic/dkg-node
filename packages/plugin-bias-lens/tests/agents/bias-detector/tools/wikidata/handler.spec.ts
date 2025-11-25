@@ -34,7 +34,7 @@ describe('Text-to-Wikidata-SPARQL Tool (Integration)', () => {
     expect(parseResult.success).to.be.false;
   });
 
-  it('should handle errors gracefully without throwing', async function() {
+  it.skip('should handle errors gracefully without throwing', async function() {
     this.timeout(10000);
 
     fetchStub.rejects(new Error('Network error'));

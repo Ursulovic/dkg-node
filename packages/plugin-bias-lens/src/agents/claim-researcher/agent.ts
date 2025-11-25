@@ -1,13 +1,19 @@
 import { z } from "zod";
 
-import { createAgent, tool, toolCallLimitMiddleware } from "langchain";
+import {
+  createAgent,
+  tool,
+  toolCallLimitMiddleware,
+  type ResponseFormat,
+} from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 
-import systemPrompt from "./prompt";
-import responseFormat from "./schema";
+import { generatePrompt } from "./prompt.js";
+import { ClaimResearchResponseJsonSchema } from "./schema";
 import { webSearchTool } from "./tools/web-search";
 import { googleScholarSearchTool } from "./tools/google-scholar-search";
 import { wikipediaSearchTool } from "./tools/wikipedia-query";
+import { DEPTH_CONFIGS, type AnalysisDepth } from "../../types/depth.js";
 
 const model = new ChatOpenAI({
   model: "gpt-4o-mini",
@@ -15,73 +21,115 @@ const model = new ChatOpenAI({
   cache: true,
 });
 
-const claimResearcherAgent = createAgent({
-  name: "claim-researcher",
-  model,
-  tools: [webSearchTool, googleScholarSearchTool, wikipediaSearchTool],
-  contextSchema: z.object({}),
-  responseFormat,
-  systemPrompt,
-  middleware: [
-    toolCallLimitMiddleware({
-      toolName: "web-search",
-      runLimit: 2,
-      exitBehavior: "continue",
-    }),
-    toolCallLimitMiddleware({
-      toolName: "google_scholar_search",
-      runLimit: 2,
-      exitBehavior: "continue",
-    }),
-    toolCallLimitMiddleware({
-      toolName: "wikipedia_query",
-      runLimit: 2,
-      exitBehavior: "continue",
-    }),
-    toolCallLimitMiddleware({
-      runLimit: 8,
-      exitBehavior: "end",
-    }),
-  ],
+export function createClaimResearcherAgent(depth: AnalysisDepth = "medium") {
+  const config = DEPTH_CONFIGS[depth];
+
+  return createAgent({
+    name: "claim-researcher",
+    model,
+    tools: [webSearchTool, googleScholarSearchTool, wikipediaSearchTool],
+    contextSchema: z.object({}),
+    responseFormat: ClaimResearchResponseJsonSchema as ResponseFormat,
+    systemPrompt: generatePrompt(config),
+    middleware: [
+      toolCallLimitMiddleware({
+        toolName: "web-search",
+        runLimit: config.toolCallsPerTool,
+        exitBehavior: "continue",
+      }),
+      toolCallLimitMiddleware({
+        toolName: "google_scholar_search",
+        runLimit: config.toolCallsPerTool,
+        exitBehavior: "continue",
+      }),
+      toolCallLimitMiddleware({
+        toolName: "wikipedia_query",
+        runLimit: config.toolCallsPerTool,
+        exitBehavior: "continue",
+      }),
+      toolCallLimitMiddleware({
+        runLimit: config.toolCallsPerTool * 3 + config.toolCallBuffer,
+        exitBehavior: "continue",
+      }),
+    ],
+  });
+}
+
+const DivergenceTypeEnum = z.enum([
+  "contradiction",
+  "unsupported-addition",
+  "omitted-context",
+  "framing-difference",
+]);
+
+const researchClaimToolSchema = z.object({
+  claim: z
+    .string()
+    .describe(
+      "EXACT verbatim text from Grokipedia article. Must be self-contained (understandable without context). Will be used for UI highlighting - must match source exactly.",
+    ),
+  divergenceType: DivergenceTypeEnum.describe(
+    "Type of divergence from Wikipedia: contradiction (Grok says X, Wiki says not-X), unsupported-addition (claim not in Wiki), omitted-context (Wiki has context Grok omits), framing-difference (same facts, different tone)",
+  ),
+  verificationTask: z
+    .string()
+    .describe(
+      "Specific verification task. For contradictions: 'Wikipedia states X, verify actual value'. For additions: 'Not in Wikipedia, find supporting evidence'. Be specific about what to verify.",
+    ),
+  urlsExtractedFromSource: z
+    .array(z.string())
+    .describe(
+      "URLs referenced near this claim in Grokipedia. Context only - tool will verify using authoritative sources.",
+    ),
+  section: z
+    .string()
+    .describe(
+      "Section name in Grokipedia where claim appears (e.g., 'Introduction', 'Controversy').",
+    ),
 });
 
-export const researchClaimTool = tool(
-  async ({ claim, urlsExtractedFromSource, section }) => {
-    const response = await claimResearcherAgent.invoke(
-      {
-        messages: [
-          {
-            role: "user",
-            content: `Research this claim: "${claim}"\n\nArticle section: ${section}\n\nSource URLs for context: ${urlsExtractedFromSource.join(", ")}`,
-          },
-        ],
-      },
-      { recursionLimit: 100 },
-    );
-    return response.structuredResponse;
-  },
-  {
-    name: "research_claim",
-    description:
-      "Efficiently research a specific claim using the most appropriate verification tool (Wikipedia for encyclopedia facts, Google Scholar for scientific claims, web search for recent news/events). This tool automatically selects ONE optimal verification method based on claim type, finds 1-2 authoritative sources, and stops as soon as sufficient evidence is found. Returns ClaimResearch object with verified sources (each classified by credibility tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion), confidence score (0.0-1.0 based on source quality), detailed issue explanation, and which tool was used for verification. IMPORTANT: Use this tool for EVERY significant claim that needs verification. The tool is designed to be efficient - it will stop after finding good evidence rather than exhaustively searching.",
-    schema: z.object({
-      claim: z
-        .string()
-        .describe(
-          "The exact claim text from the Grokipedia article to verify. Be precise and include the full claim.",
-        ),
-      urlsExtractedFromSource: z
-        .array(z.string())
-        .describe(
-          "Array of URLs referenced in or near this claim in the source article. These provide context for verification but should not be used as conclusive evidence - the tool will verify using appropriate authoritative sources.",
-        ),
-      section: z
-        .string()
-        .describe(
-          "The section name in the Grokipedia article where this claim appears (e.g., 'Introduction', 'Scientific Evidence', 'Controversy', 'History'). This helps categorize findings by article section.",
-        ),
-    }),
-  },
-);
+const researchClaimToolDescription =
+  "Verify a specific claim from Grokipedia. Pass: exact verbatim claim text, divergence type (contradiction/addition/omission/framing), specific verification task, source URLs, section name. The verification task tells you exactly what to look for. Returns: issue explanation, confidence score, sources used.";
 
-export default claimResearcherAgent;
+export function createResearchClaimTool(depth: AnalysisDepth = "medium") {
+  const claimResearcherAgent = createClaimResearcherAgent(depth);
+
+  return tool(
+    async ({ claim, divergenceType, verificationTask, urlsExtractedFromSource, section }) => {
+      const response = await claimResearcherAgent.invoke(
+        {
+          messages: [
+            {
+              role: "user",
+              content: `## Claim to Verify
+"${claim}"
+
+## Divergence Type
+${divergenceType}
+
+## Verification Task
+${verificationTask}
+
+## Article Section
+${section}
+
+## Source URLs (for context only)
+${urlsExtractedFromSource.length > 0 ? urlsExtractedFromSource.join("\n") : "None provided"}`,
+            },
+          ],
+        },
+        { recursionLimit: 100 },
+      );
+      return response.structuredResponse;
+    },
+    {
+      name: "research_claim",
+      description: researchClaimToolDescription,
+      schema: researchClaimToolSchema,
+    },
+  );
+}
+
+export const researchClaimTool = createResearchClaimTool("medium");
+
+export default createClaimResearcherAgent("medium");
