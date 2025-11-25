@@ -1,15 +1,22 @@
 import { z } from "zod";
 
-const ContextSchema = z
-  .object({
-    "@vocab": z.string().describe("Base vocabulary URL for the ontology"),
-    bias: z.string().describe("Bias ontology namespace URL"),
-    schema: z.string().describe("Schema.org namespace URL"),
-    grokipedia: z.string().optional().describe("Grokipedia base URL"),
-    wikipedia: z.string().optional().describe("Wikipedia base URL"),
-  })
-  .required()
-  .describe("JSON-LD context defining namespaces and vocabularies");
+const CredibilityTierEnum = z.enum([
+  "peer-reviewed",
+  "systematic-review",
+  "government",
+  "academic-institution",
+  "major-news-outlet",
+  "think-tank",
+  "blog-opinion",
+]);
+
+const BiasLevelEnum = z.enum(["none", "low", "moderate", "high", "severe"]);
+
+const ToolNameEnum = z.enum([
+  "google_scholar_search",
+  "web_search",
+  "wikipedia_query",
+]);
 
 const SourceSchema = z
   .object({
@@ -17,19 +24,9 @@ const SourceSchema = z
       .string()
       .describe("Name of the authoritative source used to verify this claim"),
     url: z.string().describe("URL to the authoritative source"),
-    credibilityTier: z
-      .enum([
-        "peer-reviewed",
-        "systematic-review",
-        "government",
-        "academic-institution",
-        "major-news-outlet",
-        "think-tank",
-        "blog-opinion",
-      ])
-      .describe(
-        "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion"
-      ),
+    credibilityTier: CredibilityTierEnum.describe(
+      "Evidence hierarchy tier: peer-reviewed > systematic-review > government > academic-institution > major-news-outlet > think-tank > blog-opinion"
+    ),
     authors: z
       .string()
       .nullish()
@@ -54,7 +51,7 @@ const SourceSchema = z
   .required();
 
 const ToolsUsedSchema = z
-  .array(z.enum(["google_scholar_search", "web_search", "wikipedia_query"]))
+  .array(ToolNameEnum)
   .min(1)
   .describe(
     "Array of verification tools used for this claim: google_scholar_search for scientific claims, web_search for news/events, wikipedia_query for encyclopedia facts. Multiple tools indicate cross-verification."
@@ -135,6 +132,7 @@ const SourceProblemSchema = z
       .array(SourceSchema)
       .min(1)
       .describe("Authoritative sources documenting this source's unreliability"),
+    toolsUsed: ToolsUsedSchema,
     section: z
       .string()
       .describe("Section in Grokipedia that relies on this source"),
@@ -163,6 +161,7 @@ const MediaIssueSchema = z
       .describe(
         "Sources verifying the media issue (original source, fact-check, forensic analysis)"
       ),
+    toolsUsed: ToolsUsedSchema,
     section: z.string().describe("Section name where this media appears"),
   })
   .required();
@@ -172,11 +171,9 @@ const ExecutiveSummarySchema = z
     overview: z
       .string()
       .describe("High-level summary of bias analysis findings (2-3 sentences)"),
-    biasLevel: z
-      .enum(["none", "low", "moderate", "high", "severe"])
-      .describe(
-        "Overall bias severity: none=aligned with Wikipedia, low=minor issues, moderate=notable problems, high=serious bias, severe=extensive misinformation"
-      ),
+    biasLevel: BiasLevelEnum.describe(
+      "Overall bias severity: none=aligned with Wikipedia, low=minor issues, moderate=notable problems, high=serious bias, severe=extensive misinformation"
+    ),
     keyPatterns: z
       .array(z.string())
       .describe(
@@ -245,17 +242,26 @@ const LLMContentSimilaritySchema = z
   .required()
   .describe("Content similarity analysis fields filled by LLM");
 
+const LLMContextSchema = z
+  .object({
+    "@vocab": z.string().describe("Base vocabulary URL for the ontology"),
+    bias: z.string().describe("Bias ontology namespace URL"),
+    schema: z.string().describe("Schema.org namespace URL"),
+    grokipedia: z.string().optional().describe("Grokipedia base URL"),
+    wikipedia: z.string().optional().describe("Wikipedia base URL"),
+  })
+  .required()
+  .describe("JSON-LD context defining namespaces and vocabularies");
+
 const LLMResponseSchema = z
   .object({
-    "@context": ContextSchema,
+    "@context": LLMContextSchema,
     "@type": z
       .literal("BiasDetectionReport")
       .describe("JSON-LD type identifier for this report"),
     articleTitle: z.string().describe("Title of the article being analyzed"),
     grokipediaUrl: z.string().describe("Full URL to the Grokipedia article"),
-    wikipediaUrl: z
-      .string()
-      .describe("Full URL to the Wikipedia article for comparison"),
+    wikipediaUrl: z.string().describe("Full URL to the Wikipedia article for comparison"),
     executiveSummary: ExecutiveSummarySchema,
     factualErrors: z
       .array(FactualErrorSchema)
@@ -312,34 +318,170 @@ const SourceVersionSchema = z
   })
   .required();
 
-const ProvenanceSchema = z
+const JsonLdContextSchema = z
   .object({
-    creator: z
-      .string()
-      .describe(
-        "Name/identifier of the system that created this report (e.g., 'ConsensusLens Bias Detection Agent v2.0')"
-      ),
-    verificationMethod: z
-      .string()
-      .describe(
-        "Brief methodology description (e.g., 'Systematic claim extraction, Wikipedia comparison, peer-reviewed literature review')"
-      ),
-    toolsUsed: z
-      .array(z.string())
-      .describe(
-        "List of verification tools used (e.g., ['google_scholar_search', 'web_search'])"
-      ),
-    sourceVersions: SourceVersionSchema.optional().describe(
-      "Versions of source articles analyzed."
-    ),
-    paranetId: z
-      .string()
-      .optional()
-      .describe(
-        "OriginTrail Paranet identifier where report is stored (filled by publishing system)"
-      ),
+    "@vocab": z.literal("https://schema.org/"),
+    prov: z.literal("http://www.w3.org/ns/prov#"),
+    x402: z.literal("https://x402.org/payment#"),
   })
-  .describe("Provenance tracking how report was created and where it's stored on DKG");
+  .describe("JSON-LD context with schema.org, PROV-O, and x402 namespaces");
+
+const RatingSchema = z.object({
+  "@type": z.literal("Rating"),
+  ratingValue: z.number().int().min(1).max(5),
+  bestRating: z.literal(5),
+  worstRating: z.literal(1),
+  ratingExplanation: z.string(),
+});
+
+const PropertyValueSchema = z.object({
+  "@type": z.literal("PropertyValue"),
+  propertyID: z.string(),
+  value: z.union([z.number(), z.string()]),
+  description: z.string().optional(),
+});
+
+const ProvEntitySchema = z.object({
+  "@type": z.literal("prov:Entity"),
+  "@id": z.string(),
+  "prov:generatedAtTime": z.string().datetime(),
+  identifier: z.string().optional(),
+});
+
+const PublisherSchema = z.object({
+  "@type": z.literal("Organization"),
+  name: z.string(),
+  "x402:walletAddress": z.string(),
+  "x402:paymentNetwork": z.literal("otp:20430"),
+  "x402:paymentToken": z.literal("TRAC"),
+});
+
+const StakeSchema = z.object({
+  amount: z.string(),
+  confidence: z.number().min(0).max(1),
+  txHash: z.string().optional(),
+  contractAddress: z.string().optional(),
+});
+
+const AnalysisMetadataSchema = z.object({
+  tokenUsage: z.number().int().nonnegative(),
+  costUSD: z.number().nonnegative(),
+  costTRAC: z.number().nonnegative(),
+  publishingCost: z.number().nonnegative(),
+  readCostMultiplier: z.number().positive(),
+  calculatedReadCost: z.number().nonnegative(),
+  traceId: z.string().optional(),
+  traceUrl: z.string().optional(),
+});
+
+const SoftwareAgentSchema = z.object({
+  "@type": z.literal("SoftwareApplication"),
+  name: z.string(),
+  softwareVersion: z.string(),
+});
+
+const ProvenanceActivitySchema = z.object({
+  "@type": z.literal("prov:Activity"),
+  "prov:wasAssociatedWith": SoftwareAgentSchema,
+  "prov:used": z.array(z.string()),
+  description: z.string().optional(),
+  "x402:stake": StakeSchema.optional(),
+});
+
+const ItemListSchema = z.object({
+  "@type": z.literal("ItemList"),
+  numberOfItems: z.number().int().nonnegative(),
+  description: z.string(),
+});
+
+const ArticleRefSchema = z.object({
+  "@type": z.literal("Article"),
+  url: z.string(),
+  name: z.string().optional(),
+});
+
+const PublicBiasReportSchema = z
+  .object({
+    "@context": JsonLdContextSchema,
+    "@type": z.literal("Review"),
+    "@id": z.string().nullable(),
+    itemReviewed: ArticleRefSchema,
+    isBasedOn: ArticleRefSchema,
+    publisher: PublisherSchema,
+    reviewRating: RatingSchema,
+    reviewBody: z.string(),
+    keywords: z.array(z.string()),
+    negativeNotes: ItemListSchema,
+    additionalProperty: z.array(PropertyValueSchema),
+    "x402:analysisMetadata": AnalysisMetadataSchema,
+    "prov:wasGeneratedBy": ProvenanceActivitySchema,
+    "prov:used": z.array(ProvEntitySchema),
+    "x402:privateContentAvailable": z.boolean(),
+    "x402:privateAccessFee": z.string(),
+    datePublished: z.string().datetime(),
+    dateModified: z.string().datetime().optional(),
+  })
+  .describe("Public part of bias report (free to read) - JSON-LD compliant");
+
+const ClaimSchema = z.object({
+  "@type": z.literal("Claim"),
+  text: z.string(),
+  isPartOf: z.object({
+    name: z.string(),
+  }),
+});
+
+const CitationCredibilitySchema = z.object({
+  "@type": z.literal("PropertyValue"),
+  propertyID: z.literal("credibilityTier"),
+  value: CredibilityTierEnum,
+});
+
+const CitationSchema = z.object({
+  "@type": z.enum(["ScholarlyArticle", "WebPage"]),
+  name: z.string(),
+  url: z.string(),
+  author: z.string().optional(),
+  abstract: z.string().optional(),
+  citation: z.number().int().nonnegative().optional(),
+  additionalProperty: CitationCredibilitySchema.optional(),
+});
+
+const ClaimProvenanceSchema = z.object({
+  "@type": z.literal("prov:Activity"),
+  "prov:used": z.array(z.string()),
+});
+
+const ClaimReviewSchema = z.object({
+  "@type": z.literal("ClaimReview"),
+  claimReviewed: z.string(),
+  reviewBody: z.string(),
+  reviewRating: RatingSchema,
+  itemReviewed: ClaimSchema,
+  citation: z.array(CitationSchema),
+  reviewAspect: z.enum([
+    "factualError",
+    "missingContext",
+    "sourceProblem",
+    "mediaIssue",
+  ]),
+  "prov:wasGeneratedBy": ClaimProvenanceSchema,
+});
+
+const PrivateBiasReportSchema = z
+  .object({
+    "@context": JsonLdContextSchema,
+    "@id": z.string().nullable(),
+    hasPart: z.array(ClaimReviewSchema),
+  })
+  .describe("Private part of bias report (paid access via x402) - detailed claim reviews");
+
+const BiasReportKnowledgeAssetSchema = z
+  .object({
+    public: PublicBiasReportSchema,
+    private: PrivateBiasReportSchema,
+  })
+  .describe("Combined public/private bias report for DKG publishing");
 
 const TextSimilaritySchema = z
   .object({
@@ -383,13 +525,40 @@ const FullContentSimilaritySchema = z
       ),
   })
   .required()
-  .describe(
-    "Content similarity analysis comparing Grokipedia to Wikipedia baseline"
-  );
+  .describe("Content similarity analysis comparing Grokipedia to Wikipedia baseline");
+
+const ProvenanceSchema = z
+  .object({
+    creator: z
+      .string()
+      .describe(
+        "Name/identifier of the system that created this report (e.g., 'ConsensusLens Bias Detection Agent v2.0')"
+      ),
+    verificationMethod: z
+      .string()
+      .describe(
+        "Brief methodology description (e.g., 'Systematic claim extraction, Wikipedia comparison, peer-reviewed literature review')"
+      ),
+    toolsUsed: z
+      .array(z.string())
+      .describe(
+        "List of verification tools used (e.g., ['google_scholar_search', 'web_search'])"
+      ),
+    sourceVersions: SourceVersionSchema.optional().describe(
+      "Versions of source articles analyzed."
+    ),
+    paranetId: z
+      .string()
+      .optional()
+      .describe(
+        "OriginTrail Paranet identifier where report is stored (filled by publishing system)"
+      ),
+  })
+  .describe("Provenance tracking how report was created and where it's stored on DKG");
 
 const BiasDetectionReportSchema = z
   .object({
-    "@context": ContextSchema,
+    "@context": LLMContextSchema,
     "@type": z
       .literal("BiasDetectionReport")
       .describe("JSON-LD type identifier for this report"),
@@ -401,9 +570,7 @@ const BiasDetectionReportSchema = z
       ),
     articleTitle: z.string().describe("Title of the article being analyzed"),
     grokipediaUrl: z.string().describe("Full URL to the Grokipedia article"),
-    wikipediaUrl: z
-      .string()
-      .describe("Full URL to the Wikipedia article for comparison"),
+    wikipediaUrl: z.string().describe("Full URL to the Wikipedia article for comparison"),
     analysisDate: z
       .string()
       .datetime()
@@ -439,12 +606,32 @@ export type LLMResponse = z.infer<typeof LLMResponseSchema>;
 export type BiasDetectionReport = z.infer<typeof BiasDetectionReportSchema>;
 export type SourceVersions = z.infer<typeof SourceVersionSchema>;
 export type Provenance = z.infer<typeof ProvenanceSchema>;
+export type PublicBiasReport = z.infer<typeof PublicBiasReportSchema>;
+export type PrivateBiasReport = z.infer<typeof PrivateBiasReportSchema>;
+export type BiasReportKnowledgeAsset = z.infer<typeof BiasReportKnowledgeAssetSchema>;
+export type FactualError = z.infer<typeof FactualErrorSchema>;
+export type MissingContext = z.infer<typeof MissingContextSchema>;
+export type SourceProblem = z.infer<typeof SourceProblemSchema>;
+export type MediaIssue = z.infer<typeof MediaIssueSchema>;
+export type Source = z.infer<typeof SourceSchema>;
+export type BiasLevel = z.infer<typeof BiasLevelEnum>;
+export type CredibilityTier = z.infer<typeof CredibilityTierEnum>;
 
 export {
   LLMResponseSchema,
   BiasDetectionReportSchema,
   SourceVersionSchema,
   ProvenanceSchema,
+  PublicBiasReportSchema,
+  PrivateBiasReportSchema,
+  BiasReportKnowledgeAssetSchema,
+  FactualErrorSchema,
+  MissingContextSchema,
+  SourceProblemSchema,
+  MediaIssueSchema,
+  SourceSchema,
+  BiasLevelEnum,
+  CredibilityTierEnum,
 };
 
 export default LLMResponseSchema;
