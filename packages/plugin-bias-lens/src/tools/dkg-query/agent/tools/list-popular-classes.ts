@@ -9,30 +9,27 @@ function extractNumber(value: unknown): number {
   return match ? parseInt(match[0], 10) : 0;
 }
 
-export const createDiscoverPredicatesTool = (dkgClient: DkgClient) =>
+export const createListPopularClassesTool = (dkgClient: DkgClient) =>
   tool(
-    async ({ classUri }) => {
+    async () => {
       const query = `
         PREFIX dkg: <https://ontology.origintrail.io/dkg/1.0#>
-        SELECT DISTINCT ?predicate (COUNT(?predicate) as ?count) WHERE {
+        SELECT DISTINCT ?type (COUNT(?s) as ?count) WHERE {
           GRAPH <current:graph> { ?g dkg:hasNamedGraph ?kaGraph . }
-          GRAPH ?kaGraph {
-            ?s a <${classUri}> .
-            ?s ?predicate ?o .
-          }
+          GRAPH ?kaGraph { ?s a ?type . }
         }
-        GROUP BY ?predicate
+        GROUP BY ?type
         ORDER BY DESC(?count)
-        LIMIT 50
+        LIMIT 20
       `;
 
       try {
         const result = await dkgClient.graph.query(query, "SELECT");
-        const predicates = result.data.map((row) => ({
-          predicate: String(row.predicate),
+        const classes = result.data.map((row) => ({
+          type: String(row.type),
           count: extractNumber(row.count),
         }));
-        return JSON.stringify(predicates);
+        return JSON.stringify(classes);
       } catch (error) {
         return JSON.stringify({
           error: error instanceof Error ? error.message : String(error),
@@ -40,13 +37,9 @@ export const createDiscoverPredicatesTool = (dkgClient: DkgClient) =>
       }
     },
     {
-      name: "discover_predicates",
+      name: "list_popular_classes",
       description:
-        "Get all predicates (properties) used by instances of a specific class. Call this after finding relevant classes to understand what data is available.",
-      schema: z.object({
-        classUri: z
-          .string()
-          .describe("Full URI of the class (e.g., 'http://schema.org/Review')"),
-      }),
+        "List the most common classes in the DKG by instance count. Use as fallback when search_classes returns no results, or to get an overview of available data.",
+      schema: z.object({}),
     }
   );

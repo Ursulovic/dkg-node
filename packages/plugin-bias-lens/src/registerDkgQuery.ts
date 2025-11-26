@@ -13,15 +13,14 @@ const description = `Query the OriginTrail Decentralized Knowledge Graph (DKG) u
 1. Converts natural language to SPARQL using an LLM agent
 2. Automatically discovers schema (classes, predicates) on-demand
 3. Iteratively refines queries if initial attempts return no results
-4. Returns data with the SPARQL query used
+4. Returns natural language answer with query results
 
 **Examples:**
 - "How many products are stored in the DKG?"
 - "Find all organizations with their names"
 - "What audits have compliance scores below 70?"
-- "List the most recent Knowledge Assets by publisher"
 
-**Output:** Query results as JSON array, plus the SPARQL query used.`;
+**Output format:** When presenting results to users, render any SPARQL queries as markdown code blocks with \`\`\`sparql syntax highlighting.`;
 
 const inputSchema = {
   query: z
@@ -49,28 +48,20 @@ export const registerDkgQuery: DkgPlugin = (ctx, mcp) => {
         };
       }
 
+      if (result.answer) {
+        return {
+          content: [{ type: "text", text: result.answer }],
+        };
+      }
+
       const summary = result.data.length === 0
-        ? "Query returned no results."
+        ? "No results found."
         : `Found ${result.data.length} result(s).`;
-
-      const text = `**DKG Query Results**
-
-${summary}
-
-SPARQL Used:
-\`\`\`sparql
-${result.sparqlUsed}
-\`\`\`
-
-Results:`;
 
       return {
         content: [
-          { type: "text", text },
-          {
-            type: "text",
-            text: JSON.stringify(result.data, null, 2),
-          },
+          { type: "text", text: summary },
+          { type: "text", text: JSON.stringify(result.data, null, 2) },
         ],
       };
     }

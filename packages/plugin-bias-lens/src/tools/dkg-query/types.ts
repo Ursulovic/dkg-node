@@ -9,6 +9,7 @@ export interface DkgQueryResult {
   data: Record<string, unknown>[];
   sparqlUsed: string;
   error?: string;
+  answer?: string;
 }
 
 export interface ClassInfo {
