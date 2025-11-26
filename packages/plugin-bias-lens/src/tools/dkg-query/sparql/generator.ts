@@ -37,9 +37,9 @@ export function wrapWithDkgGraphPattern(queryJson: SelectQueryJson): SelectQuery
         type: "bgp",
         triples: [
           {
-            subject: { termType: "Variable", value: "dkgGraphRef" },
+            subject: { termType: "Variable", value: "__dkgGraphRef" },
             predicate: { termType: "NamedNode", value: `${dkgPrefix}hasNamedGraph` },
-            object: { termType: "Variable", value: "dkgContainedGraph" },
+            object: { termType: "Variable", value: "__dkgContainedGraph" },
           },
         ],
       },
@@ -48,14 +48,16 @@ export function wrapWithDkgGraphPattern(queryJson: SelectQueryJson): SelectQuery
 
   const contentGraphPattern: Pattern = {
     type: "graph",
-    name: { termType: "Variable", value: "dkgContainedGraph" },
+    name: { termType: "Variable", value: "__dkgContainedGraph" },
     patterns: queryJson.where as Pattern[],
   };
 
-  const updatedPrefixes = {
-    ...queryJson.prefixes,
-    dkg: dkgPrefix,
-  };
+  const updatedPrefixes = { ...queryJson.prefixes };
+  if (!updatedPrefixes.dkg) {
+    updatedPrefixes.dkg = dkgPrefix;
+  } else if (updatedPrefixes.dkg !== dkgPrefix) {
+    updatedPrefixes.__dkg = dkgPrefix;
+  }
 
   return {
     ...queryJson,

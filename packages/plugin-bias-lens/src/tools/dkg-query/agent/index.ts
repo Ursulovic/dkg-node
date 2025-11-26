@@ -1,17 +1,21 @@
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { traceable } from "langsmith/traceable";
+import { writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import type { DkgClient, DkgQueryInput, DkgQueryResult } from "../types.js";
 import {
   createSearchSchemaTool,
   createExecuteSparqlTool,
+  createDiscoverExtensionsTool,
 } from "./tools/index.js";
 import { SYSTEM_PROMPT } from "./system-prompt.js";
 
 export const createDkgQueryAgent = (dkgClient: DkgClient) => {
   const tools = [
-    createSearchSchemaTool(dkgClient),
+    createSearchSchemaTool(),
     createExecuteSparqlTool(dkgClient),
+    createDiscoverExtensionsTool(dkgClient),
   ];
 
   const model = new ChatOpenAI({
@@ -69,6 +73,25 @@ export const runDkgQueryAgent = traceable(
       typeof lastMessage.content === "string"
         ? lastMessage.content
         : JSON.stringify(lastMessage.content);
+
+    if (process.env.DEBUG === "true") {
+      const tracesDir = join(process.cwd(), "traces");
+      await mkdir(tracesDir, { recursive: true });
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `dkg-query-${timestamp}.json`;
+
+      await writeFile(
+        join(tracesDir, filename),
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          input: input.query,
+          messages: result.messages,
+          executedQueries,
+          answer: content,
+        }, null, 2)
+      );
+    }
 
     return {
       success: true,

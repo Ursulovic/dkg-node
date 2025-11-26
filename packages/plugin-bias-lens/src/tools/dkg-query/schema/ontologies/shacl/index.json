@@ -1,0 +1,8 @@
+{
+  "name": "W3C Shapes Constraint Language (SHACL) Vocabulary",
+  "symbol": "shacl",
+  "ns": "http://www.w3.org/ns/shacl#",
+  "lov": "https://lov.linkeddata.es/dataset/lov/vocabs/sh",
+  "source": "https://www.w3.org/ns/shacl.ttl",
+  "spec": "https://www.w3.org/TR/shacl/"
+}

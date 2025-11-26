@@ -1,25 +1,12 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { Document } from "@langchain/core/documents";
-import type { DkgClient } from "../../types.js";
-import {
-  getSchemaVectorStore,
-  buildClassDocument,
-  extractLabel,
-  extractNamespace,
-} from "../../schema/index.js";
-import type { ClassDocumentMetadata, PredicateInfo } from "../../schema/types.js";
+import { getSchemaVectorStore } from "../../schema/index.js";
+import type { DocumentMetadata } from "../../schema/types.js";
 
-function extractNumber(value: unknown): number {
-  if (typeof value === "number") return value;
-  const str = String(value);
-  const match = str.match(/\d+/);
-  return match ? parseInt(match[0], 10) : 0;
-}
-
-export const createSearchSchemaTool = (dkgClient: DkgClient) =>
+export const createSearchSchemaTool = () =>
   tool(
-    async ({ keywords }) => {
+    async ({ keywords, namespaces }) => {
       if (keywords.length === 0) {
         return JSON.stringify({ error: "At least one keyword is required" });
       }
@@ -29,11 +16,11 @@ export const createSearchSchemaTool = (dkgClient: DkgClient) =>
 
         const allResults = new Map<
           string,
-          { doc: Document<ClassDocumentMetadata>; score: number }
+          { doc: Document<DocumentMetadata>; score: number }
         >();
 
         for (const keyword of keywords) {
-          const results = await store.searchWithScore(keyword, 10);
+          const results = await store.searchWithScore(keyword, 10, namespaces);
           for (const [doc, score] of results) {
             const existing = allResults.get(doc.metadata.uri);
             if (!existing || score < existing.score) {
@@ -44,64 +31,17 @@ export const createSearchSchemaTool = (dkgClient: DkgClient) =>
 
         const sorted = [...allResults.values()]
           .sort((a, b) => a.score - b.score)
-          .slice(0, 20);
+          .slice(0, 15);
 
-        if (sorted.length > 0) {
+        if (sorted.length === 0) {
           return JSON.stringify({
-            source: "cache",
-            classes: sorted.map(({ doc }) => ({
-              uri: doc.metadata.uri,
-              label: doc.metadata.label,
-              description: doc.metadata.description,
-              instanceCount: doc.metadata.instanceCount,
-              predicates: doc.metadata.predicates,
-            })),
+            results: [],
+            message: "No matching classes or properties found. Try different keywords.",
           });
         }
-      } catch {
-        // Vector store not available, fall through to SPARQL
-      }
-
-      const filters = keywords
-        .map((kw) => `CONTAINS(LCASE(STR(?type)), "${kw.toLowerCase()}")`)
-        .join(" || ");
-
-      const query = `
-        PREFIX dkg: <https://ontology.origintrail.io/dkg/1.0#>
-        SELECT DISTINCT ?type (COUNT(?s) as ?count) WHERE {
-          GRAPH <current:graph> { ?g dkg:hasNamedGraph ?kaGraph . }
-          GRAPH ?kaGraph { ?s a ?type . }
-          FILTER(${filters})
-        }
-        GROUP BY ?type
-        ORDER BY DESC(?count)
-        LIMIT 20
-      `;
-
-      try {
-        const result = await dkgClient.graph.query(query, "SELECT");
-        const classes = result.data.map((row: Record<string, unknown>) => ({
-          uri: String(row.type),
-          count: extractNumber(row.count),
-        }));
-
-        const classesWithPredicates = await Promise.all(
-          classes.map(async (cls) => {
-            const predicates = await fetchPredicatesForClass(cls.uri, dkgClient);
-            return {
-              uri: cls.uri,
-              label: extractLabel(cls.uri),
-              instanceCount: cls.count,
-              predicates,
-            };
-          })
-        );
-
-        cacheNewClasses(classes, dkgClient).catch(() => {});
 
         return JSON.stringify({
-          source: "sparql",
-          classes: classesWithPredicates,
+          results: sorted.map(({ doc }) => doc.pageContent),
         });
       } catch (error) {
         return JSON.stringify({
@@ -111,66 +51,52 @@ export const createSearchSchemaTool = (dkgClient: DkgClient) =>
     },
     {
       name: "search_schema",
-      description:
-        "Search DKG schema for classes by keywords. Returns matching classes with their predicates. Uses cached schema for fast lookup, falls back to SPARQL if needed.",
+      description: `Search ontology schema for classes and properties by keywords.
+
+AVAILABLE NAMESPACES (use symbol as value):
+- "schema" - Schema.org vocabulary (Product, Review, Person, Organization, etc.)
+- "rdf" - RDF syntax (type, Property, Statement)
+- "rdfs" - RDF Schema (Class, subClassOf, label, comment)
+- "owl" - OWL (ObjectProperty, DatatypeProperty, equivalentClass)
+- "dcterms" - Dublin Core Terms (creator, title, description, modified)
+- "dcelems" - Dublin Core Elements (title, creator, subject, description)
+- "foaf" - Friend of a Friend (Person, name, knows, mbox)
+- "skos" - SKOS (Concept, broader, narrower, prefLabel)
+- "prov" - Provenance (Entity, Activity, wasGeneratedBy)
+- "as" - Activity Streams (Activity, Object, Actor)
+- "shacl" - SHACL (NodeShape, PropertyShape, path)
+- "xsd" - XML Schema Datatypes (string, integer, dateTime)
+- "ld" - JSON-LD (context, id, type)
+
+USAGE:
+- Omit 'namespaces' to search ALL ontologies
+- Specify namespaces array to search specific ontologies only
+
+EXAMPLES:
+- Finding product classes: keywords=["product", "item"], namespaces=["schema"]
+- Finding person properties: keywords=["person", "name"], namespaces=["schema", "foaf"]
+- Finding any review-related: keywords=["review", "rating"] (searches all)
+- Finding RDF primitives: keywords=["class", "property"], namespaces=["rdf", "rdfs"]
+
+Returns detailed information including:
+- Class hierarchies (e.g., Review → CreativeWork → Thing)
+- Direct and inherited properties with their types
+- SPARQL usage examples
+
+Use this BEFORE writing any SPARQL query to find the correct URIs and properties.`,
       schema: z.object({
         keywords: z
           .array(z.string())
           .min(1)
           .describe(
-            "Keywords to search for in class names (e.g., ['review', 'claim'] for bias reports)"
+            "Keywords to search for (e.g., ['review', 'rating'] to find Review class and rating properties)"
+          ),
+        namespaces: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Ontology namespaces to search (e.g., ['schema', 'foaf']). Omit to search all ontologies."
           ),
       }),
     }
   );
-
-async function cacheNewClasses(
-  classes: { uri: string; count: number }[],
-  dkgClient: DkgClient
-): Promise<void> {
-  const store = await getSchemaVectorStore();
-
-  for (const cls of classes) {
-    const predicates = await fetchPredicatesForClass(cls.uri, dkgClient);
-
-    const doc = buildClassDocument(
-      cls.uri,
-      extractLabel(cls.uri),
-      extractNamespace(cls.uri),
-      cls.count,
-      predicates
-    );
-
-    await store.addDocument(doc);
-  }
-}
-
-async function fetchPredicatesForClass(
-  classUri: string,
-  dkgClient: DkgClient
-): Promise<PredicateInfo[]> {
-  const query = `
-    PREFIX dkg: <https://ontology.origintrail.io/dkg/1.0#>
-    SELECT DISTINCT ?predicate (COUNT(?predicate) as ?count) WHERE {
-      GRAPH <current:graph> { ?g dkg:hasNamedGraph ?kaGraph . }
-      GRAPH ?kaGraph {
-        ?s a <${classUri}> .
-        ?s ?predicate ?o .
-      }
-    }
-    GROUP BY ?predicate
-    ORDER BY DESC(?count)
-    LIMIT 50
-  `;
-
-  try {
-    const result = await dkgClient.graph.query(query, "SELECT");
-    return result.data.map((row: Record<string, unknown>) => ({
-      uri: String(row.predicate),
-      label: extractLabel(String(row.predicate)),
-      usageCount: extractNumber(row.count),
-    }));
-  } catch {
-    return [];
-  }
-}

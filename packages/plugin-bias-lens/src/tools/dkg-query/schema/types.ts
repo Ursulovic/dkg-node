@@ -1,12 +1,25 @@
-export interface ClassInfo {
-  uri: string;
-  count: number;
-}
-
-export interface PredicateInfo {
+export interface OntologyClass {
   uri: string;
   label: string;
-  usageCount: number;
+  description?: string;
+  parentClass?: string;
+  namespace: string;
+}
+
+export interface OntologyProperty {
+  uri: string;
+  label: string;
+  description?: string;
+  domain: string[];
+  range: string[];
+  namespace: string;
+}
+
+export interface ClassWithProperties {
+  cls: OntologyClass;
+  hierarchy: string[];
+  directProperties: OntologyProperty[];
+  inheritedProperties: Map<string, OntologyProperty[]>;
 }
 
 export interface ClassDocumentMetadata {
@@ -14,22 +27,25 @@ export interface ClassDocumentMetadata {
   label: string;
   description?: string;
   namespace: string;
-  instanceCount: number;
-  predicates: PredicateInfo[];
+  type: "class";
+  hierarchy?: string[];
   fetchedAt: string;
 }
 
-export interface Checkpoint {
-  startedAt: string;
-  lastUpdatedAt: string;
-  totalClasses: number;
-  processedCount: number;
-  processedUris: string[];
-  status: "in_progress" | "completed" | "failed";
-  lastError?: string;
+export interface PropertyDocumentMetadata {
+  uri: string;
+  label: string;
+  description?: string;
+  namespace: string;
+  type: "property";
+  domain: string[];
+  range: string[];
+  fetchedAt: string;
 }
+
+export type DocumentMetadata = ClassDocumentMetadata | PropertyDocumentMetadata;
 
 export interface SerializedDocument {
   pageContent: string;
-  metadata: ClassDocumentMetadata;
+  metadata: DocumentMetadata;
 }

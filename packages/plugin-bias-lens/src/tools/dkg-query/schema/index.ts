@@ -1,44 +1,23 @@
-import { Document } from "@langchain/core/documents";
 import { DkgSchemaVectorStore } from "./store.js";
-import type { ClassDocumentMetadata, PredicateInfo } from "./types.js";
 
 let vectorStore: DkgSchemaVectorStore | null = null;
+let loadingPromise: Promise<DkgSchemaVectorStore> | null = null;
 
 export async function getSchemaVectorStore(): Promise<DkgSchemaVectorStore> {
-  if (!vectorStore) {
-    vectorStore = new DkgSchemaVectorStore();
-    await vectorStore.load();
+  if (vectorStore) {
+    return vectorStore;
   }
-  return vectorStore;
-}
 
-export function buildClassDocument(
-  uri: string,
-  label: string,
-  namespace: string,
-  instanceCount: number,
-  predicates: PredicateInfo[],
-  description?: string
-): Document<ClassDocumentMetadata> {
-  const predicateLabels = predicates.map((p) => p.label).join(", ");
+  if (!loadingPromise) {
+    loadingPromise = (async () => {
+      const store = new DkgSchemaVectorStore();
+      await store.load();
+      vectorStore = store;
+      return store;
+    })();
+  }
 
-  const pageContent = `${label} (${namespace})
-${description || "No description available."}
-Predicates: ${predicateLabels || "none discovered"}
-Instance count: ${instanceCount}`;
-
-  return new Document<ClassDocumentMetadata>({
-    pageContent,
-    metadata: {
-      uri,
-      label,
-      description,
-      namespace,
-      instanceCount,
-      predicates,
-      fetchedAt: new Date().toISOString(),
-    },
-  });
+  return loadingPromise;
 }
 
 export function extractLabel(uri: string): string {
@@ -53,4 +32,10 @@ export function extractNamespace(uri: string): string {
 }
 
 export { DkgSchemaVectorStore } from "./store.js";
-export type { ClassDocumentMetadata, PredicateInfo } from "./types.js";
+export type {
+  OntologyClass,
+  OntologyProperty,
+  ClassDocumentMetadata,
+  PropertyDocumentMetadata,
+  DocumentMetadata,
+} from "./types.js";

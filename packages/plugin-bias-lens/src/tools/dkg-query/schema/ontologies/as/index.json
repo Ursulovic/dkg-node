@@ -1,0 +1,7 @@
+{
+  "name": "ActivityStreams 2.0",
+  "symbol": "as",
+  "ns": "https://www.w3.org/ns/activitystreams#",
+  "source": "https://www.w3.org/ns/activitystreams-owl",
+  "spec": "https://www.w3.org/TR/activitystreams-core/"
+}

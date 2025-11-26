@@ -86,7 +86,6 @@ export function enrichResponse(
 
   const reportId = randomUUID();
   const reportIri = `https://bias-lens.neuroweb.ai/report/${reportId}`;
-  console.log("Report", reportIri);
 
   const factualErrors = extractFactualErrors(llmResponse.errors);
   const missingContext = extractMissingContext(llmResponse.errors);
