@@ -4,6 +4,7 @@ import {
   generateSparql,
   validateSparql,
   wrapWithDkgGraphPattern,
+  wrapSparqlStringWithDkgPattern,
   createSimpleSelectQuery,
 } from "../../../../src/tools/dkg-query/sparql/generator.js";
 import type { SelectQueryJson } from "../../../../src/tools/dkg-query/sparql/schema.js";
@@ -190,6 +191,43 @@ describe("SPARQL Generator", () => {
       expect(query.queryType).to.equal("SELECT");
       expect(query.variables).to.have.length(2);
       expect((query.where[0] as { triples: unknown[] }).triples).to.have.length(2);
+    });
+  });
+
+  describe("wrapSparqlStringWithDkgPattern", () => {
+    it("should wrap a SPARQL string with DKG graph traversal", () => {
+      const sparql = "SELECT ?name WHERE { ?s <http://schema.org/name> ?name }";
+      const result = wrapSparqlStringWithDkgPattern(sparql);
+
+      expect(result.success).to.be.true;
+      expect(result.sparql).to.include("current:graph");
+      expect(result.sparql).to.include("hasNamedGraph");
+      expect(result.sparql).to.include("http://schema.org/name");
+    });
+
+    it("should return error for invalid SPARQL", () => {
+      const sparql = "SELECT ?s WHERE { ?s ?p }";
+      const result = wrapSparqlStringWithDkgPattern(sparql);
+
+      expect(result.success).to.be.false;
+      expect(result.error).to.be.a("string");
+    });
+
+    it("should return error for non-SELECT queries", () => {
+      const sparql = "INSERT DATA { <http://example.org/s> <http://example.org/p> <http://example.org/o> }";
+      const result = wrapSparqlStringWithDkgPattern(sparql);
+
+      expect(result.success).to.be.false;
+      expect(result.error).to.include("SELECT");
+    });
+
+    it("should handle queries with PREFIX declarations", () => {
+      const sparql = `PREFIX schema: <http://schema.org/>
+SELECT ?name WHERE { ?s schema:name ?name }`;
+      const result = wrapSparqlStringWithDkgPattern(sparql);
+
+      expect(result.success).to.be.true;
+      expect(result.sparql).to.include("current:graph");
     });
   });
 });

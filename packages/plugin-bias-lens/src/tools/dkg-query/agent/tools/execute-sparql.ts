@@ -1,34 +1,56 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import type { DkgClient } from "../../types.js";
-import { selectQuerySchema } from "../../sparql/schema.js";
-import { generateSparql, wrapWithDkgGraphPattern } from "../../sparql/generator.js";
+import { validateSparql, wrapSparqlStringWithDkgPattern } from "../../sparql/generator.js";
 
 const executeQuerySchema = z.object({
-  queryJson: selectQuerySchema.describe(
-    "SPARQL.js JSON query object. The system will automatically wrap it with DKG graph traversal pattern."
-  ),
+  sparqlQuery: z
+    .string()
+    .describe(
+      "A valid SPARQL SELECT query string. Do NOT include DKG graph patterns - the system adds them automatically."
+    ),
   skipDkgWrapper: z
     .boolean()
     .nullish()
-    .describe("Set to true if query already includes DKG graph patterns (for raw discovery queries)"),
+    .describe("Set to true only for raw discovery queries that already include graph patterns"),
 });
 
 export function createExecuteSparqlTool(dkgClient: DkgClient) {
   return tool(
-    async ({ queryJson, skipDkgWrapper }) => {
+    async ({ sparqlQuery, skipDkgWrapper }) => {
       try {
-        const finalQuery = skipDkgWrapper ? queryJson : wrapWithDkgGraphPattern(queryJson);
-        const sparqlString = generateSparql(finalQuery);
+        const validation = validateSparql(sparqlQuery);
+        if (!validation.valid) {
+          return JSON.stringify({
+            success: false,
+            error: `Invalid SPARQL syntax: ${validation.error}`,
+            sparqlAttempted: sparqlQuery,
+            suggestion: "Fix the SPARQL syntax error and try again.",
+          });
+        }
 
-        const result = await dkgClient.graph.query(sparqlString, "SELECT");
+        let finalSparql = sparqlQuery;
+
+        if (!skipDkgWrapper) {
+          const wrapped = wrapSparqlStringWithDkgPattern(sparqlQuery);
+          if (!wrapped.success) {
+            return JSON.stringify({
+              success: false,
+              error: `Failed to wrap query: ${wrapped.error}`,
+              sparqlAttempted: sparqlQuery,
+            });
+          }
+          finalSparql = wrapped.sparql!;
+        }
+
+        const result = await dkgClient.graph.query(finalSparql, "SELECT");
 
         if (!result?.data || result.data.length === 0) {
           return JSON.stringify({
             success: true,
             count: 0,
             data: [],
-            sparqlUsed: sparqlString,
+            sparqlUsed: finalSparql,
             message:
               "Query returned no results. Consider using discover_predicates or discover_classes to find correct predicates.",
           });
@@ -38,15 +60,16 @@ export function createExecuteSparqlTool(dkgClient: DkgClient) {
           success: true,
           count: result.data.length,
           data: result.data.slice(0, 20),
-          sparqlUsed: sparqlString,
+          sparqlUsed: finalSparql,
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return JSON.stringify({
           success: false,
           error: errorMessage,
+          sparqlAttempted: sparqlQuery,
           suggestion:
-            "Query failed. Use discover_classes to see available entity types, or discover_predicates to find valid predicates.",
+            "Query execution failed. Use discover_classes to see available entity types, or discover_predicates to find valid predicates.",
         });
       }
     },
@@ -54,14 +77,15 @@ export function createExecuteSparqlTool(dkgClient: DkgClient) {
       name: "execute_sparql",
       description: `Execute a SPARQL SELECT query against the DKG.
 
-Input: A SPARQL.js JSON query object that will be:
-1. Wrapped with DKG graph traversal pattern (current:graph -> containedGraph)
-2. Converted to SPARQL string
-3. Executed against DKG
+Input: A raw SPARQL SELECT query string (the system validates syntax and wraps with DKG graph patterns automatically).
 
-Returns: Query results or error with suggestions for discovery.
+Example queries:
+- SELECT ?s ?name WHERE { ?s a <http://schema.org/Product> . ?s <http://schema.org/name> ?name . }
+- SELECT (COUNT(?s) AS ?count) WHERE { ?s a <http://schema.org/Organization> . }
 
-IMPORTANT: Use proper SPARQL.js JSON format with termType fields (Variable, NamedNode, Literal).`,
+Returns: Query results with count, data (max 20 rows), and the final SPARQL used.
+
+On failure: Returns error with suggestions to use discovery tools.`,
       schema: executeQuerySchema,
     }
   );

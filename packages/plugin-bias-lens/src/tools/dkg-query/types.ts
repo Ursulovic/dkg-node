@@ -34,6 +34,20 @@ export interface DiscoveryCache {
   lastUpdated: Date;
 }
 
+export interface DiscoveredSchema {
+  classes: ClassInfo[];
+  predicates: PredicateInfo[];
+  samples: SampleData[];
+}
+
+export interface IterationAttempt {
+  iteration: number;
+  sparqlAttempted: string;
+  error?: string;
+  resultCount?: number;
+  discoveries?: string[];
+}
+
 export interface DkgClient {
   graph: {
     query: (sparql: string, queryType: string) => Promise<{ data: Record<string, unknown>[] }>;

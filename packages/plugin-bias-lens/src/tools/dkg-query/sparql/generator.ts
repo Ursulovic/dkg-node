@@ -97,3 +97,28 @@ function parseTermString(
   }
   return { termType: "NamedNode", value: term };
 }
+
+export function wrapSparqlStringWithDkgPattern(sparqlString: string): {
+  success: boolean;
+  sparql?: string;
+  error?: string;
+} {
+  try {
+    const parsed = parser.parse(sparqlString);
+
+    if (parsed.type !== "query" || parsed.queryType !== "SELECT") {
+      return { success: false, error: "Only SELECT queries are supported" };
+    }
+
+    const selectQuery = parsed as SelectQuery;
+    const wrapped = wrapWithDkgGraphPattern(selectQuery as unknown as SelectQueryJson);
+    const result = generator.stringify(wrapped as unknown as SelectQuery);
+
+    return { success: true, sparql: result };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}

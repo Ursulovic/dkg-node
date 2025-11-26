@@ -1,17 +1,19 @@
 import { createAgent, toolCallLimitMiddleware } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
-import type { DkgClient } from "../types.js";
+import type { DkgClient, DiscoveredSchema, IterationAttempt } from "../types.js";
 import {
   createExecuteSparqlTool,
   createDiscoverClassesTool,
   createDiscoverPredicatesTool,
   createSampleDataTool,
 } from "./tools/index.js";
-import { DKG_QUERY_SYSTEM_PROMPT } from "./system-prompt.js";
+import { generateSystemPrompt } from "./system-prompt.js";
 
-export async function createDkgQueryAgent(
-  dkgClient: DkgClient
-): Promise<ReturnType<typeof createAgent>> {
+export function createDkgQueryAgent(
+  dkgClient: DkgClient,
+  discoveredSchema: DiscoveredSchema,
+  iterationHistory: IterationAttempt[]
+): ReturnType<typeof createAgent> {
   const model = new ChatOpenAI({
     model: "gpt-4o-mini",
     temperature: 0.3,
@@ -24,11 +26,13 @@ export async function createDkgQueryAgent(
     createSampleDataTool(dkgClient),
   ];
 
+  const systemPrompt = generateSystemPrompt(discoveredSchema, iterationHistory);
+
   return createAgent({
     name: "dkg-query-generator",
     model,
     tools,
-    systemPrompt: DKG_QUERY_SYSTEM_PROMPT,
+    systemPrompt,
     middleware: [toolCallLimitMiddleware({ runLimit: 10 })],
   });
 }

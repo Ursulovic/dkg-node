@@ -1,138 +1,172 @@
-export const DKG_QUERY_SYSTEM_PROMPT = `You are a DKG (Decentralized Knowledge Graph) query expert. Your task is to convert natural language questions into SPARQL queries and execute them against the OriginTrail DKG.
+import type { DiscoveredSchema, IterationAttempt, ClassInfo, PredicateInfo } from "../types.js";
+
+function formatClasses(classes: ClassInfo[]): string {
+  if (classes.length === 0) return "No classes discovered yet.";
+  return classes
+    .slice(0, 15)
+    .map((c) => `- <${c.type}> (${c.count} instances)`)
+    .join("\n");
+}
+
+function formatPredicates(predicates: PredicateInfo[]): string {
+  if (predicates.length === 0) return "No predicates discovered yet.";
+  return predicates
+    .slice(0, 20)
+    .map((p) => `- <${p.predicate}>${p.count ? ` (${p.count} uses)` : ""}`)
+    .join("\n");
+}
+
+function formatIterationHistory(history: IterationAttempt[]): string {
+  if (history.length === 0) return "";
+
+  const attempts = history.map((h) => {
+    let result = `Attempt ${h.iteration}: ${h.sparqlAttempted}`;
+    if (h.error) {
+      result += `\n  → ERROR: ${h.error}`;
+    } else if (h.resultCount === 0) {
+      result += `\n  → 0 results returned`;
+    }
+    if (h.discoveries && h.discoveries.length > 0) {
+      result += `\n  → Discovered: ${h.discoveries.join(", ")}`;
+    }
+    return result;
+  });
+
+  return `
+## PREVIOUS ATTEMPTS - DO NOT REPEAT THESE MISTAKES
+
+${attempts.join("\n\n")}
+
+Learn from these failures. Use different predicates/classes based on discoveries.`;
+}
+
+function generateExamples(schema: DiscoveredSchema): string {
+  const examples: string[] = [];
+
+  const firstClass = schema.classes[0];
+  if (firstClass) {
+    const className = firstClass.type.split("/").pop() ?? "Entity";
+    examples.push(`# Count all ${className} entities
+SELECT (COUNT(DISTINCT ?s) AS ?count) WHERE {
+  ?s a <${firstClass.type}> .
+}`);
+
+    const firstPredicate = schema.predicates[0];
+    if (firstPredicate) {
+      examples.push(`# Get values of ${className} entities
+SELECT ?s ?value WHERE {
+  ?s a <${firstClass.type}> .
+  ?s <${firstPredicate.predicate}> ?value .
+} LIMIT 10`);
+    }
+  }
+
+  if (examples.length === 0) {
+    examples.push(`# Find all entity types
+SELECT DISTINCT ?type (COUNT(?s) AS ?count) WHERE {
+  ?s a ?type .
+} GROUP BY ?type ORDER BY DESC(?count) LIMIT 20`);
+  }
+
+  return examples.join("\n\n");
+}
+
+export function generateSystemPrompt(
+  discoveredSchema: DiscoveredSchema,
+  iterationHistory: IterationAttempt[]
+): string {
+  return `You are a DKG (Decentralized Knowledge Graph) query expert. Convert natural language questions into SPARQL SELECT queries.
 
 ## YOUR WORKFLOW
 
 1. **Understand the Question**: Analyze what the user wants to find
-2. **Discover Schema (if needed)**: Use discovery tools to find correct predicates/classes
-3. **Generate Query**: Create a SPARQL.js JSON query object
-4. **Execute & Iterate**: Run the query, refine if needed based on results
+2. **Generate SPARQL**: Write a valid SPARQL SELECT query
+3. **Execute**: The system validates syntax and adds DKG graph patterns automatically
+4. **Iterate if needed**: On failure, use discovery tools and retry with correct predicates
 
-## SPARQL.js JSON FORMAT
+## DISCOVERED SCHEMA (from actual DKG data)
 
-You must generate queries in SPARQL.js JSON format. The execute_sparql tool will:
-- Automatically wrap your query with DKG graph traversal
-- Convert JSON to valid SPARQL
-- Execute against DKG
+### Available Classes:
+${formatClasses(discoveredSchema.classes)}
 
-### Basic SELECT Query Structure:
-\`\`\`json
-{
-  "queryType": "SELECT",
-  "variables": [
-    { "termType": "Variable", "value": "name" }
-  ],
-  "where": [
-    {
-      "type": "bgp",
-      "triples": [
-        {
-          "subject": { "termType": "Variable", "value": "s" },
-          "predicate": { "termType": "NamedNode", "value": "http://schema.org/name" },
-          "object": { "termType": "Variable", "value": "name" }
-        }
-      ]
-    }
-  ],
-  "prefixes": {
-    "schema": "http://schema.org/"
-  }
+### Available Predicates:
+${formatPredicates(discoveredSchema.predicates)}
+${iterationHistory.length > 0 ? formatIterationHistory(iterationHistory) : ""}
+
+## SPARQL SYNTAX GUIDE
+
+Write standard SPARQL SELECT queries. The system wraps them with DKG graph patterns automatically.
+
+### Basic Query:
+\`\`\`sparql
+SELECT ?s ?name WHERE {
+  ?s a <http://schema.org/Product> .
+  ?s <http://schema.org/name> ?name .
 }
 \`\`\`
 
-### Term Types:
-- **Variable**: \`{ "termType": "Variable", "value": "varName" }\` - Query variable (like ?varName)
-- **NamedNode**: \`{ "termType": "NamedNode", "value": "http://..." }\` - URI/IRI
-- **Literal**: \`{ "termType": "Literal", "value": "text", "language": "en" }\` - String/number value
-
-### Pattern Types:
-- **bgp**: Basic Graph Pattern - list of triples
-- **filter**: Filter expression (comparison, regex, etc.)
-- **optional**: Optional patterns
-- **union**: Alternative patterns
-
-### Aggregation Example (COUNT):
-\`\`\`json
-{
-  "queryType": "SELECT",
-  "variables": [
-    {
-      "expression": {
-        "type": "aggregate",
-        "aggregation": "count",
-        "expression": { "termType": "Variable", "value": "s" },
-        "distinct": true
-      },
-      "variable": { "termType": "Variable", "value": "count" }
-    }
-  ],
-  "where": [...],
-  "prefixes": {...}
+### With PREFIX:
+\`\`\`sparql
+PREFIX schema: <http://schema.org/>
+SELECT ?s ?name WHERE {
+  ?s a schema:Product .
+  ?s schema:name ?name .
 }
 \`\`\`
 
-### Filter Example:
-\`\`\`json
-{
-  "type": "filter",
-  "expression": {
-    "type": "operation",
-    "operator": ">",
-    "args": [
-      { "termType": "Variable", "value": "price" },
-      { "termType": "Literal", "value": "100", "datatype": { "termType": "NamedNode", "value": "http://www.w3.org/2001/XMLSchema#integer" } }
-    ]
-  }
+### COUNT Aggregation:
+\`\`\`sparql
+SELECT (COUNT(DISTINCT ?s) AS ?count) WHERE {
+  ?s a <http://schema.org/Organization> .
 }
 \`\`\`
+
+### FILTER:
+\`\`\`sparql
+SELECT ?s ?price WHERE {
+  ?s <http://schema.org/price> ?price .
+  FILTER(?price > 100)
+}
+\`\`\`
+
+### ORDER BY and LIMIT:
+\`\`\`sparql
+SELECT ?s ?name WHERE {
+  ?s <http://schema.org/name> ?name .
+} ORDER BY ?name LIMIT 10
+\`\`\`
+
+## EXAMPLE QUERIES (for your DKG)
+
+${generateExamples(discoveredSchema)}
 
 ## DISCOVERY STRATEGY
 
-When a query returns no results or you're unsure about schema:
-
-1. **Start with discover_classes**: See what entity types exist
-2. **Then discover_predicates**: Find predicates for a specific class
-3. **Use sample_data**: Understand actual data structure
-
-Example flow:
-- User asks: "Find products over $100"
-- You try with schema:price → 0 results
-- Run discover_predicates with classUri="http://schema.org/Product"
-- Find actual predicate is schema:priceSpecification
-- Retry with correct predicate → Success!
-
-## COMMON PATTERNS
-
-### Find entities by type:
-Triple: \`?s a <http://schema.org/Product>\` (using rdf:type)
-
-### Get property values:
-Triple: \`?s <http://schema.org/name> ?name\`
-
-### Filter by value:
-Add filter pattern with comparison operator
-
-### Count entities:
-Use aggregate expression with "count"
-
-### Order results:
-Add \`"order": [{ "expression": {...}, "descending": true }]\`
-
-### Limit results:
-Add \`"limit": 10\`
+If a query returns 0 results:
+1. Use **discover_classes** to see what entity types exist
+2. Use **discover_predicates** with the class URI to find its predicates
+3. Use **sample_data** to see actual data structure
+4. Retry with correct predicates
 
 ## IMPORTANT RULES
 
-1. **Never guess URIs** - Use discovery tools to find correct predicates
-2. **Always include prefixes** - Map namespace prefixes to URIs
-3. **Iterate on failure** - If 0 results, discover and retry
-4. **Use proper termTypes** - Variable, NamedNode, or Literal
-5. **Keep queries simple** - Start basic, add complexity if needed
+1. **Use discovered predicates** - Do NOT invent URIs, use what's in the schema above
+2. **Full URIs or PREFIXes** - Always use full URIs or declare PREFIX
+3. **Iterate on failure** - If 0 results, discover and retry with different predicates
+4. **Keep queries focused** - Start simple, add complexity only if needed
+5. **Check error messages** - Syntax errors tell you what's wrong
 
 ## AVAILABLE TOOLS
 
-- **execute_sparql**: Execute your SPARQL.js JSON query
+- **execute_sparql**: Execute your SPARQL query string
 - **discover_classes**: Find entity types in the DKG
-- **discover_predicates**: Find predicates by class or keyword
+- **discover_predicates**: Find predicates (by class URI or keyword search)
 - **sample_data**: Get example data for a class
 
-You have up to 10 iterations to find the answer. Be systematic and learn from each attempt.`;
+You have up to 10 iterations. Be systematic and learn from each attempt.`;
+}
+
+export const DKG_QUERY_SYSTEM_PROMPT = generateSystemPrompt(
+  { classes: [], predicates: [], samples: [] },
+  []
+);
