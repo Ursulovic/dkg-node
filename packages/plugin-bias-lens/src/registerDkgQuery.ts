@@ -13,14 +13,14 @@ const description = `Query the OriginTrail Decentralized Knowledge Graph (DKG) u
 1. Converts natural language to SPARQL using an LLM agent
 2. Automatically discovers schema (classes, predicates) on-demand
 3. Iteratively refines queries if initial attempts return no results
-4. Returns natural language answer with query results
+4. Returns natural language answer with all executed SPARQL queries
 
 **Examples:**
 - "How many products are stored in the DKG?"
 - "Find all organizations with their names"
 - "What audits have compliance scores below 70?"
 
-**Output format:** When presenting results to users, render any SPARQL queries as markdown code blocks with \`\`\`sparql syntax highlighting.`;
+**IMPORTANT:** This tool returns multiple text items - a textual answer followed by all executed SPARQL queries. You MUST display all returned SPARQL queries as code blocks in your response to the user.`;
 
 const inputSchema = {
   query: z
@@ -37,33 +37,25 @@ export const registerDkgQuery: DkgPlugin = (ctx, mcp) => {
     async ({ query }) => {
       const result = await dkgQueryHandler({ query }, ctx.dkg);
 
+      const content: Array<{ type: "text"; text: string }> = [];
+
       if (!result.success) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error querying DKG: ${result.error}\n\nSPARQL attempted:\n${result.sparqlUsed || "No query generated"}`,
-            },
-          ],
-        };
+        content.push({
+          type: "text",
+          text: `Error querying DKG: ${result.error}`,
+        });
+      } else {
+        content.push({ type: "text", text: result.answer });
       }
 
-      if (result.answer) {
-        return {
-          content: [{ type: "text", text: result.answer }],
-        };
+      for (const sparql of result.executedQueries) {
+        content.push({
+          type: "text",
+          text: `\`\`\`sparql\n${sparql}\n\`\`\``,
+        });
       }
 
-      const summary = result.data.length === 0
-        ? "No results found."
-        : `Found ${result.data.length} result(s).`;
-
-      return {
-        content: [
-          { type: "text", text: summary },
-          { type: "text", text: JSON.stringify(result.data, null, 2) },
-        ],
-      };
+      return { content };
     }
   );
 };

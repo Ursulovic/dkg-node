@@ -12,6 +12,7 @@
     "lint": "eslint . --max-warnings 0",
     "test": "npx mocha --import=tsx 'tests/**/*.spec.ts'",
     "reset-vector-db": "tsx scripts/reset-vector-db.ts",
+    "fetch-dkg-schema": "tsx scripts/fetch-dkg-schema-cache.ts",
     "fetch-wikidata-cache": "tsx scripts/fetch-wikidata-cache.ts",
     "update-wikidata-cache": "npm run fetch-wikidata-cache",
     "postinstall": "patch-package"

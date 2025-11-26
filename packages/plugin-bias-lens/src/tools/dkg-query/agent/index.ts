@@ -3,19 +3,15 @@ import { ChatOpenAI } from "@langchain/openai";
 import { traceable } from "langsmith/traceable";
 import type { DkgClient, DkgQueryInput, DkgQueryResult } from "../types.js";
 import {
-  createSearchClassesTool,
-  createDiscoverPredicatesTool,
+  createSearchSchemaTool,
   createExecuteSparqlTool,
-  createListPopularClassesTool,
 } from "./tools/index.js";
 import { SYSTEM_PROMPT } from "./system-prompt.js";
 
 export const createDkgQueryAgent = (dkgClient: DkgClient) => {
   const tools = [
-    createSearchClassesTool(dkgClient),
-    createDiscoverPredicatesTool(dkgClient),
+    createSearchSchemaTool(dkgClient),
     createExecuteSparqlTool(dkgClient),
-    createListPopularClassesTool(dkgClient),
   ];
 
   const model = new ChatOpenAI({
@@ -30,6 +26,16 @@ export const createDkgQueryAgent = (dkgClient: DkgClient) => {
   });
 };
 
+interface ToolCall {
+  name: string;
+  args?: { sparql?: string };
+}
+
+interface AgentMessage {
+  content: string | unknown;
+  tool_calls?: ToolCall[];
+}
+
 export const runDkgQueryAgent = traceable(
   async (input: DkgQueryInput, dkgClient: DkgClient): Promise<DkgQueryResult> => {
     const agent = createDkgQueryAgent(dkgClient);
@@ -38,12 +44,23 @@ export const runDkgQueryAgent = traceable(
       messages: [{ role: "user", content: input.query }],
     });
 
-    const lastMessage = result.messages[result.messages.length - 1];
+    const executedQueries: string[] = [];
+    for (const message of result.messages as AgentMessage[]) {
+      if (message.tool_calls) {
+        for (const toolCall of message.tool_calls) {
+          if (toolCall.name === "execute_sparql" && toolCall.args?.sparql) {
+            executedQueries.push(toolCall.args.sparql);
+          }
+        }
+      }
+    }
+
+    const lastMessage = result.messages[result.messages.length - 1] as AgentMessage | undefined;
     if (!lastMessage) {
       return {
         success: false,
-        data: [],
-        sparqlUsed: "",
+        answer: "",
+        executedQueries: [],
         error: "No response from agent",
       };
     }
@@ -53,14 +70,10 @@ export const runDkgQueryAgent = traceable(
         ? lastMessage.content
         : JSON.stringify(lastMessage.content);
 
-    const sparqlMatch = content.match(/```sparql\n([\s\S]*?)\n```/);
-    const sparqlUsed = sparqlMatch?.[1] ?? "";
-
     return {
       success: true,
-      data: [],
-      sparqlUsed,
       answer: content,
+      executedQueries,
     };
   },
   {
@@ -71,10 +84,11 @@ export const runDkgQueryAgent = traceable(
       return { query: args.args[0]?.query };
     },
     processOutputs: (outputs) => {
-      const result = outputs as DkgQueryResult & { answer?: string };
+      const result = outputs as DkgQueryResult;
       return {
         success: result.success,
         answer: result.answer,
+        queriesExecuted: result.executedQueries.length,
       };
     },
   }

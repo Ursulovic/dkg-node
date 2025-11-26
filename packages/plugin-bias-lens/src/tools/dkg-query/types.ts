@@ -6,10 +6,9 @@ export interface DkgQueryInput {
 
 export interface DkgQueryResult {
   success: boolean;
-  data: Record<string, unknown>[];
-  sparqlUsed: string;
+  answer: string;
+  executedQueries: string[];
   error?: string;
-  answer?: string;
 }
 
 export interface ClassInfo {

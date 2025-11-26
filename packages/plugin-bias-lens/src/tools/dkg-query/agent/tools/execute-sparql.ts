@@ -20,19 +20,21 @@ export const createExecuteSparqlTool = (dkgClient: DkgClient) =>
         const result = await dkgClient.graph.query(wrapped.sparql!, "SELECT");
         return JSON.stringify({
           success: true,
+          sparql: wrapped.sparql,
           data: result.data || [],
           count: result.data?.length ?? 0,
         });
       } catch (error) {
         return JSON.stringify({
           error: error instanceof Error ? error.message : String(error),
+          sparql: wrapped.sparql,
         });
       }
     },
     {
       name: "execute_sparql",
       description:
-        "Execute a SPARQL SELECT query against the DKG. The query will be automatically wrapped with DKG graph patterns. Use full URIs discovered from search_classes and discover_predicates.",
+        "Execute a SPARQL SELECT query against the DKG. The query will be automatically wrapped with DKG graph patterns. Use full URIs discovered from search_schema and discover_predicates.",
       schema: z.object({
         sparql: z.string().describe("SPARQL SELECT query to execute"),
       }),
