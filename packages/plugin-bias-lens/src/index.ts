@@ -7,6 +7,7 @@ import { registerSaveBiasReport } from "./registerSaveBiasReport";
 import { registerAssociateUal } from "./registerAssociateUal";
 import { registerListReports } from "./registerListReports";
 import { registerGetReport } from "./registerGetReport";
+import { registerDkgQuery } from "./registerDkgQuery";
 
 export default defineDkgPlugin((...args) => {
   registerTopicResearcher(...args);
@@ -15,4 +16,5 @@ export default defineDkgPlugin((...args) => {
   registerAssociateUal(...args);
   registerListReports(...args);
   registerGetReport(...args);
+  registerDkgQuery(...args);
 });
