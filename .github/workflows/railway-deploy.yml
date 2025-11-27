@@ -33,15 +33,3 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           railway status
-
-      - name: Comment on PR with Deployment URL
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              body: '🚀 Deployed to Railway successfully! Check logs with `railway logs`'
-            })
