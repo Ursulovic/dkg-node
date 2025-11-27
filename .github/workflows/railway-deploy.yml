@@ -26,7 +26,7 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up --ci
+          railway up --ci --service ea3f56b8-3da7-4673-a43c-2c695c0ec5bc
 
       - name: Get Deployment Status
         env:
