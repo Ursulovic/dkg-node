@@ -110,7 +110,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Check code quality
-        run: npm run check || echo "⚠️ Code quality checks completed with warnings (non-blocking)"
+        run: npm run check-types || echo "⚠️ Type checks completed with warnings (non-blocking)"
 
       - name: Build packages and apps
         run: npm run build
