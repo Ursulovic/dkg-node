@@ -10,14 +10,8 @@ COPY turbo.json ./
 COPY packages ./packages
 COPY apps/agent ./apps/agent
 
-RUN git lfs install && git lfs pull || true
-
 RUN npm ci --legacy-peer-deps
 
-WORKDIR /app/packages/plugin-bias-lens
-RUN npm run fetch-wikidata-cache || echo "Wikidata cache fetch skipped"
-
-WORKDIR /app
 RUN npm run build
 
 WORKDIR /app/apps/agent
@@ -35,8 +29,6 @@ COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/agent/dist ./apps/agent/dist
 COPY --from=builder /app/apps/agent/package.json ./apps/agent/
 COPY --from=builder /app/apps/agent/drizzle ./apps/agent/drizzle
-
-COPY --from=builder /app/packages/plugin-bias-lens/src/data ./packages/plugin-bias-lens/src/data
 
 WORKDIR /app/apps/agent
 
