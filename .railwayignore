@@ -1,0 +1,10 @@
+node_modules
+.git
+.env
+.env.*
+!.env.railway
+*.log
+dist
+.turbo
+coverage
+.DS_Store
