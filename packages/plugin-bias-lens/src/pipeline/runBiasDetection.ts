@@ -1,16 +1,13 @@
 import { traceable } from "langsmith/traceable";
 
 import { createBiasDetectorAgent } from "../agents/bias-detector/agent.js";
-import {
-  type BiasReportKnowledgeAsset,
-  type LLMResponse,
-} from "../agents/bias-detector/schema.js";
-import { enrichResponse } from "../agents/bias-detector/enrichResponse.js";
+import type { BiasReportKnowledgeAsset } from "../agents/bias-detector/schema.js";
+import type { LLMResponse } from "../agents/bias-detector/llm-schema.js";
 import { WikipediaLoader } from "../loaders/wikipedia.js";
 import { GrokipediaLoader } from "../loaders/grokipedia.js";
 import { calculateArticleSimilarity } from "../utils/similarity.js";
 import { generateSourceVersions } from "../utils/hash.js";
-import { formatAsJsonLd } from "../utils/jsonldFormatter.js";
+import { createKnowledgeAsset } from "../utils/createKnowledgeAsset.js";
 import { CostTracker } from "../utils/costTracker.js";
 import { getTracUsdRate } from "../utils/priceManager.js";
 import type { AnalysisDepth } from "../types/depth.js";
@@ -58,16 +55,16 @@ export async function runBiasDetection(
         grokipediaUrl.split("/").pop()?.replace(/_/g, " ") ??
         "Unknown Article";
 
-      const intermediateReport = enrichResponse({
-        llmResponse: response.structuredResponse as LLMResponse,
+      const llmResponse = response.structuredResponse as LLMResponse;
+
+      return {
+        llmResponse,
         similarity,
         sourceVersions,
         grokipediaUrl,
         wikipediaUrl,
         articleTitle,
-      });
-
-      return intermediateReport;
+      };
     },
     {
       name: "BiasDetection",
@@ -75,32 +72,39 @@ export async function runBiasDetection(
     }
   );
 
-  const intermediateReport = await tracedDetection();
+  const detectionResult = await tracedDetection();
   const costs = costTracker.calculateCosts();
-  const knowledgeAsset = await formatAsJsonLd(intermediateReport, {
-    tokenUsage: costs.totalTokens,
-    costUSD: costs.totalUSD,
+
+  const knowledgeAsset = await createKnowledgeAsset({
+    llmResponse: detectionResult.llmResponse,
+    similarity: detectionResult.similarity,
+    sourceVersions: detectionResult.sourceVersions,
+    grokipediaUrl: detectionResult.grokipediaUrl,
+    wikipediaUrl: detectionResult.wikipediaUrl,
+    articleTitle: detectionResult.articleTitle,
+    metrics: {
+      tokenUsage: costs.totalTokens,
+      costUSD: costs.totalUSD,
+    },
   });
 
-  const reportIri = intermediateReport["@id"] || "";
-  const articleTitle =
-    intermediateReport.articleTitle ?? "Unknown Article";
+  const reportId = knowledgeAsset.public["@id"];
 
   const tracUsdRate = await getTracUsdRate();
   const costTrac = costs.totalUSD / tracUsdRate;
   const privateAccessFee = costTrac * 2.0;
 
   await reportStore.save(knowledgeAsset, {
-    id: reportIri,
-    grokipediaUrl,
-    wikipediaUrl,
-    title: articleTitle,
-    biasLevel: intermediateReport.executiveSummary.biasLevel,
+    id: reportId,
+    grokipediaUrl: detectionResult.grokipediaUrl,
+    wikipediaUrl: detectionResult.wikipediaUrl,
+    title: detectionResult.articleTitle,
+    biasLevel: detectionResult.llmResponse.summary.biasLevel,
     analysisDepth,
     costUsd: costs.totalUSD,
     costTrac,
     privateAccessFee,
   });
 
-  return { id: reportIri, knowledgeAsset };
+  return { id: reportId, knowledgeAsset };
 }

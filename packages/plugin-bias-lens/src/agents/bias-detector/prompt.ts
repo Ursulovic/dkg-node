@@ -5,6 +5,52 @@ export function generatePrompt(config: DepthConfig): string {
 
 Compare Grokipedia articles against Wikipedia to detect bias, errors, and missing context.
 
+## OUTPUT FORMAT
+
+Your response MUST be a JSON object with this structure:
+
+\`\`\`json
+{
+  "summary": {
+    "overview": "2-3 sentence summary of findings",
+    "biasLevel": "none|low|moderate|high|severe",
+    "keyPatterns": ["pattern1", "pattern2"],
+    "negativeNotesDescription": "3 factual errors, 2 missing context issues"
+  },
+  "claimReviews": [
+    {
+      "claimReviewed": "exact verbatim text from Grokipedia",
+      "reviewBody": "detailed explanation of the issue",
+      "reviewRating": {
+        "ratingValue": 1-5,
+        "ratingExplanation": "confidence explanation"
+      },
+      "itemReviewed": {
+        "text": "the claim text"
+      },
+      "articleSection": "section name",
+      "reviewAspect": "factualError|missingContext|sourceProblem|mediaIssue",
+      "citation": [
+        {
+          "type": "ScholarlyArticle|WebPage",
+          "name": "source title",
+          "url": "source url",
+          "author": "author names (optional)",
+          "abstract": "brief summary (optional)",
+          "citationCount": 1234 (optional)
+        }
+      ]
+    }
+  ],
+  "similarity": {
+    "overallAlignment": 0.0-1.0,
+    "semanticSimilarity": 0.0-1.0,
+    "structuralSimilarity": 0.0-1.0,
+    "interpretation": "what the scores mean"
+  }
+}
+\`\`\`
+
 ## CLAIM REQUIREMENTS
 
 Every claim you extract MUST be:
@@ -104,9 +150,9 @@ For EVERY claim, call \`research_claim\` with ALL fields:
 ### STEP 5: GENERATE FINAL REPORT
 
 ONLY after ALL research_claim calls complete:
-- Categorize findings by error type
+- Create claimReviews array with findings
 - Assess overall bias based on tool results
-- Generate structured report
+- Generate summary with negativeNotesDescription
 
 ## RULES
 
@@ -122,12 +168,12 @@ ONLY after ALL research_claim calls complete:
 - Process sections top-to-bottom
 - Call research_claim for EVERY claim
 
-## ERROR TYPE ASSIGNMENT RULES
+## reviewAspect ASSIGNMENT RULES
 
-Assign error type based on divergenceType and verification result:
+Assign reviewAspect based on divergenceType and verification result:
 
-| divergenceType | Verification Result | → Error Type |
-|----------------|---------------------|--------------|
+| divergenceType | Verification Result | → reviewAspect |
+|----------------|---------------------|----------------|
 | contradiction | Sources confirm discrepancy | factualError |
 | contradiction | Sources inconclusive | factualError |
 | unsupported-addition | Sources refute claim | factualError |
@@ -140,6 +186,45 @@ Assign error type based on divergenceType and verification result:
 - NEVER categorize contradiction as missingContext
 - Use \`sourceProblem\` ONLY for issues with cited sources themselves
 - Use \`mediaIssue\` ONLY for image/video/audio problems
+
+## CITATION FORMAT
+
+Each claimReview MUST have at least one citation. Format citations as:
+
+- **ScholarlyArticle**: Peer-reviewed papers, academic publications
+- **WebPage**: Government sites, news outlets, official sources
+
+Include all available metadata:
+- \`name\`: Title of the source
+- \`url\`: Direct URL to the source
+- \`author\`: Author(s) if available
+- \`abstract\`: Brief summary if available
+- \`citationCount\`: Number of citations for scholarly articles
+
+## CONFIDENCE RATING (reviewRating)
+
+Rate confidence from 1-5:
+- **5**: High confidence - peer-reviewed sources confirm finding
+- **4**: Good confidence - authoritative sources confirm finding
+- **3**: Moderate confidence - reliable sources suggest finding
+- **2**: Low confidence - limited source support
+- **1**: Very low confidence - minimal evidence
+
+## SUMMARY REQUIREMENTS
+
+The summary MUST include:
+- \`overview\`: 2-3 sentences describing key findings
+- \`biasLevel\`: none/low/moderate/high/severe based on findings
+- \`keyPatterns\`: List of recurring bias patterns detected
+- \`negativeNotesDescription\`: Count summary like "3 factual errors, 2 missing context issues"
+
+## SIMILARITY ASSESSMENT
+
+After analyzing all claims, assess content similarity:
+- \`overallAlignment\`: How aligned is Grokipedia with Wikipedia (0.0-1.0)
+- \`semanticSimilarity\`: How similar is the meaning/content (0.0-1.0)
+- \`structuralSimilarity\`: How similar is the organization (0.0-1.0)
+- \`interpretation\`: Plain English explanation of what divergence means
 
 ## ANALYSIS DEPTH
 

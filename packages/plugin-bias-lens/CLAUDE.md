@@ -29,6 +29,7 @@ npm test                 # Run all tests
 npm run check-types      # TypeScript type checking
 npm run lint             # ESLint validation
 npm run build            # Production build (outputs to dist/)
+npm run search-schema    # Search ontology schema (see below)
 ```
 
 ### Running the Full Application
@@ -244,15 +245,14 @@ Both loaders apply identical preprocessing to ensure consistent markdown output:
 This creates a **unified content representation** that downstream agents consume consistently.
 
 **ExternalAssetsLoader** (`src/loaders/external.ts`):
-- Loads external content (PDFs, HTML pages, images, video, audio) from URLs found in articles
+- Loads external content (PDFs, HTML pages) from URLs found in articles
 - Unified interface that routes different link types to appropriate handlers
-- Returns typed documents: `PdfDocument[]`, `HtmlDocument[]`, or `MediaDocument[]`
+- Returns typed documents: `PdfDocument[]` or `HtmlDocument[]`
 - All documents include UUID `id` and proper metadata structure
 
 **Key Features:**
 - **PDF Loading**: Downloads PDFs to temp directory, extracts text using LangChain's PDFLoader
 - **HTML Scraping**: Fetches HTML directly, converts to Markdown using Turndown to preserve links
-- **Media Interpretation**: Uses Google Gemini (multimodal AI) to generate descriptions/transcriptions for images, video, and audio
 - **Batching Support**: Efficiently processes multiple links of the same type
 - **Error Isolation**: One link type failing doesn't break others
 - **Parallel Processing**: Processes different link types in parallel for optimal performance
@@ -260,10 +260,7 @@ This creates a **unified content representation** that downstream agents consume
 **Metadata Structure:**
 - `metadata.source` - The Wikipedia/Grokipedia article URL where the asset was referenced
 - `metadata.assetSource` - The actual URL of the asset itself
-- `metadata.assetType` - Type of asset: "pdf" | "html" | "image" | "video" | "audio"
-
-**Environment Variables Required:**
-- `GOOGLE_API_KEY` - Google Gemini API key (required for media interpretation)
+- `metadata.assetType` - Type of asset: "pdf" | "html"
 
 **Usage Example:**
 ```typescript
@@ -282,7 +279,6 @@ const documents = await loader.loadLinks(links, sourceUrl);
 // Or load specific types
 const pdfs = await loader.loadPDFs(pdfLinks, sourceUrl);
 const htmlPages = await loader.loadHTML(htmlLinks, sourceUrl);
-const media = await loader.loadMedia(mediaLinks, sourceUrl);
 ```
 
 ### Observability
@@ -332,14 +328,7 @@ interface HtmlMetadata {
 }
 type HtmlDocument = Document<HtmlMetadata> & { id: string };
 
-interface MediaMetadata {
-  source: string;        // Article URL where media was found
-  assetSource: string;   // Actual media URL
-  assetType: "image" | "video" | "audio";
-}
-type MediaDocument = Document<MediaMetadata> & { id: string };
-
-type ExternalAssetDocument = PdfDocument | HtmlDocument | MediaDocument;
+type ExternalAssetDocument = PdfDocument | HtmlDocument;
 ```
 
 **Link Types (Parsers):**
@@ -378,8 +367,8 @@ Five test files with different purposes:
    - Unique ID generation verification
 
 3. **`tests/loaders/external.spec.ts`** ✅ Complete
-   - Comprehensive tests for PDF, HTML, and media loading
-   - Tests all three phases: PDF loading, HTML scraping, media interpretation
+   - Comprehensive tests for PDF and HTML loading
+   - Tests PDF loading and HTML scraping
    - **Fully mocked** - No real network/API calls (uses `tests/helpers/mocks.ts`)
    - Tests LoadResult structure (documents, errors, stats)
    - Tests error tracking, deduplication, timeout handling, concurrent processing
@@ -415,7 +404,6 @@ import {
 
 **Custom Mocking Utilities** (`tests/helpers/mocks.ts`):
 - `setupFetchMock(fetchStub)` - Mocks global fetch with predefined responses
-- `setupGeminiMock(invokeStub)` - Mocks Gemini API calls for media interpretation
 - `createTimeoutFetchMock(fetchStub)` - Simulates slow/timeout requests
 - `createSlowFetchMock(fetchStub, delayMs)` - Simulates delayed responses
 - `countMockCalls(stub, urlPattern)` - Helper to count specific URL calls
@@ -467,9 +455,6 @@ openAPIRoute({
 - `OPENAI_API_KEY` - OpenAI API key (for GPT-4 and embeddings)
 - `SERPAPI_API_KEY` - Google Scholar API (peer-reviewed source verification)
 - `TAVILY_API_KEY` - Web search API (news, events, quotes verification)
-
-**Required for ExternalAssetsLoader:**
-- `GOOGLE_API_KEY` - Google Gemini API key (required for media interpretation: images, video, audio)
 
 **Optional for Observability:**
 - `LANGSMITH_TRACING=true` - Enable LangSmith tracing
@@ -639,7 +624,7 @@ npm run fetch-wikidata-cache
 - ✅ Loaders implemented and tested (GrokipediaLoader, WikipediaLoader, ExternalAssetsLoader)
 - ✅ Content hash utility implemented and tested
 - ✅ Plugin registration working
-- ✅ External assets loading complete (PDF, HTML, media with Gemini)
+- ✅ External assets loading complete (PDF, HTML)
 - ✅ Bias detection agent tools complete (web_search, google_scholar_search, wikidata_query)
 - ✅ Wikidata query tool with fuzzy search and constraint validation
 - ✅ Wikidata cache system (~21.77 MB) with Git LFS tracking
@@ -686,6 +671,33 @@ export class MyLoader {
 2. Register with MCP: `mcp.registerTool(name, schema, handler)`
 3. Optionally add HTTP endpoint with `openAPIRoute()`
 4. Add tests in `tests/plugin-bias-lens.spec.ts`
+
+### Searching Ontology Schema
+
+Use `npm run search-schema` to explore Schema.org and other ontology classes/properties before writing SPARQL queries or updating the bias report schema.
+
+**When to Use:**
+- Before writing SPARQL queries to find correct URIs and predicates
+- When mapping bias report fields to standard Schema.org properties
+- To discover available properties for a class (e.g., what properties does Review have?)
+- To understand class hierarchies and inheritance
+
+**Usage:**
+```bash
+npm run search-schema -- "review"                        # Search for review-related classes/properties
+npm run search-schema -- "review rating" --limit 10     # Multiple keywords, limit results
+npm run search-schema -- "person" -n schema,foaf        # Filter by namespace
+npm run search-schema -- --help                         # Show all options
+```
+
+**Available Namespaces:** schema, rdf, rdfs, owl, dcterms, dcelems, foaf, skos, prov, as, shacl, xsd, ld
+
+**Output includes:**
+- URI (use this in SPARQL queries)
+- Type (CLASS or PROPERTY)
+- Description
+- Hierarchy (for classes)
+- Domain/Range (for properties)
 
 ### Fixing Test Command Issues
 

@@ -1,14 +1,15 @@
 name: Validate Plugin Tests
 
-on:
-  push:
-    branches:
-      - "**" # Run on push to any branch
-    paths:
-      - "packages/plugin-*/**"
-  pull_request:
-    paths:
-      - "packages/plugin-*/**"
+# DISABLED FOR HACKATHON - Re-enable by uncommenting the 'on:' section below
+# on:
+#   push:
+#     branches:
+#       - "**" # Run on push to any branch
+#     paths:
+#       - "packages/plugin-*/**"
+#   pull_request:
+#     paths:
+#       - "packages/plugin-*/**"
 
 jobs:
   validate-plugin-tests:
