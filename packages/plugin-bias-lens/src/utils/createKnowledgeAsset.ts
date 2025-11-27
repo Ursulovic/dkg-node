@@ -115,10 +115,7 @@ export async function createKnowledgeAsset(
     metrics,
   } = input;
 
-  const tracUsdRate = await getTracUsdRate();
-  const costUSD = metrics?.costUSD ?? 0;
-  const costTRAC = costUSD / tracUsdRate;
-  const price = costTRAC * config.readCostMultiplier;
+  const costUSD = (metrics?.costUSD ?? 0) * config.readCostMultiplier;
 
   const biasRating: Rating = {
     "@type": "Rating",
