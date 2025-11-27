@@ -46,7 +46,7 @@ RUN mkdir -p /app/data
 ENV PORT=9200
 EXPOSE 9200
 
-COPY docker-entrypoint.sh /app/apps/agent/
+COPY apps/agent/docker-entrypoint.sh /app/apps/agent/
 RUN chmod +x /app/apps/agent/docker-entrypoint.sh
 
 CMD ["/app/apps/agent/docker-entrypoint.sh"]

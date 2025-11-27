@@ -8,3 +8,10 @@ dist
 .turbo
 coverage
 .DS_Store
+dkg-engine
+docs
+tests
+*.test.ts
+*.spec.ts
+*.md
+!README.md
