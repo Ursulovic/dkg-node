@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { LLMResponse, LLMClaimReview, BiasLevel } from "../agents/bias-detector/llm-schema.js";
+import type {
+  LLMResponse,
+  LLMClaimReview,
+  BiasLevel,
+} from "../agents/bias-detector/llm-schema.js";
 import type {
   BiasReportKnowledgeAsset,
   PublicBiasReport,
@@ -59,7 +63,9 @@ const biasLevelDescriptions: Record<BiasLevel, string> = {
   severe: "Extreme bias detected - extensive misinformation present",
 };
 
-function mapLLMClaimReviewToPrivate(claimReview: LLMClaimReview): PrivateClaimReview {
+function mapLLMClaimReviewToPrivate(
+  claimReview: LLMClaimReview,
+): PrivateClaimReview {
   return {
     "@type": "ClaimReview",
     claimReviewed: claimReview.claimReviewed,
@@ -92,14 +98,22 @@ function mapLLMClaimReviewToPrivate(claimReview: LLMClaimReview): PrivateClaimRe
 }
 
 export async function createKnowledgeAsset(
-  input: CreateKnowledgeAssetInput
+  input: CreateKnowledgeAssetInput,
 ): Promise<BiasReportKnowledgeAsset> {
   const config = getConfig();
   const reportId = randomUUID();
   const reportIri = `urn:dkg:bias-report:${reportId}`;
   const datePublished = new Date().toISOString();
 
-  const { llmResponse, similarity, sourceVersions, grokipediaUrl, wikipediaUrl, articleTitle, metrics } = input;
+  const {
+    llmResponse,
+    similarity,
+    sourceVersions,
+    grokipediaUrl,
+    wikipediaUrl,
+    articleTitle,
+    metrics,
+  } = input;
 
   const tracUsdRate = await getTracUsdRate();
   const costUSD = metrics?.costUSD ?? 0;
@@ -158,16 +172,21 @@ export async function createKnowledgeAsset(
     offers: {
       "@type": "Offer",
       name: "Access Report Details",
-      description: "One-time access to detailed bias findings, evidence citations, and similarity analysis",
-      price: Math.round(price * 1000) / 1000,
-      priceCurrency: "TRAC",
+      description:
+        "One-time access to detailed bias findings, evidence citations, and similarity analysis",
+      price: costUSD,
+      priceCurrency: "USDC",
       url: `${config.publisherUrl}/report/${reportId}/purchase`,
     },
   };
 
-  const overallAlignmentPercent = Math.round(llmResponse.similarity.overallAlignment * 100);
+  const overallAlignmentPercent = Math.round(
+    llmResponse.similarity.overallAlignment * 100,
+  );
   const semanticPercent = Math.round(similarity.cosineSimilarity * 100);
-  const structuralPercent = Math.round(llmResponse.similarity.structuralSimilarity * 100);
+  const structuralPercent = Math.round(
+    llmResponse.similarity.structuralSimilarity * 100,
+  );
   const lengthRatioScaled = Math.round(similarity.lengthRatio * 100);
 
   const privateReport: PrivateBiasReport = {
@@ -204,7 +223,8 @@ export async function createKnowledgeAsset(
           ratingValue: lengthRatioScaled,
           bestRating: 200,
           worstRating: 50,
-          ratingExplanation: "lengthRatio (100 = same length, >100 = Grokipedia longer)",
+          ratingExplanation:
+            "lengthRatio (100 = same length, >100 = Grokipedia longer)",
         },
       ],
     },
@@ -219,7 +239,7 @@ export async function createKnowledgeAsset(
 
 export function setUAL(
   asset: BiasReportKnowledgeAsset,
-  ual: string
+  ual: string,
 ): BiasReportKnowledgeAsset {
   return {
     public: { ...asset.public, "@id": ual },
@@ -228,4 +248,8 @@ export function setUAL(
 }
 
 export { getConfig };
-export type { CreateKnowledgeAssetInput, CreateKnowledgeAssetConfig, AnalysisMetrics };
+export type {
+  CreateKnowledgeAssetInput,
+  CreateKnowledgeAssetConfig,
+  AnalysisMetrics,
+};
