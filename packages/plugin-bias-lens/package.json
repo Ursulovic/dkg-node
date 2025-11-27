@@ -13,6 +13,7 @@
     "test": "npx mocha --import=tsx 'tests/**/*.spec.ts'",
     "reset-vector-db": "tsx scripts/reset-vector-db.ts",
     "build-ontologies": "tsx scripts/build-ontologies.ts",
+    "search-schema": "tsx scripts/search-schema.ts",
     "fetch-wikidata-cache": "tsx scripts/fetch-wikidata-cache.ts",
     "update-wikidata-cache": "npm run fetch-wikidata-cache",
     "postinstall": "patch-package"

@@ -29,6 +29,7 @@ npm test                 # Run all tests
 npm run check-types      # TypeScript type checking
 npm run lint             # ESLint validation
 npm run build            # Production build (outputs to dist/)
+npm run search-schema    # Search ontology schema (see below)
 ```
 
 ### Running the Full Application
@@ -686,6 +687,33 @@ export class MyLoader {
 2. Register with MCP: `mcp.registerTool(name, schema, handler)`
 3. Optionally add HTTP endpoint with `openAPIRoute()`
 4. Add tests in `tests/plugin-bias-lens.spec.ts`
+
+### Searching Ontology Schema
+
+Use `npm run search-schema` to explore Schema.org and other ontology classes/properties before writing SPARQL queries or updating the bias report schema.
+
+**When to Use:**
+- Before writing SPARQL queries to find correct URIs and predicates
+- When mapping bias report fields to standard Schema.org properties
+- To discover available properties for a class (e.g., what properties does Review have?)
+- To understand class hierarchies and inheritance
+
+**Usage:**
+```bash
+npm run search-schema -- "review"                        # Search for review-related classes/properties
+npm run search-schema -- "review rating" --limit 10     # Multiple keywords, limit results
+npm run search-schema -- "person" -n schema,foaf        # Filter by namespace
+npm run search-schema -- --help                         # Show all options
+```
+
+**Available Namespaces:** schema, rdf, rdfs, owl, dcterms, dcelems, foaf, skos, prov, as, shacl, xsd, ld
+
+**Output includes:**
+- URI (use this in SPARQL queries)
+- Type (CLASS or PROPERTY)
+- Description
+- Hierarchy (for classes)
+- Domain/Range (for properties)
 
 ### Fixing Test Command Issues
 
