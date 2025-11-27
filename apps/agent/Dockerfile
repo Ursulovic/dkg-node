@@ -14,6 +14,10 @@ RUN git lfs install && git lfs pull || true
 
 RUN npm ci --legacy-peer-deps
 
+WORKDIR /app/packages/plugin-bias-lens
+RUN npm run fetch-wikidata-cache || echo "Wikidata cache fetch skipped"
+
+WORKDIR /app
 RUN npm run build
 
 WORKDIR /app/apps/agent
