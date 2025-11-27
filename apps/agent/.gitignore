@@ -53,3 +53,4 @@ ragas-results.json
 
 .env.installer
 storage
+traces
