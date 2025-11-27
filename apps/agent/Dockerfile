@@ -14,12 +14,7 @@ RUN git lfs install && git lfs pull || true
 
 RUN npm ci --legacy-peer-deps
 
-RUN npm run build -w @dkg/plugins
-RUN npm run build -w @dkg/plugin-oauth
-RUN npm run build -w @dkg/plugin-dkg-essentials
-RUN npm run build -w @dkg/plugin-bias-lens
-RUN npm run build -w @dkg/plugin-swagger
-RUN npm run build -w @dkg/plugin-dkg-publisher
+RUN npm run build
 
 WORKDIR /app/apps/agent
 RUN npm run build:server
