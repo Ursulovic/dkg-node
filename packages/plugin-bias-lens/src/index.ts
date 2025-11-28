@@ -8,6 +8,8 @@ import { registerAssociateUal } from "./registerAssociateUal";
 import { registerListReports } from "./registerListReports";
 import { registerGetReport } from "./registerGetReport";
 import { registerDkgQuery } from "./registerDkgQuery";
+import { registerX402Report } from "./registerX402Report";
+import { registerX402Client } from "./registerX402Client";
 
 export default defineDkgPlugin((...args) => {
   registerTopicResearcher(...args);
@@ -17,4 +19,6 @@ export default defineDkgPlugin((...args) => {
   registerListReports(...args);
   registerGetReport(...args);
   registerDkgQuery(...args);
+  registerX402Report(...args);
+  registerX402Client(...args);
 });
