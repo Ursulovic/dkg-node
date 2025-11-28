@@ -14,7 +14,11 @@ export const createSearchSchemaTool = () =>
       try {
         const store = await getSchemaVectorStore();
 
-        const results = await store.searchWithPriority(query, 15, namespaces);
+        const namespacesToSearch = namespaces?.length
+          ? ['query-examples', ...namespaces]
+          : ['query-examples'];
+
+        const results = await store.searchWithPriority(query, 15, namespacesToSearch);
 
         if (results.length === 0) {
           return JSON.stringify({
@@ -61,9 +65,10 @@ IMPORTANT DKG LIMITATIONS:
 - Use query-examples to find WORKING query patterns that avoid timeouts
 
 USAGE:
-- Omit 'namespaces' to search ALL (ontologies + query examples)
-- Specify namespaces=["query-examples"] to ONLY get working query examples
-- Combine: namespaces=["schema", "query-examples"] for both ontology + examples
+- Query examples are ALWAYS included automatically in every search
+- Omit 'namespaces' to search query examples only
+- Specify namespaces=["schema"] to search query examples + Schema.org vocabulary
+- Combine: namespaces=["schema", "rdf"] to search query examples + multiple ontologies
 
 EXAMPLES:
 - Find working queries for listing reports: query="list all bias reports", namespaces=["query-examples"]

@@ -415,6 +415,24 @@ The DKG stores bias analysis reports as **ClaimReview** entities following Schem
   - @type: "Organization"
   - name: Publisher name (e.g., "BiasLens")
   - url: Publisher website
+
+### Publisher Identification via URN Pattern Matching
+
+Publishers are identified by their URN prefixes, NOT via the publisher property:
+- BiasLens reports: \`urn:dkg:bias-report:{uuid}\`
+- CivicLens reports: \`urn:civiclens:note:{topic}:{timestamp}\`
+
+Use FILTER with CONTAINS on the string representation of the report URN:
+\`\`\`sparql
+# Filter for BiasLens reports
+FILTER(CONTAINS(STR(?report), "urn:dkg:bias-report"))
+
+# Filter for CivicLens reports
+FILTER(CONTAINS(STR(?report), "urn:civiclens"))
+\`\`\`
+
+**IMPORTANT**: DO NOT attempt queries using \`<http://schema.org/publisher>\` property for filtering - nested object traversal times out. Always use URN pattern matching via FILTER instead. See filter-by-publisher query example for working patterns.
+
 - **creator**: Analysis agent info
   - @type: "SoftwareApplication"
   - name: Agent name
