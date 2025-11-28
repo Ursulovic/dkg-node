@@ -13,7 +13,7 @@ import type {
   Rating,
 } from "../agents/bias-detector/schema.js";
 import type { SimilarityResult } from "./similarity.js";
-import { getTracUsdRate } from "./priceManager.js";
+import { x402Config } from "../x402/config.js";
 
 interface AnalysisMetrics {
   tokenUsage: number;
@@ -174,6 +174,10 @@ export async function createKnowledgeAsset(
       price: costUSD,
       priceCurrency: "USDC",
       url: `${config.publisherUrl}/report/${reportId}/purchase`,
+      seller: {
+        "@type": "Organization",
+        identifier: x402Config.serverWalletAddress,
+      },
     },
   };
 

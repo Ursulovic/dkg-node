@@ -45,6 +45,10 @@ const OfferSchema = z.object({
   price: z.number(),
   priceCurrency: z.string(),
   url: z.string(),
+  seller: z.object({
+    "@type": z.literal("Organization"),
+    identifier: z.string().describe("Wallet address for x402 payments"),
+  }),
 });
 
 const PublicBiasReportSchema = z
