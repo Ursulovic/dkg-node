@@ -134,6 +134,27 @@ export class DkgSchemaVectorStore {
       .slice(0, k) as [Document<DocumentMetadata>, number][];
   }
 
+  async searchWithPriority(
+    query: string,
+    k: number = 10,
+    namespaces?: string[]
+  ): Promise<Document<DocumentMetadata>[]> {
+    const resultsWithScore = await this.searchWithScore(query, k * 2, namespaces);
+
+    const adjustedResults = resultsWithScore.map(([doc, score]) => {
+      if (doc.metadata.type === "query-example") {
+        const priorityBoost = (11 - doc.metadata.priority) * 0.05;
+        return [doc, score - priorityBoost] as [Document<DocumentMetadata>, number];
+      }
+      return [doc, score] as [Document<DocumentMetadata>, number];
+    });
+
+    return adjustedResults
+      .sort((a, b) => a[1] - b[1])
+      .slice(0, k)
+      .map(([doc]) => doc);
+  }
+
   getAvailableNamespaces(): string[] {
     return Array.from(this.indices.keys());
   }

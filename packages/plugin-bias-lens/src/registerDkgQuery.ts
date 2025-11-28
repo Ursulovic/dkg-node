@@ -5,16 +5,38 @@ import { dkgQueryHandler } from "./tools/dkg-query/index.js";
 
 const title = "Query DKG";
 const name = "query-dkg";
-const description = `Query the OriginTrail Decentralized Knowledge Graph (DKG) using natural language.
+const description = `⚠️ **CRITICAL USAGE RULE - READ THIS FIRST** ⚠️
+
+**YOU MUST CALL THIS TOOL EXACTLY ONCE PER USER REQUEST.**
+
+DO NOT make multiple calls to this tool. Instead, combine all questions into a single array.
+
+❌ WRONG (Multiple calls):
+- Call 1: query-dkg(["Count climate reports"])
+- Call 2: query-dkg(["Count technology reports"])
+
+✅ CORRECT (Single call with array):
+- Call 1: query-dkg(["Count climate reports", "Count technology reports"])
+
+This tool is designed to handle multiple queries in ONE call. The internal agent will process them optimally with shared context.
+
+---
+
+Query the OriginTrail Decentralized Knowledge Graph (DKG) using natural language.
 
 **When to use:** User wants to explore or search data in the DKG, especially bias lens reports.
 
 **How it works:**
-1. Converts natural language to SPARQL using an LLM agent
+1. Converts natural language to SPARQL using an LLM agent (GPT-4o)
 2. Automatically discovers schema (classes, predicates) on-demand
-3. Supports multi-hop queries (up to 20 SPARQL executions per query)
+3. Supports multi-hop queries via intelligent query planning
 4. Iteratively refines queries if initial attempts return no results
-5. Returns natural language answer with all executed SPARQL queries
+5. Returns complete data without summarization
+
+**Array Format Examples:**
+- Single question: ["How many bias reports are there?"]
+- Multi-hop question: ["Find climate reports", "Count how many have severe bias"]
+- Related queries: ["List all reports", "Calculate average name length"]
 
 **Bias Lens Reports:**
 The DKG stores bias analysis reports as ClaimReview entities. You can query by:
@@ -46,38 +68,59 @@ The DKG stores bias analysis reports as ClaimReview entities. You can query by:
 
 const inputSchema = {
   query: z
-    .string()
+    .array(z.string())
     .describe(
-      "Natural language question about data in the DKG"
+      "Array of natural language questions about data in the DKG. " +
+      "For single questions, provide a single-item array. " +
+      "For complex multi-hop questions or related queries, provide multiple questions " +
+      "that will be processed together with shared context."
     ),
 };
+
+const activeToolCalls = new Set<string>();
 
 export const registerDkgQuery: DkgPlugin = (ctx, mcp) => {
   mcp.registerTool(
     name,
     { title, description, inputSchema },
     async ({ query }) => {
-      const result = await dkgQueryHandler({ query }, ctx.dkg);
+      const callId = `${Date.now()}-${Math.random()}`;
 
-      const content: Array<{ type: "text"; text: string }> = [];
-
-      if (!result.success) {
-        content.push({
-          type: "text",
-          text: `Error querying DKG: ${result.error}`,
-        });
-      } else {
-        content.push({ type: "text", text: result.answer });
+      if (activeToolCalls.size > 0) {
+        return {
+          content: [{
+            type: "text",
+            text: "⚠️ ERROR: Multiple simultaneous calls detected. Please combine your queries into a single array instead of making multiple tool calls. Example: query-dkg([\"query1\", \"query2\"]) instead of two separate calls."
+          }]
+        };
       }
 
-      for (const sparql of result.executedQueries) {
-        content.push({
-          type: "text",
-          text: `\`\`\`sparql\n${sparql}\n\`\`\``,
-        });
-      }
+      try {
+        activeToolCalls.add(callId);
+        const result = await dkgQueryHandler({ query }, ctx.dkg);
 
-      return { content };
+        const content: Array<{ type: "text"; text: string }> = [];
+
+        if (!result.success) {
+          content.push({
+            type: "text",
+            text: `Error querying DKG: ${result.error}`,
+          });
+        } else {
+          content.push({ type: "text", text: result.answer });
+        }
+
+        for (const sparql of result.executedQueries) {
+          content.push({
+            type: "text",
+            text: `\`\`\`sparql\n${sparql}\n\`\`\``,
+          });
+        }
+
+        return { content };
+      } finally {
+        activeToolCalls.delete(callId);
+      }
     }
   );
 };

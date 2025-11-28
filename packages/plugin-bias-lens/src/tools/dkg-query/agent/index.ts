@@ -19,7 +19,7 @@ export const createDkgQueryAgent = (dkgClient: DkgClient) => {
   ];
 
   const model = new ChatOpenAI({
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     temperature: 0,
   });
 
@@ -42,11 +42,24 @@ interface AgentMessage {
 
 export const runDkgQueryAgent = traceable(
   async (input: DkgQueryInput, dkgClient: DkgClient): Promise<DkgQueryResult> => {
+    if (input.query.length === 0) {
+      return {
+        success: false,
+        answer: "",
+        executedQueries: [],
+        error: "Query array cannot be empty",
+      };
+    }
+
     const agent = createDkgQueryAgent(dkgClient);
+
+    const userMessage = input.query.length === 1
+      ? input.query[0]!
+      : `Process these related queries together:\n${input.query.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nExecute them in the optimal order, share context between queries, and provide a comprehensive answer.`;
 
     const result = await agent.invoke(
       {
-        messages: [{ role: "user", content: input.query }],
+        messages: [{ role: "user", content: userMessage }],
       },
       {
         recursionLimit: 20,

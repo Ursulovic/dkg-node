@@ -1,7 +1,7 @@
 import type { SelectQuery } from "sparqljs";
 
 export interface DkgQueryInput {
-  query: string;
+  query: string[];
 }
 
 export interface DkgQueryResult {

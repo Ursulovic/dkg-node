@@ -43,7 +43,16 @@ export interface PropertyDocumentMetadata {
   fetchedAt: string;
 }
 
-export type DocumentMetadata = ClassDocumentMetadata | PropertyDocumentMetadata;
+export interface QueryExampleMetadata {
+  id: string;
+  category: string;
+  priority: number;
+  keywords: string[];
+  type: "query-example";
+  filePath: string;
+}
+
+export type DocumentMetadata = ClassDocumentMetadata | PropertyDocumentMetadata | QueryExampleMetadata;
 
 export interface SerializedDocument {
   pageContent: string;

@@ -14,17 +14,17 @@ export const createSearchSchemaTool = () =>
       try {
         const store = await getSchemaVectorStore();
 
-        const results = await store.searchWithScore(query, 15, namespaces);
+        const results = await store.searchWithPriority(query, 15, namespaces);
 
         if (results.length === 0) {
           return JSON.stringify({
             results: [],
-            message: "No matching classes or properties found. Try a different query.",
+            message: "No matching classes, properties, or query examples found. Try a different query.",
           });
         }
 
         return JSON.stringify({
-          results: results.map(([doc]) => doc.pageContent),
+          results: results.map((doc) => doc.pageContent),
         });
       } catch (error) {
         return JSON.stringify({
@@ -34,7 +34,7 @@ export const createSearchSchemaTool = () =>
     },
     {
       name: "search_schema",
-      description: `Search ontology schema for classes and properties using semantic search.
+      description: `Search ontology schema for classes, properties, and SPARQL query examples using semantic search with priority ranking.
 
 AVAILABLE NAMESPACES (use symbol as value):
 - "schema" - Schema.org vocabulary (Product, Review, Person, Organization, etc.)
@@ -50,24 +50,35 @@ AVAILABLE NAMESPACES (use symbol as value):
 - "shacl" - SHACL (NodeShape, PropertyShape, path)
 - "xsd" - XML Schema Datatypes (string, integer, dateTime)
 - "ld" - JSON-LD (context, id, type)
+- "query-examples" - SPARQL query examples for bias report discovery (PRIORITY-RANKED)
+
+QUERY EXAMPLES NAMESPACE:
+The "query-examples" namespace contains 19 validated, working SPARQL query examples for discovering bias reports in the DKG. These examples are PRIORITY-RANKED (1-10, where 10 is highest priority) and will appear FIRST in search results when relevant.
+
+IMPORTANT DKG LIMITATIONS:
+- Only DIRECT fields work: @id, @type, name (string)
+- Multi-hop queries (nested objects) TIME OUT: itemReviewed.url, reviewRating.ratingValue, isBasedOn.url, about.name, datePublished, keywords, etc.
+- Use query-examples to find WORKING query patterns that avoid timeouts
 
 USAGE:
-- Omit 'namespaces' to search ALL ontologies
-- Specify namespaces array to search specific ontologies only
+- Omit 'namespaces' to search ALL (ontologies + query examples)
+- Specify namespaces=["query-examples"] to ONLY get working query examples
+- Combine: namespaces=["schema", "query-examples"] for both ontology + examples
 
 EXAMPLES:
-- Finding product classes: query="product item", namespaces=["schema"]
-- Finding person properties: query="person name", namespaces=["schema", "foaf"]
-- Finding any review-related: query="review rating" (searches all)
-- Finding RDF primitives: query="class property", namespaces=["rdf", "rdfs"]
-- Finding bias reports: query="claim review bias rating"
+- Find working queries for listing reports: query="list all bias reports", namespaces=["query-examples"]
+- Find working queries for topic search: query="find reports about climate", namespaces=["query-examples"]
+- Find working queries for counting: query="count reports by topic", namespaces=["query-examples"]
+- Find Schema.org classes: query="review rating", namespaces=["schema"]
+- Search everything: query="bias report discovery" (searches all)
 
 Returns detailed information including:
 - Class hierarchies (e.g., Review → CreativeWork → Thing)
 - Direct and inherited properties with their types
-- SPARQL usage examples
+- SPARQL usage examples with template and concrete versions
+- Query examples are PRIORITY-RANKED to show most relevant first
 
-Use this BEFORE writing any SPARQL query to find the correct URIs and properties.`,
+Use this BEFORE writing any SPARQL query to find correct URIs, properties, and working query patterns.`,
       schema: z.object({
         query: z
           .string()

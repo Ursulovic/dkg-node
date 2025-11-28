@@ -16,6 +16,7 @@
     "search-schema": "tsx scripts/search-schema.ts",
     "fetch-wikidata-cache": "tsx scripts/fetch-wikidata-cache.ts",
     "update-wikidata-cache": "npm run fetch-wikidata-cache",
+    "sparql": "tsx scripts/execute-sparql.ts",
     "postinstall": "patch-package"
   },
   "dependencies": {

@@ -280,7 +280,7 @@ describe("createKnowledgeAsset Utility", () => {
       expect(result.public.license).to.equal("https://creativecommons.org/licenses/by-nc/4.0/");
     });
 
-    it("should include offers with TRAC pricing", async () => {
+    it("should include offers with USDC pricing", async () => {
       const result = await createKnowledgeAsset({
         llmResponse: createMockLLMResponse(),
         similarity: createMockSimilarity(),
@@ -292,7 +292,7 @@ describe("createKnowledgeAsset Utility", () => {
       });
 
       expect(result.public.offers["@type"]).to.equal("Offer");
-      expect(result.public.offers.priceCurrency).to.equal("TRAC");
+      expect(result.public.offers.priceCurrency).to.equal("USDC");
       expect(result.public.offers.price).to.be.a("number");
       expect(result.public.offers.url).to.include("/purchase");
     });
