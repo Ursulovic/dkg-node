@@ -126,7 +126,7 @@ function Alert({
       style={[
         {
           maxWidth: 380,
-          borderRadius: 16,
+          borderRadius: 11,
           overflow: "hidden",
           position: "absolute",
           zIndex: visibleCount - orderProp,
@@ -151,7 +151,7 @@ function Alert({
         >
           <View
             style={{
-              borderRadius: 40,
+              borderRadius: 28,
               width: 40,
               height: 40,
               backgroundColor: colors.primary,

@@ -26,7 +26,7 @@ export const serializeSourceKAContent = (
           `- **${k.title}**: ${k.issuer}
   [${k.ual}](${getExplorerUrl(k.ual)})`,
       )
-      .join("\n"),
+      .join("\n")
 });
 
 export const parseSourceKAContent = (

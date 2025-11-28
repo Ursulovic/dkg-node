@@ -338,7 +338,7 @@ export default function SettingsPage() {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
+    borderRadius: 11,
     padding: 24,
     overflow: "hidden",
   },

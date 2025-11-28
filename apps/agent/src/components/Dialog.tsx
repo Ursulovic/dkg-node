@@ -84,7 +84,7 @@ export default function Dialog() {
             position: "relative",
             width: "100%",
             maxWidth: 480,
-            borderRadius: 16,
+            borderRadius: 11,
             overflow: "hidden",
             //
             shadowColor: "#000",
@@ -110,7 +110,7 @@ export default function Dialog() {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 40,
+                  borderRadius: 28,
                   backgroundColor: colors.primary,
                   display: "flex",
                   justifyContent: "center",

@@ -177,7 +177,7 @@ export default function ChatMessageToolCall({
 const styles = StyleSheet.create({
   card: {
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 11,
     gap: 8,
   },
   title: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   codeBlock: {
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 6,
     backgroundColor: "#0c0c0c33",
     width: "100%",
     maxHeight: 120,

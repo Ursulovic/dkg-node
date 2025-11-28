@@ -36,9 +36,9 @@ export default function Background(
             cy="0"
             r={1}
           >
-            <Stop offset="0" stopColor="#949494" stopOpacity={1} />
-            <Stop offset="0.6352" stopColor="#181818" stopOpacity={1} />
-            <Stop offset="1" stopColor="#1D1D1D" stopOpacity={1} />
+            <Stop offset="0" stopColor="#FF1493" stopOpacity={0.3} />
+            <Stop offset="0.6352" stopColor="#8B008B" stopOpacity={0.2} />
+            <Stop offset="1" stopColor="#000000" stopOpacity={1} />
           </RadialGradient>
         </Defs>
         <Rect

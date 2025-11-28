@@ -51,7 +51,7 @@ export default function ChatInputAttachmentChip({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: colors.card,
-        borderRadius: 16,
+        borderRadius: 11,
         padding: 12,
         gap: 8,
         marginRight: 8,

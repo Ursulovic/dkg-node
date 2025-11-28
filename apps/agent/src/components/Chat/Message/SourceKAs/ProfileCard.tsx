@@ -60,7 +60,7 @@ export default function ChatMessageSourceKAsProfileCard({
     <View
       style={{
         backgroundColor: colors.card,
-        borderRadius: 16,
+        borderRadius: 11,
         flex: 1,
         padding: 16,
         gap: 24,

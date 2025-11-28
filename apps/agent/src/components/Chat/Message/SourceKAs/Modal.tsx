@@ -60,7 +60,7 @@ export default function ChatMessageSourceKAsModal(props: {
             {
               width: "100%",
               height: "100%",
-              borderRadius: 8,
+              borderRadius: 6,
               overflow: "hidden",
             },
             sizeStyle,

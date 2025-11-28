@@ -47,7 +47,7 @@ const Button = forwardRef<
       style={[
         styles.button,
         { backgroundColor },
-        (!flat || !text) && { borderRadius: 50 },
+        (!flat || !text) && { borderRadius: 35 },
         !flat && { padding: 12 },
         disabled || flat ? styles.buttonShadowDisabled : styles.buttonShadow,
         style,

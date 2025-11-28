@@ -47,7 +47,7 @@ export default function ChatMessageSourceKAsCollapsibleItem({
         {
           padding: 16,
           backgroundColor: colors.card,
-          borderRadius: 16,
+          borderRadius: 11,
         },
         !collapsed && {
           backgroundColor: colors.card + "25",
@@ -91,7 +91,7 @@ export default function ChatMessageSourceKAsCollapsibleItem({
                 height: 200,
                 width: "100%",
                 backgroundColor: colors.card,
-                borderRadius: 16,
+                borderRadius: 11,
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -122,7 +122,7 @@ export default function ChatMessageSourceKAsCollapsibleItem({
             <View
               style={{
                 backgroundColor: colors.card,
-                borderRadius: 16,
+                borderRadius: 11,
                 flex: 2,
                 justifyContent: "center",
                 alignItems: "center",

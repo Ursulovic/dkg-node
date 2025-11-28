@@ -2,34 +2,25 @@ import { useMemo } from "react";
 
 import { useColorScheme } from "./useColorScheme";
 
-const darkTheme = {
-  background: "#1F2E7E33",
-  backgroundFlat: "#343747",
+const biasLensTheme = {
+  background: "#000000",
+  backgroundFlat: "#0a0a0a",
   text: "#FFFFFF",
-  primary: "#6344DF",
+  primary: "#FF1493",
   primaryText: "#FFFFFF",
-  secondary: "#A8AAF9",
-  card: "#171A26",
-  cardText: "#A8AAF9",
-  card2: "#00000040",
-  input: "#171A26",
-  placeholder: "#DCDCDC",
+  secondary: "#C71585",
+  card: "#0f0f0f",
+  cardText: "#FAFAFA",
+  card2: "#00000080",
+  input: "#1a1a1a",
+  placeholder: "#666666",
   error: "#FF0000",
+  networkLight: "#FF69B466",
+  networkDark: "#8B008B66",
 };
-const lightTheme: typeof darkTheme = {
-  background: "#F8F8F8",
-  backgroundFlat: "#F8F8F8",
-  text: "#000000",
-  primary: "#6344DF",
-  primaryText: "#FFFFFF",
-  secondary: "#302A5C",
-  card: "#FFFFFF",
-  cardText: "#302A5C",
-  card2: "#00000040",
-  input: "#E3DEFC",
-  placeholder: "#766DAF",
-  error: "#E74C3C",
-};
+
+const darkTheme = biasLensTheme;
+const lightTheme: typeof darkTheme = biasLensTheme;
 
 export type Color = keyof typeof darkTheme;
 
