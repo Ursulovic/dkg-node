@@ -1,9 +1,15 @@
+import { privateKeyToAddress } from "viem/accounts";
+
+const dkgWalletPrivateKey = process.env.DKG_PUBLISH_WALLET as `0x${string}` | undefined;
+
 export const x402Config = {
   network: "base-sepolia" as const,
 
-  serverWalletAddress: process.env.PUBLISHER_WALLET_ADDRESS ?? "",
+  serverWalletAddress: dkgWalletPrivateKey
+    ? privateKeyToAddress(dkgWalletPrivateKey)
+    : "",
 
-  clientPrivateKey: process.env.X402_CLIENT_PRIVATE_KEY,
+  clientPrivateKey: process.env.DKG_PUBLISH_WALLET,
 
   facilitatorUrl: "https://x402.org/facilitator",
 
