@@ -8,14 +8,14 @@ import {
   REPUTATION_UI_URL,
 } from "./reputation/config.js";
 
-const title = "Get Report Reputation";
-const name = "get-report-reputation";
-const description = `Get the reputation/credibility score for a knowledge asset on the DKG.
+const title = "Get Knowledge Asset Reputation";
+const name = "get-knowledge-asset-reputation";
+const description = `Get the reputation/credibility score for a Knowledge Asset on the DKG.
 
-**When to use:** User wants to know the community trust score for a bias report or knowledge asset.
+**When to use:** User wants to know the community trust score for a Knowledge Asset.
 
 **Input:**
-- identifier: Either a UAL (did:dkg:otp:20430/...) or just the token ID number
+- ual: Knowledge Asset UAL (e.g., did:dkg:otp:20430/0x.../12345) or DKG Explorer URL
 
 **Output:** Returns:
 - Credibility score (0-100%)
@@ -26,22 +26,42 @@ const description = `Get the reputation/credibility score for a knowledge asset 
 **Note:** Reputation data comes from the BiasLensReputation smart contract on NeuroWeb Testnet.`;
 
 const inputSchema = {
-  identifier: z.string().describe("UAL (did:dkg:otp:20430/...) or token ID number"),
+  ual: z.string().describe("Knowledge Asset UAL (e.g., did:dkg:otp:20430/0x.../12345) or DKG Explorer URL"),
 };
 
-function extractTokenId(identifier: string): bigint {
-  const trimmed = identifier.trim();
+function extractTokenIdFromUal(ual: string): bigint {
+  const trimmed = ual.trim();
 
+  // Handle plain number (legacy support)
   if (/^\d+$/.test(trimmed)) {
     return BigInt(trimmed);
   }
 
+  // Handle DKG Explorer URL: https://dkg-testnet.origintrail.io/explore?ual=did:dkg:otp:20430/...
+  if (trimmed.includes("dkg") && trimmed.includes("explore")) {
+    const urlMatch = trimmed.match(/[?&]ual=([^&]+)/);
+    if (urlMatch && urlMatch[1]) {
+      const decodedUal = decodeURIComponent(urlMatch[1]);
+      const tokenIdMatch = decodedUal.match(/\/(\d+)$/);
+      if (tokenIdMatch && tokenIdMatch[1]) {
+        return BigInt(tokenIdMatch[1]);
+      }
+    }
+  }
+
+  // Handle UAL format: did:dkg:otp:20430/0x.../12345
   const ualMatch = trimmed.match(/\/(\d+)$/);
   if (ualMatch && ualMatch[1]) {
     return BigInt(ualMatch[1]);
   }
 
-  throw new Error(`Invalid identifier: ${identifier}. Expected UAL or token ID.`);
+  throw new Error(`Invalid UAL: ${ual}. Expected format: did:dkg:otp:20430/0x.../12345 or DKG Explorer URL`);
+}
+
+function normalizeUalChainId(ual: string, chainId: number): string {
+  // Fix chain ID in UAL to match the network we're connected to
+  // e.g., replace "otp:2043/" with "otp:20430/" for testnet
+  return ual.replace(/otp:\d+\//, `otp:${chainId}/`);
 }
 
 export const registerGetReputation: DkgPlugin = (_, mcp) => {
@@ -53,11 +73,11 @@ export const registerGetReputation: DkgPlugin = (_, mcp) => {
   mcp.registerTool(
     name,
     { title, description, inputSchema },
-    async ({ identifier }) => {
+    async ({ ual }) => {
       try {
-        const tokenId = extractTokenId(identifier);
+        const tokenId = extractTokenIdFromUal(ual);
 
-        const [credibility, score, totalStaked, isRegistered, ual] = await Promise.all([
+        const [credibility, score, totalStaked, isRegistered, assetUal] = await Promise.all([
           client.readContract({
             address: BIAS_LENS_REPUTATION_ADDRESS,
             abi: BIAS_LENS_REPUTATION_ABI,
@@ -94,19 +114,20 @@ export const registerGetReputation: DkgPlugin = (_, mcp) => {
         const totalStakedFormatted = formatUnits(totalStaked, 18);
         const credibilityColor = credibility >= 70n ? "HIGH" : credibility >= 40n ? "MEDIUM" : "LOW";
 
-        const voteUrl = `${REPUTATION_UI_URL}?tokenId=${tokenId}`;
-        const dkgExplorerUrl = `https://dkg-testnet.origintrail.io/explore?ual=${encodeURIComponent(ual)}`;
+        const normalizedUal = normalizeUalChainId(assetUal, neurowebTestnet.id);
+        const voteUrl = `${REPUTATION_UI_URL}?ual=${encodeURIComponent(normalizedUal)}`;
+        const dkgExplorerUrl = `https://dkg-testnet.origintrail.io/explore?ual=${encodeURIComponent(normalizedUal)}`;
 
         if (!isRegistered) {
           return {
             content: [
               {
                 type: "text",
-                text: `**Token #${tokenId}** - No votes yet
+                text: `**Knowledge Asset** - No votes yet
 
-This knowledge asset hasn't received any reputation votes.
+This Knowledge Asset hasn't received any reputation votes.
 
-**UAL:** ${ual}
+**UAL:** ${normalizedUal}
 **DKG Explorer:** ${dkgExplorerUrl}
 
 Be the first to vote: ${voteUrl}`,
@@ -115,16 +136,16 @@ Be the first to vote: ${voteUrl}`,
           };
         }
 
-        const text = `**Token #${tokenId}** - Reputation Score
+        const text = `**Knowledge Asset** - Reputation Score
 
 **Credibility:** ${credibility}% (${credibilityColor})
 **Net Score:** ${scoreNum >= 0 ? "+" : ""}${formatUnits(BigInt(scoreNum), 18)} TRAC
 **Total Staked:** ${parseFloat(totalStakedFormatted).toFixed(2)} TRAC
 
-**UAL:** ${ual}
+**UAL:** ${normalizedUal}
 **DKG Explorer:** ${dkgExplorerUrl}
 
-**Vote on this report:** ${voteUrl}`;
+**Vote on this Knowledge Asset:** ${voteUrl}`;
 
         return {
           content: [{ type: "text", text }],

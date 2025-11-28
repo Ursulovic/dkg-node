@@ -18,28 +18,28 @@ import {
   REPUTATION_UI_URL,
 } from "./reputation/config.js";
 
-const upvoteTitle = "Upvote Bias Report";
-const upvoteName = "upvote-bias-report";
-const upvoteDescription = `Upvote a bias report on the DKG by staking TRAC tokens.
+const upvoteTitle = "Upvote Knowledge Asset";
+const upvoteName = "upvote-knowledge-asset";
+const upvoteDescription = `Upvote a Knowledge Asset on the DKG by staking TRAC tokens.
 
-**When to use:** User wants to support/validate a bias report's credibility.
+**When to use:** User wants to support/validate a Knowledge Asset's credibility.
 
 **Input:**
-- identifier: Either a UAL (did:dkg:otp:20430/...) or just the token ID number
+- ual: Knowledge Asset UAL (e.g., did:dkg:otp:20430/0x.../12345) or DKG Explorer URL
 - amount: Amount of TRAC to stake (e.g., "1.0" for 1 TRAC)
 
 **Output:** Transaction confirmation with updated reputation score.
 
 **Note:** Uses the node's configured wallet (DKG_PUBLISH_WALLET). Requires TRAC tokens.`;
 
-const downvoteTitle = "Downvote Bias Report";
-const downvoteName = "downvote-bias-report";
-const downvoteDescription = `Downvote a bias report on the DKG by staking TRAC tokens.
+const downvoteTitle = "Downvote Knowledge Asset";
+const downvoteName = "downvote-knowledge-asset";
+const downvoteDescription = `Downvote a Knowledge Asset on the DKG by staking TRAC tokens.
 
-**When to use:** User wants to dispute/challenge a bias report's credibility.
+**When to use:** User wants to dispute/challenge a Knowledge Asset's credibility.
 
 **Input:**
-- identifier: Either a UAL (did:dkg:otp:20430/...) or just the token ID number
+- ual: Knowledge Asset UAL (e.g., did:dkg:otp:20430/0x.../12345) or DKG Explorer URL
 - amount: Amount of TRAC to stake (e.g., "1.0" for 1 TRAC)
 
 **Output:** Transaction confirmation with updated reputation score.
@@ -47,23 +47,43 @@ const downvoteDescription = `Downvote a bias report on the DKG by staking TRAC t
 **Note:** Uses the node's configured wallet (DKG_PUBLISH_WALLET). Requires TRAC tokens.`;
 
 const inputSchema = {
-  identifier: z.string().describe("UAL (did:dkg:otp:20430/...) or token ID number"),
+  ual: z.string().describe("Knowledge Asset UAL (e.g., did:dkg:otp:20430/0x.../12345) or DKG Explorer URL"),
   amount: z.string().describe("Amount of TRAC to stake (e.g., '1.0' for 1 TRAC)"),
 };
 
-function extractTokenId(identifier: string): bigint {
-  const trimmed = identifier.trim();
+function extractTokenIdFromUal(ual: string): bigint {
+  const trimmed = ual.trim();
 
+  // Handle plain number (legacy support)
   if (/^\d+$/.test(trimmed)) {
     return BigInt(trimmed);
   }
 
+  // Handle DKG Explorer URL: https://dkg-testnet.origintrail.io/explore?ual=did:dkg:otp:20430/...
+  if (trimmed.includes("dkg") && trimmed.includes("explore")) {
+    const urlMatch = trimmed.match(/[?&]ual=([^&]+)/);
+    if (urlMatch && urlMatch[1]) {
+      const decodedUal = decodeURIComponent(urlMatch[1]);
+      const tokenIdMatch = decodedUal.match(/\/(\d+)$/);
+      if (tokenIdMatch && tokenIdMatch[1]) {
+        return BigInt(tokenIdMatch[1]);
+      }
+    }
+  }
+
+  // Handle UAL format: did:dkg:otp:20430/0x.../12345
   const ualMatch = trimmed.match(/\/(\d+)$/);
   if (ualMatch && ualMatch[1]) {
     return BigInt(ualMatch[1]);
   }
 
-  throw new Error(`Invalid identifier: ${identifier}. Expected UAL or token ID.`);
+  throw new Error(`Invalid UAL: ${ual}. Expected format: did:dkg:otp:20430/0x.../12345 or DKG Explorer URL`);
+}
+
+function normalizeUalChainId(ual: string, chainId: number): string {
+  // Fix chain ID in UAL to match the network we're connected to
+  // e.g., replace "otp:2043/" with "otp:20430/" for testnet
+  return ual.replace(/otp:\d+\//, `otp:${chainId}/`);
 }
 
 function getPrivateKey(): Hex {
@@ -82,7 +102,7 @@ export const registerVoteOnReport: DkgPlugin = (_, mcp) => {
     transport: http(),
   });
 
-  const createVoteHandler = (isUpvote: boolean) => async ({ identifier, amount }: { identifier: string; amount: string }) => {
+  const createVoteHandler = (isUpvote: boolean) => async ({ ual, amount }: { ual: string; amount: string }) => {
     try {
       const privateKey = getPrivateKey();
       const account = privateKeyToAccount(privateKey);
@@ -93,7 +113,7 @@ export const registerVoteOnReport: DkgPlugin = (_, mcp) => {
         transport: http(),
       });
 
-      const tokenId = extractTokenId(identifier);
+      const tokenId = extractTokenIdFromUal(ual);
       const amountInWei = parseUnits(amount, 18);
 
       const balance = await publicClient.readContract({
@@ -147,7 +167,7 @@ Get TRAC tokens on NeuroWeb Testnet to vote.`,
 
       await publicClient.waitForTransactionReceipt({ hash: voteHash });
 
-      const [credibility, score, totalStaked, ual] = await Promise.all([
+      const [credibility, score, totalStaked, assetUal] = await Promise.all([
         publicClient.readContract({
           address: BIAS_LENS_REPUTATION_ADDRESS,
           abi: BIAS_LENS_REPUTATION_ABI,
@@ -179,8 +199,9 @@ Get TRAC tokens on NeuroWeb Testnet to vote.`,
       const voteType = isUpvote ? "Upvote" : "Downvote";
       const emoji = isUpvote ? "+" : "-";
 
-      const voteUrl = `${REPUTATION_UI_URL}?tokenId=${tokenId}`;
-      const dkgExplorerUrl = `https://dkg-testnet.origintrail.io/explore?ual=${encodeURIComponent(ual)}`;
+      const normalizedUal = normalizeUalChainId(assetUal, neurowebTestnet.id);
+      const voteUrl = `${REPUTATION_UI_URL}?ual=${encodeURIComponent(normalizedUal)}`;
+      const dkgExplorerUrl = `https://dkg-testnet.origintrail.io/explore?ual=${encodeURIComponent(normalizedUal)}`;
       const txUrl = `https://neuroweb-testnet.subscan.io/tx/${voteHash}`;
 
       return {
@@ -188,13 +209,13 @@ Get TRAC tokens on NeuroWeb Testnet to vote.`,
           type: "text" as const,
           text: `**${voteType} Successful!** ${emoji}${amount} TRAC
 
-**Token #${tokenId}** - Updated Reputation
+**Knowledge Asset** - Updated Reputation
 
 **Credibility:** ${credibility}%
 **Net Score:** ${scoreNum >= 0 ? "+" : ""}${formatUnits(BigInt(scoreNum), 18)} TRAC
 **Total Staked:** ${parseFloat(totalStakedFormatted).toFixed(2)} TRAC
 
-**UAL:** ${ual}
+**UAL:** ${normalizedUal}
 **DKG Explorer:** ${dkgExplorerUrl}
 **Transaction:** ${txUrl}
 
