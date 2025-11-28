@@ -134,7 +134,7 @@ export default function Markdown({
           fontSize: 14,
           paddingHorizontal: 4,
           paddingVertical: 2,
-          borderRadius: 4,
+          borderRadius: 3,
         },
         code_block: {
           backgroundColor: colors.background,
@@ -142,7 +142,7 @@ export default function Markdown({
           fontFamily: "monospace",
           fontSize: 14,
           padding: 16,
-          borderRadius: 8,
+          borderRadius: 6,
           marginVertical: 16,
         },
         fence: {
@@ -151,7 +151,7 @@ export default function Markdown({
           fontFamily: "monospace",
           fontSize: 14,
           padding: 16,
-          borderRadius: 8,
+          borderRadius: 6,
           marginVertical: 16,
         },
         list_item: {

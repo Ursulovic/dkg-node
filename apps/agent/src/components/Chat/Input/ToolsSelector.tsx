@@ -23,7 +23,7 @@ export default function ChatInputToolsSelector({
         maxWidth: 530,
         maxHeight: 220,
         backgroundColor: colors.card,
-        borderRadius: 16,
+        borderRadius: 11,
         padding: 8,
       }}
     >

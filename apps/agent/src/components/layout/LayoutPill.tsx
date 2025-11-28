@@ -17,7 +17,7 @@ export default function LayoutPill({ children, style, ...props }: ViewProps) {
           {
             height: 80,
             width: "100%",
-            borderRadius: 40,
+            borderRadius: 28,
             backgroundColor: cardColor,
             display: "flex",
             flexDirection: "row",

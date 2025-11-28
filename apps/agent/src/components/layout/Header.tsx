@@ -11,10 +11,10 @@ export default function Header({
   handleLogout?: () => void;
 }) {
   return (
-    <LayoutPill>
+    <LayoutPill style={{ backgroundColor: "transparent" }}>
       <HeaderLogo
         image={require("../../assets/logo.svg")}
-        text="DKG Agent"
+        text=""
         textFont="SpaceGrotesk_400Regular"
         style={[
           { flex: 1 },

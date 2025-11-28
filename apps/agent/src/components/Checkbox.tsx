@@ -35,7 +35,7 @@ export default function Checkbox(
             width: 18,
             height: 18,
             borderWidth: 1,
-            borderRadius: 4,
+            borderRadius: 3,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",

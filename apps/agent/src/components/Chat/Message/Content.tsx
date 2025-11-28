@@ -27,7 +27,7 @@ function ImageContent(props: { url: string; authToken?: string }) {
       style={{
         height: 300,
         width: !image ? 300 : image.width / (image.height / 300),
-        borderRadius: 12,
+        borderRadius: 8,
       }}
       contentFit="cover"
     />

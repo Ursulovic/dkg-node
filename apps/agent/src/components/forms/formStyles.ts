@@ -15,7 +15,7 @@ const formStyles = StyleSheet.create({
     marginBottom: 30,
   },
   input: {
-    borderRadius: 50,
+    borderRadius: 35,
     paddingHorizontal: 20,
     paddingVertical: 14,
     height: 45,

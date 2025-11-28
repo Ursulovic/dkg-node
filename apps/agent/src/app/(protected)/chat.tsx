@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { View, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
+import { View, Platform, KeyboardAvoidingView, ScrollView, Text } from "react-native";
 import { Image } from "expo-image";
 import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
@@ -296,15 +296,43 @@ export default function ChatPage() {
         >
           <Container
             style={[
-              { paddingBottom: 0 },
-              isLandingScreen && { flex: null as any },
+              { paddingBottom: 0, flex: 1 },
+              isLandingScreen && { display: "flex", flexDirection: "column" },
             ]}
           >
             <Header handleLogout={() => mcp.disconnect()} />
+            {isLandingScreen && (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 24,
+                }}
+              >
+                <Image
+                  source={require("@/assets/magnifying-glass.svg")}
+                  style={{ width: 80, height: 80, marginRight: 12 }}
+                  contentFit="contain"
+                  testID="app-logo"
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontFamily: "SpaceGrotesk_500Medium",
+                    color: colors.text,
+                    textAlign: "center",
+                  }}
+                >
+                  Let's detect bias...
+                </Text>
+              </View>
+            )}
             <Chat.Messages
               ref={chatMessagesRef}
               style={[
                 {
+                  flex: isLandingScreen ? 0 : 1,
                   width: "100%",
                   marginHorizontal: "auto",
                   maxWidth: 800,
@@ -461,13 +489,6 @@ export default function ChatPage() {
                 justifyContent: "center",
               }}
             >
-              {isLandingScreen && (
-                <Image
-                  source={require("@/assets/logo.svg")}
-                  style={{ width: 100, height: 100, marginBottom: 24 }}
-                  testID="app-logo"
-                />
-              )}
               <Chat.Input
                 onSendMessage={sendMessage}
                 onUploadFiles={(assets) =>

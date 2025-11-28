@@ -31,7 +31,7 @@ export default function ChatMessageSourceKAsChip({
           flexDirection: "row",
           alignItems: "center",
           backgroundColor: colors.card,
-          borderRadius: 16,
+          borderRadius: 11,
           height: 64,
           padding: 8,
           gap: 8,
