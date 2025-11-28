@@ -8,7 +8,7 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 
 import { generatePrompt } from "./prompt.js";
-import { LLMResponseJsonSchema } from "./schema.js";
+import { LLMResponseJsonSchema } from "./llm-schema.js";
 
 import { createResearchClaimTool } from "../claim-researcher/agent.js";
 import { DEPTH_CONFIGS, type AnalysisDepth } from "../../types/depth.js";

@@ -12,8 +12,11 @@
     "lint": "eslint . --max-warnings 0",
     "test": "npx mocha --import=tsx 'tests/**/*.spec.ts'",
     "reset-vector-db": "tsx scripts/reset-vector-db.ts",
+    "build-ontologies": "tsx scripts/build-ontologies.ts",
+    "search-schema": "tsx scripts/search-schema.ts",
     "fetch-wikidata-cache": "tsx scripts/fetch-wikidata-cache.ts",
     "update-wikidata-cache": "npm run fetch-wikidata-cache",
+    "sparql": "tsx scripts/execute-sparql.ts",
     "postinstall": "patch-package"
   },
   "dependencies": {
@@ -25,6 +28,7 @@
     "@langchain/google-genai": "^1.0.1",
     "@langchain/openai": "^1.1.1",
     "@langchain/tavily": "^1.0.0",
+    "@types/n3": "^1.26.1",
     "cheerio": "^1.1.2",
     "dotenv": "^16.4.5",
     "faiss-node": "^0.5.1",
@@ -32,6 +36,8 @@
     "jsonld": "^9.0.0",
     "langchain": "^1.0.4",
     "langsmith": "^0.3.75",
+    "n3": "^1.26.0",
+    "sparqljs": "^3.7.3",
     "turndown": "^7.2.2",
     "viem": "^2.40.3",
     "zod": "^3.23.8"
@@ -41,6 +47,7 @@
     "@dkg/typescript-config": "*",
     "@types/jsonld": "^1.5.15",
     "@types/sinon": "^21.0.0",
+    "@types/sparqljs": "^3.1.12",
     "@types/turndown": "^5.0.6",
     "patch-package": "^8.0.1",
     "sinon": "^21.0.0",
