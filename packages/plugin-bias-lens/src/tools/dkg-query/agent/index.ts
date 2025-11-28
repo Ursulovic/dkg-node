@@ -44,9 +44,14 @@ export const runDkgQueryAgent = traceable(
   async (input: DkgQueryInput, dkgClient: DkgClient): Promise<DkgQueryResult> => {
     const agent = createDkgQueryAgent(dkgClient);
 
-    const result = await agent.invoke({
-      messages: [{ role: "user", content: input.query }],
-    });
+    const result = await agent.invoke(
+      {
+        messages: [{ role: "user", content: input.query }],
+      },
+      {
+        recursionLimit: 20,
+      }
+    );
 
     const executedQueries: string[] = [];
     for (const message of result.messages as AgentMessage[]) {
